@@ -3,7 +3,7 @@ import axios from 'axios';
 // ── API Base URL ──────────────────────────────────────────────────────────────
 // Default to port 5001 (the actual backend port).
 // Override via NEXT_PUBLIC_API_URL in .env.local for production.
-const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'https://vertex-crm.onrender.com/api';
 const API_URL = rawUrl.endsWith('/') ? rawUrl : `${rawUrl}/`;
 
 const api = axios.create({

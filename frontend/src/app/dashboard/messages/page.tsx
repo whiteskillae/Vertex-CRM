@@ -54,7 +54,7 @@ export default function MessagesPage() {
     if (!user) return;
     const socketUrl = process.env.NEXT_PUBLIC_API_URL 
       ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') 
-      : 'http://localhost:5001';
+      : 'https://vertex-crm.onrender.com';
       
     const s = io(socketUrl, {
       auth: { token: localStorage.getItem("token") }
