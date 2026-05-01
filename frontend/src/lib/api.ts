@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
 // ── API Base URL ──────────────────────────────────────────────────────────────
 const getBaseUrl = () => {
@@ -26,7 +26,7 @@ const api = axios.create({
 
 // ── Request Interceptor: Attach JWT token ─────────────────────────────────────
 api.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     if (typeof window !== 'undefined') {
       let token = localStorage.getItem('token');
       // ── FIX: Ensure we don't send "null" or "undefined" as strings ──────────
@@ -41,13 +41,13 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error: AxiosError) => Promise.reject(error)
 );
 
 // ── Response Interceptor: Auto-logout on 401 ─────────────────────────────────
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  (response: AxiosResponse) => response,
+  (error: AxiosError) => {
     if (
       error.response?.status === 401 &&
       typeof window !== 'undefined' &&

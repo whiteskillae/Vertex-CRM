@@ -5,9 +5,19 @@ let io;
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: process.env.CORS_ORIGINS 
-        ? process.env.CORS_ORIGINS.split(',').map(o => o.trim()) 
-        : ['http://localhost:3000', 'http://localhost:3001'],
+      origin: (origin, callback) => {
+        const allowedOrigins = [
+          'http://localhost:3000',
+          'http://localhost:3001',
+          'https://vertex-crm-three.vercel.app',
+          'https://vertex-crm.onrender.com'
+        ];
+        if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.includes('render.com')) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       methods: ['GET', 'POST'],
       credentials: true
     }

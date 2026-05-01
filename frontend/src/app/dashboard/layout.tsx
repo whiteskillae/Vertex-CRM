@@ -80,10 +80,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       setHasNewTasks(
         Array.isArray(tasks) &&
-          tasks.some((t: any) => new Date(t.createdAt) > lastTasksRead)
+          tasks.some((t: { createdAt: string }) => new Date(t.createdAt) > lastTasksRead)
       );
       setHasNewMessages(
-        Array.isArray(msgs) && msgs.some((m: any) => !m.isSeen && m.receiverId === user._id)
+        Array.isArray(msgs) && msgs.some((m: { isSeen: boolean; receiverId: string | { _id: string } }) => {
+          const receiverId = typeof m.receiverId === 'string' ? m.receiverId : m.receiverId?._id;
+          return !m.isSeen && receiverId === user._id;
+        })
       );
     } catch {
       // Non-blocking — notifications are cosmetic
@@ -114,7 +117,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (!socket) return;
 
-    const onNotification = (notif: any) => {
+    const onNotification = (notif: { type: string }) => {
       if (notif.type === "task_reassigned" || notif.type === "task_submission") {
         setHasNewTasks(true);
       }

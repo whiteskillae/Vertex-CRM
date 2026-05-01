@@ -14,13 +14,36 @@ import Link from "next/link";
 
 type Tab = 'active' | 'pending' | 'blocked' | 'trash';
 
+interface Node {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+  jobType?: string;
+  phone?: string;
+  isDeleted?: boolean;
+}
+
+interface AnalysisData {
+  tasks: any[];
+  reports: any[];
+  stats: {
+    doneTasks: number;
+    totalTasks: number;
+    taskRate: string;
+    totalReports: number;
+    doneReports: number;
+    score: number;
+  };
+}
+
 export default function PersonnelPage() {
   const [tab, setTab] = useState<Tab>('active');
-  const [nodes, setNodes] = useState<any[]>([]);
+  const [nodes, setNodes] = useState<Node[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [analysisNode, setAnalysisNode] = useState<any>(null);
-  const [analysisData, setAnalysisData] = useState<any>(null);
+  const [analysisNode, setAnalysisNode] = useState<Node | null>(null);
+  const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const { user } = useAuth();
 
@@ -73,7 +96,7 @@ export default function PersonnelPage() {
     }
   };
 
-  const handleAnalyse = async (node: any) => {
+  const handleAnalyse = async (node: Node) => {
     setAnalysisNode(node);
     setAnalyzing(true);
     try {
@@ -386,7 +409,7 @@ export default function PersonnelPage() {
                           <Activity className="h-4 w-4" /> Recent Mission Logs
                         </h5>
                         <div className="space-y-2">
-                          {analysisData.reports.slice(0, 5).map((r: any) => (
+                          {analysisData.reports.slice(0, 5).map((r: { _id: string; missionType?: string; status: string }) => (
                             <div key={r._id} className="p-4 border-2 border-black flex justify-between items-center text-[10px] font-bold uppercase italic">
                               <span>Mission: {r.missionType || 'INTEL'}</span>
                               <span className={r.status === 'done' ? 'text-green-600' : 'text-orange-500'}>{r.status}</span>

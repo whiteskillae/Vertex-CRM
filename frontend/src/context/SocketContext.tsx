@@ -29,8 +29,8 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
       socketInstance.on('connect', () => {
         setIsConnected(true);
-        socketInstance.emit('join', user._id || user.id);
-        console.log('Socket connected and joined room:', user.id);
+        socketInstance.emit('join', user._id);
+        console.log('Socket connected and joined room:', user._id);
       });
 
       socketInstance.on('disconnect', () => {

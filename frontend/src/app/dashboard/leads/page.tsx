@@ -15,21 +15,45 @@ import * as XLSX from "xlsx";
 
 type Tab = "active" | "trash" | "personnel";
 
+interface Lead {
+  _id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  source: string;
+  status: 'new' | 'contacted' | 'qualified' | 'closed' | 'lost';
+  assignedTo?: {
+    _id: string;
+    name: string;
+  } | any;
+  createdAt: string;
+}
+
+interface Employee {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+  phone?: string;
+  isDeleted?: boolean;
+}
+
 export default function LeadsPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { addToTrash, getByType, removeFromTrash, clearTrash } = useTrash();
 
   const [activeTab, setActiveTab] = useState<Tab>("active");
-  const [leads, setLeads] = useState<any[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [analysisNode, setAnalysisNode] = useState<any>(null);
+  const [analysisNode, setAnalysisNode] = useState<Employee | null>(null);
   const [analysisData, setAnalysisData] = useState<any>(null);
   const [analyzing, setAnalyzing] = useState(false);
   
@@ -76,9 +100,8 @@ export default function LeadsPage() {
   const fetchEmployees = useCallback(async () => {
     try {
       const { data } = await api.get("auth/contacts");
-      const list = Array.isArray(data) ? data : (data?.users || []);
-      // Reverting to less restrictive filter to show all non-deleted users
-      setEmployees(list.filter((u: any) => !u.isDeleted));
+      const list: Employee[] = Array.isArray(data) ? data : (data?.users || []);
+      setEmployees(list.filter((u) => !u.isDeleted));
     } catch (err) {
       console.error("Failed to fetch employees", err);
     }
@@ -145,14 +168,14 @@ export default function LeadsPage() {
     }
   };
 
-  const handleDeleteLead = async (lead: any) => {
+  const handleDeleteLead = async (lead: Lead) => {
     if (!confirm(`Move ${lead.name} to local trash hub?`)) return;
     try {
       addToTrash({ id: lead._id, type: "lead", data: lead });
       await api.delete(`leads/${lead._id}`);
       fetchLeads();
       setMessage({ text: "Entity moved to trash hub", type: "success" });
-    } catch (err) {
+    } catch {
       setMessage({ text: "Deauthorization failed", type: "error" });
     }
   };
@@ -190,7 +213,7 @@ export default function LeadsPage() {
     }
   };
 
-  const handleAnalyse = async (emp: any) => {
+  const handleAnalyse = async (emp: Employee) => {
     setAnalysisNode(emp);
     setAnalyzing(true);
     try {
@@ -337,7 +360,7 @@ export default function LeadsPage() {
                         <td className="p-5">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-zinc-100 border-2 border-black flex items-center justify-center text-[10px] font-black">
-                              {lead.assignedTo?.name?.[0] || lead.assignedTo?.name?.[0] || "?"}
+                              {lead.assignedTo?.name?.[0] || "?"}
                             </div>
                             <span className="text-[10px] font-black uppercase">{lead.assignedTo?.name || "UNASSIGNED"}</span>
                           </div>
@@ -514,7 +537,7 @@ export default function LeadsPage() {
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <label className="text-[10px] font-black uppercase block mb-2 tracking-widest">Status</label>
-                    <select value={selectedLead.status} onChange={(e) => setSelectedLead({...selectedLead, status: e.target.value})} className="w-full border-4 border-black p-5 text-sm font-black uppercase outline-none bg-white">
+                    <select value={selectedLead.status} onChange={(e) => setSelectedLead({...selectedLead, status: e.target.value as any})} className="w-full border-4 border-black p-5 text-sm font-black uppercase outline-none focus:bg-zinc-50 transition-all appearance-none bg-white">
                       <option value="new">NEW</option>
                       <option value="contacted">CONTACTED</option>
                       <option value="qualified">QUALIFIED</option>
@@ -524,7 +547,7 @@ export default function LeadsPage() {
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase block mb-2 tracking-widest">Assign Intel</label>
-                    <select value={selectedLead.assignedTo?._id || selectedLead.assignedTo || ""} onChange={(e) => setSelectedLead({...selectedLead, assignedTo: e.target.value})} className="w-full border-4 border-black p-5 text-sm font-black uppercase outline-none bg-white">
+                    <select value={(typeof selectedLead.assignedTo === 'object' ? selectedLead.assignedTo?._id : selectedLead.assignedTo) || ""} onChange={(e) => setSelectedLead({...selectedLead, assignedTo: e.target.value})} className="w-full border-4 border-black p-5 text-sm font-black uppercase outline-none focus:bg-zinc-50 transition-all appearance-none bg-white">
                       <option value="">UNASSIGNED</option>
                       {employees.map(emp => <option key={emp._id} value={emp._id}>{emp.name.toUpperCase()}</option>)}
                     </select>
@@ -600,7 +623,7 @@ export default function LeadsPage() {
                       <div className="space-y-4 pt-4 border-t-4 border-black">
                         <h5 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2"><FileSearch className="h-4 w-4" /> Recent Mission Logs</h5>
                         <div className="space-y-2">
-                          {analysisData.reports.slice(0, 5).map((r: any) => (
+                          {analysisData.reports.slice(0, 5).map((r: { _id: string; missionType?: string; status: string }) => (
                             <div key={r._id} className="p-4 border-2 border-black flex justify-between items-center text-[10px] font-bold uppercase italic">
                               <span>Mission: {r.missionType || 'INTEL'}</span>
                               <span className={r.status === 'done' ? 'text-green-600' : 'text-orange-500'}>{r.status}</span>

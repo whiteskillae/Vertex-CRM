@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api from "@/lib/api";
 import { 
   HardDrive, Trash2, Search, FileText, Image as ImageIcon, 
@@ -28,11 +28,7 @@ export default function StoragePage() {
   const [filterSource, setFilterSource] = useState("all");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchFiles();
-  }, []);
-
-  const fetchFiles = async () => {
+  const fetchFiles = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await api.get("storage");
@@ -42,7 +38,11 @@ export default function StoragePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchFiles();
+  }, [fetchFiles]);
 
   const handleDelete = async (file: StorageFile) => {
     if (!confirm("PERMANENT PURGE: This will delete the file from the database AND Cloudinary. Are you sure?")) return;

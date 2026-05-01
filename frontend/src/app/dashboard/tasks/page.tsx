@@ -15,12 +15,37 @@ import { format } from "date-fns";
 import { useAuth } from "@/context/AuthContext";
 import { useTrash } from "@/hooks/useTrash";
 
+interface Task {
+  _id: string;
+  title: string;
+  description?: string;
+  status: 'todo' | 'review' | 'completed';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  assignedTo?: {
+    _id: string;
+    name: string;
+  } | any;
+  dueDate?: string;
+  reassignmentMessage?: string;
+  submission?: string;
+  submissionAttachment?: string;
+  history: any[];
+  createdAt: string;
+}
+
+interface Employee {
+  _id: string;
+  name: string;
+  role: string;
+  isDeleted?: boolean;
+}
+
 export default function TasksPage() {
   const { user } = useAuth();
   const { addToTrash, getByType, removeFromTrash, clearTrash } = useTrash();
 
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"active" | "trash">("active");
   const [submittingId, setSubmittingId] = useState<string | null>(null);
@@ -61,9 +86,8 @@ export default function TasksPage() {
     try {
       const contacts = await api.get('auth/contacts');
       const data = contacts.data;
-      const contactList = Array.isArray(data) ? data : (data?.users || []);
-      // Reverting to less restrictive filter as requested/manually edited by user
-      const filtered = contactList.filter((e: any) => !e.isDeleted);
+      const contactList: Employee[] = Array.isArray(data) ? data : (data?.users || []);
+      const filtered = contactList.filter((e) => !e.isDeleted);
       setEmployees(filtered);
     } catch (err) {
       console.error("Failed to fetch contacts", err);
@@ -83,18 +107,15 @@ export default function TasksPage() {
     e.preventDefault();
     setProcessing(true);
     try {
-      const payload: any = {
+      const payload: Partial<Task> & { assignedTo?: string } = {
         title: newTitle,
         description: newDescription,
-        priority: newPriority,
+        priority: newPriority as any,
         dueDate: newDueDate
       };
 
       if (newAssignedTo) {
         payload.assignedTo = newAssignedTo;
-      } else if (!editingTask) {
-        // Only require assignedTo for new tasks if not editing
-        payload.assignedTo = "";
       }
 
       if (editingTask) await api.put(`tasks/${editingTask._id}`, payload);
@@ -163,7 +184,7 @@ export default function TasksPage() {
     } catch (err) { console.error(err); }
   };
 
-  const handleDeleteTask = async (task: any) => {
+  const handleDeleteTask = async (task: Task) => {
     if (!confirm(`Move "${task.title}" to local trash hub?`)) return;
     try {
       addToTrash({ id: task._id, type: "task", data: task });
@@ -268,7 +289,7 @@ export default function TasksPage() {
                         <div className="flex flex-wrap items-center gap-3 mb-2">
                           <h3 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter leading-none">{task.title}</h3>
                           <span className={`px-3 py-1 text-[9px] font-black uppercase border-2 ${getPriorityStyle(task.priority)}`}>{task.priority}</span>
-                          {new Date(task.dueDate) < new Date() && task.status !== 'completed' && (
+                          {task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed' && (
                             <span className="text-[9px] font-black uppercase bg-red-600 text-white px-2 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">OVERDUE</span>
                           )}
                         </div>

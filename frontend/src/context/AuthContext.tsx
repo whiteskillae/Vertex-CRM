@@ -4,12 +4,26 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'manager' | 'employee';
+  status: 'active' | 'pending' | 'blocked';
+  avatar?: string;
+  isVerified?: boolean;
+  lastReadTasksAt?: string;
+  lastReadMessagesAt?: string;
+  phone?: string;
+  bio?: string;
+}
+
 interface AuthContextType {
-  user: any;
+  user: User | null;
   loading: boolean;
-  login: (userData: any) => void;
+  login: (userData: User & { token?: string }) => void;
   logout: () => void;
-  updateUser: (userData: any) => void;
+  updateUser: (userData: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -23,25 +37,22 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const fetchMe = async () => {
       try {
-        // Optimistic load from localStorage to reduce flash
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
-          try { setUser(JSON.parse(storedUser)); } catch { /* ignore bad JSON */ }
+          try { setUser(JSON.parse(storedUser)); } catch { /* ignore */ }
         }
 
-        // Always re-verify with backend (ensures token is still valid)
         const { data } = await api.get('auth/me');
         setUser(data);
         localStorage.setItem("user", JSON.stringify(data));
       } catch {
-        // Token invalid or expired → clear everything
         setUser(null);
         localStorage.removeItem("user");
         localStorage.removeItem("token");
@@ -53,10 +64,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     fetchMe();
   }, []);
 
-  const login = (userData: any) => {
+  const login = (userData: User & { token?: string }) => {
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
-    // Token is already stored by the API call caller
     router.push('/dashboard');
   };
 
@@ -68,7 +78,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     router.push('/login');
   };
 
-  const updateUser = (userData: any) => {
+  const updateUser = (userData: User) => {
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
   };

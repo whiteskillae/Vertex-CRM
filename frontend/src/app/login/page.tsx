@@ -321,11 +321,11 @@ export default function LoginPage() {
                 <div className="flex justify-center w-full">
                   <GoogleLogin
                     onSuccess={handleGoogleSuccess}
-                    onError={() => setErr("Google Sign-In failed")}
+                    onError={() => setErr("Google Authentication failed. Check your browser or connection.")}
                     useOneTap
                     shape="square"
-                    width="100%"
                     theme="outline"
+                    width="400"
                   />
                 </div>
 

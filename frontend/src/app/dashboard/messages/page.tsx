@@ -13,10 +13,21 @@ import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { io, Socket } from "socket.io-client";
 
+interface Contact {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+  status: 'active' | 'offline';
+  unreadCount: number;
+  phone?: string;
+  isDeleted?: boolean;
+}
+
 interface Message {
   _id: string;
-  senderId: any;
-  receiverId: any;
+  senderId: string | { _id: string; name: string };
+  receiverId: string | { _id: string; name: string };
   message: string;
   fileUrl?: string;
   fileType?: string;
@@ -29,8 +40,8 @@ interface Message {
 
 export default function MessagesPage() {
   const { user } = useAuth();
-  const [contacts, setContacts] = useState<any[]>([]);
-  const [selectedContact, setSelectedContact] = useState<any>(null);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -64,9 +75,11 @@ export default function MessagesPage() {
 
     s.on("new_message", (msg: Message) => {
       setMessages(prev => [...prev, msg]);
-      // Update contacts unread count if not selected
+      
+      const senderId = typeof msg.senderId === 'string' ? msg.senderId : msg.senderId?._id;
+
       setContacts(prev => prev.map(c => {
-        if (c._id === msg.senderId._id && selectedContact?._id !== c._id) {
+        if (c._id === senderId && selectedContact?._id !== c._id) {
           return { ...c, unreadCount: (c.unreadCount || 0) + 1 };
         }
         return c;
@@ -75,7 +88,7 @@ export default function MessagesPage() {
 
     s.on("messages_seen", ({ viewerId }) => {
       setMessages(prev => prev.map(m => 
-        m.senderId === user._id || m.senderId?._id === user._id ? { ...m, isSeen: true } : m
+        (typeof m.senderId === 'string' ? m.senderId : m.senderId?._id) === user._id ? { ...m, isSeen: true } : m
       ));
     });
 
@@ -95,8 +108,7 @@ export default function MessagesPage() {
   const fetchContacts = useCallback(async () => {
     try {
       const { data } = await api.get("messages/contacts");
-      // Filter out deleted users just in case, though backend should handle it
-      setContacts(data.filter((c: any) => !c.isDeleted));
+      setContacts(data.filter((c: Contact) => !c.isDeleted));
       setLoading(false);
     } catch (err) {
       console.error(err);
@@ -365,7 +377,7 @@ export default function MessagesPage() {
                 </div>
               ) : (
                 messages.map((msg, i) => {
-                  const isMe = msg.senderId === user?._id || msg.senderId?._id === user?._id;
+                  const isMe = (typeof msg.senderId === 'string' ? msg.senderId : msg.senderId?._id) === user?._id;
                   const showTime = i === 0 || format(new Date(messages[i-1].timestamp), 'HH:mm') !== format(new Date(msg.timestamp), 'HH:mm');
                   
                   return (
