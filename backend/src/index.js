@@ -95,6 +95,14 @@ app.get('/health', (req, res) => {
   });
 });
 
+// ── FIX: Legacy/Malformed URL Redirect ───────────────────────────────────────
+// If a request hits /auth/login instead of /api/auth/login, we redirect it.
+app.use('/auth', (req, res) => {
+  const newPath = `/api/auth${req.path}`;
+  console.log(`[REDIRECT] Malformed request to ${req.originalUrl} -> ${newPath}`);
+  res.redirect(307, newPath); // 307 preserves the POST method and body
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/leads', leadRoutes);

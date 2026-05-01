@@ -1,10 +1,19 @@
 import axios from 'axios';
 
 // ── API Base URL ──────────────────────────────────────────────────────────────
-// Default to port 5001 (the actual backend port).
-// Override via NEXT_PUBLIC_API_URL in .env.local for production.
-const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
-const API_URL = rawUrl.endsWith('/') ? rawUrl : `${rawUrl}/`;
+const getBaseUrl = () => {
+  let url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+  
+  // ── FIX: Ensure URL always ends with /api (required by backend structure) ────
+  // If the user forgot to add /api in Vercel env, we fix it here.
+  if (!url.includes('/api') && !url.includes('localhost')) {
+    url = url.endsWith('/') ? `${url}api` : `${url}/api`;
+  }
+  
+  return url.endsWith('/') ? url : `${url}/`;
+};
+
+const API_URL = getBaseUrl();
 
 const api = axios.create({
   baseURL: API_URL,

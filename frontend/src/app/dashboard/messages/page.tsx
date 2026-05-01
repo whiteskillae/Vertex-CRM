@@ -52,9 +52,9 @@ export default function MessagesPage() {
   // Initialize Socket
   useEffect(() => {
     if (!user) return;
-    const socketUrl = process.env.NEXT_PUBLIC_API_URL 
-      ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') 
-      : 'http://localhost:5001';
+    // ── FIX: Robust Socket URL Calculation ───────────────────────────────────
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api";
+    const socketUrl = apiBase.replace(/\/api\/?$/, ""); // Removes /api or /api/ from the end
       
     const s = io(socketUrl, {
       auth: { token: localStorage.getItem("token") }
