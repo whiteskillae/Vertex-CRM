@@ -3,10 +3,18 @@ const Task = require('../models/Task');
 const Lead = require('../models/Lead');
 const Report = require('../models/Report');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { sendOTPEmail } = require('../config/emailService');
 const { OAuth2Client } = require('google-auth-library');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+const OTP_TTL_MS = 10 * 60 * 1000;
+const OTP_MAX_ATTEMPTS = 5;
+
+const hashOtp = (otp) => crypto.createHash('sha256').update(otp).digest('hex');
+const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
+
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -173,26 +181,20 @@ exports.login = async (req, res) => {
     }
 
     // 6. ── EMPLOYEE OTP FLOW ──
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    user.otp = otp;
-    user.otpExpires = Date.now() + 10 * 60 * 1000; // 10 min expiry
-    await user.save();
+    const otp = generateOtp();
+    const otpHash = hashOtp(otp);
+    const otpExpires = Date.now() + OTP_TTL_MS;
 
     const emailSent = await sendOTPEmail(user.email, otp);
 
-    // Development fallback: log OTP to console if SMTP fails
-    if (!emailSent && process.env.NODE_ENV !== 'production') {
-      console.log(`\n[DEV] OTP for ${email}: ${otp}\n`);
-      return res.json({
-        message: 'DEV MODE: Check server console for OTP',
-        email: user.email,
-        devOtp: otp
-      });
+    if (!emailSent) {
+      return res.status(503).json({ message: 'Verification service temporarily unavailable. Please try again shortly.' });
     }
 
-    if (!emailSent) {
-      return res.status(500).json({ message: 'Failed to send verification code. Contact support.' });
-    }
+    user.otp = otpHash;
+    user.otpExpires = otpExpires;
+    user.otpAttempts = 0;
+    await user.save();
 
     res.json({ message: 'Verification code sent to your email', email: user.email });
   } catch (error) {
@@ -210,18 +212,47 @@ exports.verifyOTP = async (req, res) => {
       return res.status(400).json({ message: 'Email and OTP are required' });
     }
 
-    const user = await User.findOne({
-      email: email.toLowerCase().trim(),
-      otp,
-      otpExpires: { $gt: Date.now() }
-    });
+    if (!/^\d{6}$/.test(String(otp))) {
+      return res.status(400).json({ message: 'Invalid OTP format' });
+    }
 
-    if (!user) {
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
+
+    if (!user || !user.otp || !user.otpExpires) {
       return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    if (user.otpExpires <= Date.now()) {
+      user.otp = undefined;
+      user.otpExpires = undefined;
+      user.otpAttempts = 0;
+      await user.save();
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    if (user.otpAttempts >= OTP_MAX_ATTEMPTS) {
+      user.otp = undefined;
+      user.otpExpires = undefined;
+      user.otpAttempts = 0;
+      await user.save();
+      return res.status(429).json({ message: 'Too many invalid attempts. Please request a new OTP.' });
+    }
+
+    const isOtpValid = user.otp === hashOtp(String(otp));
+    if (!isOtpValid) {
+      user.otpAttempts += 1;
+      await user.save();
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    if (user.status === 'blocked') {
+      return res.status(403).json({ message: 'Account suspended. Contact administration.' });
     }
 
     user.otp = undefined;
     user.otpExpires = undefined;
+    user.otpAttempts = 0;
     
     // If this was a new registration, mark as verified
     if (!user.isVerified) {
@@ -261,8 +292,8 @@ exports.employeeRegister = async (req, res) => {
       return res.status(400).json({ message: 'Email already registered. Please login.' });
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = Date.now() + 10 * 60 * 1000;
+    const otp = generateOtp();
+    const otpExpires = Date.now() + OTP_TTL_MS;
 
     const employee = await User.create({
       name: name.trim(),
@@ -271,8 +302,9 @@ exports.employeeRegister = async (req, res) => {
       role: 'employee',
       status: 'pending',    // Requires admin approval
       isVerified: false,     // Must verify OTP first
-      otp,
-      otpExpires
+      otp: hashOtp(otp),
+      otpExpires,
+      otpAttempts: 0
     });
 
     const emailSent = await sendOTPEmail(employee.email, otp);
@@ -372,7 +404,7 @@ exports.getContacts = async (req, res) => {
       : { isDeleted: { $ne: true } };
 
     const [users, total] = await Promise.all([
-      User.find(filter).select('-password -otp -otpExpires').skip(skip).limit(limit).sort({ createdAt: -1 }),
+      User.find(filter).select('-password -otp -otpExpires -otpAttempts').skip(skip).limit(limit).sort({ createdAt: -1 }),
       User.countDocuments(filter)
     ]);
 
@@ -593,7 +625,7 @@ exports.unblockUser = async (req, res) => {
 // ── Admin: Get Pending Users ─────────────────────────────────────────────────
 exports.getPendingUsers = async (req, res) => {
   try {
-    const users = await User.find({ status: 'pending' }).select('-password -otp -otpExpires').sort({ createdAt: -1 });
+    const users = await User.find({ status: 'pending' }).select('-password -otp -otpExpires -otpAttempts').sort({ createdAt: -1 });
     res.json(users);
   } catch (error) {
     console.error('getPendingUsers error:', error.message);
@@ -604,7 +636,7 @@ exports.getPendingUsers = async (req, res) => {
 // ── Admin: Get Blocked Users ─────────────────────────────────────────────────
 exports.getBlockedUsers = async (req, res) => {
   try {
-    const users = await User.find({ status: 'blocked' }).select('-password -otp -otpExpires').sort({ createdAt: -1 });
+    const users = await User.find({ status: 'blocked' }).select('-password -otp -otpExpires -otpAttempts').sort({ createdAt: -1 });
     res.json(users);
   } catch (error) {
     console.error('getBlockedUsers error:', error.message);
@@ -615,7 +647,7 @@ exports.getBlockedUsers = async (req, res) => {
 // ── Get User Profile with Honor Score & Task Stats ───────────────────────────
 exports.getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-password -otp -otpExpires');
+    const user = await User.findById(req.params.id).select('-password -otp -otpExpires -otpAttempts');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     // Fetch task/report stats for this user
@@ -671,7 +703,7 @@ exports.getUserProfile = async (req, res) => {
 
 exports.getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password -otp -otpExpires');
+    const user = await User.findById(req.user.id).select('-password -otp -otpExpires -otpAttempts');
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -716,7 +748,7 @@ exports.markRead = async (req, res) => {
 exports.getTrashedUsers = async (req, res) => {
   try {
     const users = await User.find({ isDeleted: true })
-      .select('-password -otp -otpExpires')
+      .select('-password -otp -otpExpires -otpAttempts')
       .sort({ deletedAt: -1 });
     res.json(users);
   } catch (error) {
@@ -730,7 +762,7 @@ exports.exportEmployee = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const employee = await User.findById(id).select('-password -otp -otpExpires');
+    const employee = await User.findById(id).select('-password -otp -otpExpires -otpAttempts');
     if (!employee) return res.status(404).json({ message: 'Employee not found' });
 
     // Fetch all tasks for this employee

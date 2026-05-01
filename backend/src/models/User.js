@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
   managerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
   otp: { type: String },
   otpExpires: { type: Date },
+  otpAttempts: { type: Number, default: 0 },
   // ── Honor Score System ─────────────────────────────────────────────────────
   honorScore: {
     score: { type: Number, default: 50, min: 0, max: 100 },

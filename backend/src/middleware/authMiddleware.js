@@ -54,32 +54,4 @@ const manager = (req, res, next) => {
   }
 };
 
-// ── NEW: Optional protect middleware ─────────────────────────────────────────
-// Attaches user to req if a valid token is present, but does NOT block
-// unauthenticated requests. Used for the register route to allow the
-// first-ever registration without a token.
-const optionalProtect = async (req, res, next) => {
-  let token;
-
-  if (req.cookies && req.cookies.token) {
-    token = req.cookies.token;
-  } else if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    token = req.headers.authorization.split(' ')[1];
-  }
-
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, JWT_SECRET);
-      req.user = await User.findById(decoded.id).select('-password');
-    } catch (error) {
-      // Token invalid — continue without user
-    }
-  }
-
-  next();
-};
-
-module.exports = { protect, admin, manager, optionalProtect };
+module.exports = { protect, admin, manager };

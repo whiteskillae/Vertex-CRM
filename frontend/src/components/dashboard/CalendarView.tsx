@@ -10,11 +10,6 @@ import {
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, X } from "lucide-react";
 import { motion } from "framer-motion";
 
-const mockTasks = [
-  { id: 1, date: new Date(), title: "Lead Follow-up", status: "pending" },
-  { id: 2, date: new Date(), title: "Quarterly Review", status: "completed" },
-  { id: 3, date: new Date(new Date().setDate(new Date().getDate() + 2)), title: "Client Presentation", status: "important" },
-];
 
 export default function CalendarView() {
   const [currentMonth, setCurrentMonth] = useState(new Date());

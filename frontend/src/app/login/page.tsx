@@ -70,10 +70,6 @@ export default function LoginPage() {
         password: empPassword,
         role: "employee",
       });
-      // If dev mode returns a devOtp, show it
-      if (data.devOtp) {
-        setErr(`DEV: Your OTP is ${data.devOtp}`);
-      }
       setEmpMode("otp");
     } catch (err: any) {
       setErr(err.response?.data?.message || "Login failed");

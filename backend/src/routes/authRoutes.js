@@ -6,7 +6,7 @@ const {
   getPendingUsers, getBlockedUsers, getUserProfile, markRead, logout,
   restoreUser, permanentDeleteUser, getTrashedUsers, exportEmployee
 } = require('../controllers/authController');
-const { protect, optionalProtect, manager, admin } = require('../middleware/authMiddleware');
+const { protect, manager, admin } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // ── Public Routes ────────────────────────────────────────────────────────────
