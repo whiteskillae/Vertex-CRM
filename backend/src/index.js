@@ -147,7 +147,7 @@ const server = http.createServer(app);
 const { initSocket } = require('./socket');
 const io = initSocket(server);
 
-mongoose.connect(MONGODB_URI)
+mongoose.connect(MONGODB_URI, { family: 4 })
   .then(async () => {
     console.log('✅ Connected to MongoDB');
     const { transporter } = require('./config/emailService');
