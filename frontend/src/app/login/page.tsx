@@ -7,6 +7,7 @@ import {
   LogIn, Loader2, Mail, Lock, ShieldCheck, UserPlus, Users, Eye, EyeOff, KeyRound
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { GoogleLogin } from "@react-oauth/google";
 
 type Tab = "employee" | "admin";
 type EmpMode = "login" | "register" | "otp";
@@ -125,6 +126,28 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       setErr(err.response?.data?.message || "Invalid or expired OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    setLoading(true);
+    clearErr();
+    try {
+      const { data } = await api.post("auth/google-login", {
+        token: credentialResponse.credential,
+      });
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data));
+        login(data);
+      } else if (data.status === "pending") {
+        setErr("✓ Google account linked! Your account is pending admin approval.");
+      }
+    } catch (err: any) {
+      setErr(err.response?.data?.message || "Google login failed");
     } finally {
       setLoading(false);
     }
@@ -287,6 +310,25 @@ export default function LoginPage() {
                 >
                   {loading ? <Loader2 className="animate-spin h-4 w-4" /> : <><KeyRound className="mr-2 h-4 w-4" /> Request OTP</>}
                 </button>
+
+                <div className="relative py-2">
+                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
+                  <div className="relative flex justify-center text-[10px] uppercase font-bold">
+                    <span className="bg-white px-2 text-gray-400 font-black">Or secure connect</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-center w-full">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => setErr("Google Sign-In failed")}
+                    useOneTap
+                    shape="square"
+                    width="100%"
+                    theme="outline"
+                  />
+                </div>
+
                 <button
                   type="button"
                   onClick={() => { setEmpMode("register"); clearErr(); }}
