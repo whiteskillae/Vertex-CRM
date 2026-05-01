@@ -287,7 +287,7 @@ export default function TasksPage() {
                     <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
                       <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-3 mb-2">
-                          <h3 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter leading-none">{task.title}</h3>
+                          <h3 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter leading-none line-clamp-2">{task.title}</h3>
                           <span className={`px-3 py-1 text-[9px] font-black uppercase border-2 ${getPriorityStyle(task.priority)}`}>{task.priority}</span>
                           {task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed' && (
                             <span className="text-[9px] font-black uppercase bg-red-600 text-white px-2 py-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">OVERDUE</span>
@@ -506,7 +506,7 @@ export default function TasksPage() {
         {isModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-            <motion.div initial={{ scale: 0.9, y: 20, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.9, y: 20, opacity: 0 }} className="relative bg-white border-8 border-black w-full max-w-xl p-8 shadow-[25px_25px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+            <motion.div initial={{ scale: 0.9, y: 20, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.9, y: 20, opacity: 0 }} className="relative bg-white border-8 border-black w-full max-w-xl p-6 sm:p-8 shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] sm:shadow-[25px_25px_0px_0px_rgba(0,0,0,1)] overflow-hidden max-h-[90vh] overflow-y-auto">
               <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-8 border-b-8 border-black pb-4">{editingTask ? "Update Mission" : "Authorize Mission"}</h2>
               <form onSubmit={handleSaveTask} className="space-y-6">
                 <div className="space-y-2">

@@ -196,7 +196,7 @@ export default function DashboardPage() {
           <motion.h1 
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="text-7xl font-black tracking-tighter uppercase italic leading-none"
+            className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter uppercase italic leading-none"
           >
             {isEmployee ? "Worker" : "Control"} <span className="text-gray-300">Hub</span>
           </motion.h1>
@@ -390,8 +390,8 @@ export default function DashboardPage() {
                         {emp.name?.[0]?.toUpperCase()}
                       </div>
                       <div className="overflow-hidden w-full">
-                        <p className="text-[10px] font-black uppercase truncate group-hover:text-white">{emp.name}</p>
-                        <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest group-hover:text-zinc-500">{emp.role}</p>
+                        <p className="text-[9px] sm:text-[10px] font-black uppercase line-clamp-1 group-hover:text-white">{emp.name}</p>
+                        <p className="text-[7px] sm:text-[8px] font-bold text-gray-400 uppercase tracking-widest group-hover:text-zinc-500">{emp.role}</p>
                       </div>
                     </div>
                   </Link>
@@ -450,7 +450,7 @@ export default function DashboardPage() {
               <Activity className="h-8 w-8" />
             </div>
             <div>
-              <h2 className="text-4xl font-black uppercase tracking-tighter italic leading-none">Intelligence Feed</h2>
+              <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter italic leading-none">Intelligence Feed</h2>
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] mt-2">Satellite Node Activity Log</p>
             </div>
           </div>
@@ -476,7 +476,7 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <div className="flex items-center gap-3 mb-1">
-                    <h3 className="text-2xl font-black uppercase tracking-tight">{report.title}</h3>
+                    <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight line-clamp-2">{report.title}</h3>
                     {i === 0 && <span className="bg-red-600 text-white text-[8px] font-black px-2 py-1 uppercase">Live</span>}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-6 gap-y-2">

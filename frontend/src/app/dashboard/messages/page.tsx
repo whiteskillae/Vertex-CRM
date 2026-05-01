@@ -385,7 +385,7 @@ export default function MessagesPage() {
                       {showTime && (
                         <span className="text-[9px] font-black uppercase text-gray-400 mb-2 px-2 tracking-widest">{format(new Date(msg.timestamp), 'HH:mm — dd MMM')}</span>
                       )}
-                      <div className="group relative max-w-[85%] md:max-w-[70%]">
+                      <div className="group relative max-w-[90%] md:max-w-[70%]">
                         <div className={`p-5 border-4 border-black text-sm font-bold leading-relaxed shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] ${isMe ? 'bg-black text-white rounded-l-2xl rounded-tr-2xl' : 'bg-white text-black rounded-r-2xl rounded-tl-2xl'}`}>
                           {msg.voiceUrl ? (
                             <div className="flex flex-col gap-3 min-w-[200px]">
@@ -443,7 +443,7 @@ export default function MessagesPage() {
                   </button>
                 </div>
                 {isRecording ? (
-                  <div className="flex items-center gap-4 bg-red-600 text-white p-4 border-4 border-black">
+                  <div className="flex items-center gap-2 sm:gap-4 bg-red-600 text-white p-2 sm:p-4 border-4 border-black">
                     <div className="flex items-end gap-1 h-6 w-12 px-2">
                       {[1, 2, 3, 4, 5].map(i => (
                         <motion.div 

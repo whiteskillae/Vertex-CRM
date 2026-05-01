@@ -9,8 +9,8 @@ exports.submitReport = async (req, res) => {
   try {
     const { title, content, files, taskId, workLog } = req.body;
     
-    console.log('[DEBUG] submitReport called with:', { title, taskId, employeeId: req.user?.id });
-    
+    console.log('[DEBUG] submitReport called with:', { title, taskId, employeeId: req.user?._id });
+
     // Validate taskId if present to prevent casting errors (fixes 500 error)
     if (taskId && !mongoose.Types.ObjectId.isValid(taskId)) {
       console.warn('[DEBUG] Invalid Task ID detected:', taskId);
@@ -21,6 +21,25 @@ exports.submitReport = async (req, res) => {
       return res.status(400).json({ message: 'Title and content are required' });
     }
 
+    let parsedFiles = files;
+    if (typeof files === 'string') {
+      try {
+        parsedFiles = JSON.parse(files);
+      } catch (e) {
+        console.warn('[DEBUG] Failed to parse files string:', files);
+        parsedFiles = [];
+      }
+    }
+
+    let parsedWorkLog = workLog;
+    if (typeof workLog === 'string') {
+      try {
+        parsedWorkLog = JSON.parse(workLog);
+      } catch (e) {
+        parsedWorkLog = [];
+      }
+    }
+
     const cleanTaskId = (taskId && mongoose.Types.ObjectId.isValid(taskId)) ? taskId : null;
 
     console.log('[DEBUG] Attempting to create Report document...');
@@ -28,9 +47,9 @@ exports.submitReport = async (req, res) => {
       employeeId: req.user._id,
       title,
       content,
-      files: Array.isArray(files) ? files : [],
+      files: Array.isArray(parsedFiles) ? parsedFiles : [],
       taskId: cleanTaskId,
-      workLog: Array.isArray(workLog) ? workLog : []
+      workLog: Array.isArray(parsedWorkLog) ? parsedWorkLog : []
     });
     console.log('[DEBUG] Report created successfully:', report._id);
 

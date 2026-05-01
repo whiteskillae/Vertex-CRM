@@ -163,7 +163,7 @@ export default function PersonnelPage() {
             <div className="w-16 h-2 bg-black"></div>
             <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-400 italic">Central Intelligence</span>
           </div>
-          <h1 className="text-7xl font-black tracking-tighter uppercase italic leading-none text-black">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter uppercase italic leading-none text-black">
             Personnel <span className="text-gray-300">Sector</span>
           </h1>
           <p className="text-xs font-black text-gray-500 uppercase tracking-[0.4em] mt-4 flex items-center gap-2">
@@ -338,7 +338,7 @@ export default function PersonnelPage() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-4xl bg-white border-8 border-black shadow-[30px_30px_0px_0px_rgba(0,0,0,1)] p-12 overflow-y-auto max-h-[90vh] custom-scrollbar"
+              className="relative w-full max-w-4xl bg-white border-8 border-black shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] sm:shadow-[30px_30px_0px_0px_rgba(0,0,0,1)] p-6 sm:p-12 overflow-y-auto max-h-[90vh] custom-scrollbar"
             >
               <button onClick={() => setAnalysisNode(null)} className="absolute top-6 right-6 p-2 hover:bg-zinc-100 border-4 border-black transition-all">
                 <X className="h-6 w-6" />

@@ -76,9 +76,9 @@ export default function AdminStats() {
           <h3 className="text-lg font-black uppercase mb-6 flex items-center">
             <Activity className="mr-2 h-5 w-5" /> Operational Load Distribution
           </h3>
-          <div className="flex flex-col md:flex-row items-center" style={{ height: 350 }}>
-            <div style={{ width: '100%', height: 350 }}>
-              <ResponsiveContainer width="100%" height={350}>
+          <div className="flex flex-col md:flex-row items-center min-h-[350px]">
+            <div className="w-full h-[300px] md:h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={stats?.taskDistribution || []}

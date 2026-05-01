@@ -343,7 +343,7 @@ export default function ReportsPage() {
               </div>
               
               <div>
-                <h3 className="text-xl font-black uppercase italic tracking-tighter line-clamp-1 border-b-4 border-black pb-2 mb-4">
+                <h3 className="text-xl font-black uppercase italic tracking-tighter line-clamp-2 border-b-4 border-black pb-2 mb-4">
                   {report.title}
                 </h3>
                 <p className="text-xs text-gray-500 font-bold leading-relaxed line-clamp-4">
@@ -457,16 +457,16 @@ export default function ReportsPage() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-black/90 backdrop-blur-md" />
             <motion.div 
               initial={{ scale: 0.9, opacity: 0, y: 50 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 50 }}
-              className="relative bg-white border-8 border-black w-full max-w-4xl p-12 shadow-[40px_40px_0px_0px_rgba(0,0,0,1)] overflow-hidden"
+              className="relative bg-white border-8 border-black w-full max-w-4xl p-6 sm:p-12 shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] sm:shadow-[40px_40px_0px_0px_rgba(0,0,0,1)] overflow-hidden max-h-[95vh] overflow-y-auto"
             >
               <div className="absolute top-0 left-0 right-0 h-4 bg-black"></div>
               <button onClick={() => setIsModalOpen(false)} className="absolute top-8 right-8 p-3 hover:bg-black hover:text-white border-4 border-transparent hover:border-black transition-all">
                 <X className="h-8 w-8" />
               </button>
 
-              <div className="mb-12">
-                <h2 className="text-5xl font-black uppercase tracking-tighter italic leading-none">Transmission Dispatch</h2>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.6em] mt-3">Protocol: Tactical Intel Log</p>
+              <div className="mb-8 sm:mb-12">
+                <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tighter italic leading-none">Transmission Dispatch</h2>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] mt-3">Protocol: Tactical Intel Log</p>
               </div>
               
               <form onSubmit={handleSubmitReport} className="space-y-10">
