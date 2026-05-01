@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CRM Enterprise System - Documentation
 
-## Getting Started
+## 🚀 Overview
+A secure, professional-grade CRM for managing personnel, tasks, and intelligence reporting. Built with a "Terminal" industrial aesthetic for high-end enterprise utility.
 
-First, run the development server:
+## 👥 User Roles & Access Control
+The system implements strict Role-Based Access Control (RBAC):
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. **Guest**
+   - **Access**: Demo mode via dedicated login.
+   - **Capability**: Explore UI elements and dashboard layout.
+   - **Restriction**: No data persistence; read-only preview.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Employee**
+   - **Access**: Email + OTP (Secure Uplink).
+   - **Dashboard**: Personal Workflow (Calendar, To-do), Manager Broadcasts.
+   - **Actions**: View assigned tasks, submit intelligence reports (with file support), secure messaging with managers.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. **Manager / Admin**
+   - **Access**: Admin credentials + OTP.
+   - **Dashboard**: Fleet Overview, Performance Analytics, Personnel List.
+   - **Actions**: Recruit employees (Pre-registration), assign strategic tasks, review submitted intelligence, broadcast secure messages.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📦 Architecture & Stack
+- **Frontend**: Next.js 14, Tailwind CSS, Framer Motion, Recharts, Lucide Icons.
+- **Backend**: Node.js, Express, MongoDB (Mongoose).
+- **Authentication**: JWT (JSON Web Tokens) + Role Middleware + OTP (Nodemailer).
+- **Storage**: Cloudinary (Artifacts & Intelligence Evidence).
 
-## Learn More
+## 🛠 Features
+- **OTP Verification**: Multi-factor authentication for all registered personnel.
+- **Strategic Queue**: Task management system with priority levels and assignee tracking.
+- **Intelligence Hub**: Reporting system allowing employees to submit findings with PDF/Image evidence.
+- **Secure Messenger**: Internal encrypted communication between personnel nodes.
+- **Operational Vitals**: Real-time analytics dashboard for monitoring company productivity.
 
-To learn more about Next.js, take a look at the following resources:
+## 🧭 Getting Started
+1. **Manager Setup**: Seed the database to create the first Admin/Manager.
+2. **Recruitment**: Manager logs in and recruits employees via the 'Personnel' panel.
+3. **Uplink**: Employees log in using their registered email and received OTP.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+*System Status: Fully Operational | Security Protocol: Active*
