@@ -67,7 +67,11 @@ app.use(cors({
   exposedHeaders: ['Set-Cookie']
 }));
 
-app.use(helmet());
+app.use(helmet({
+  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: false, // Disable CSP for now to ensure all scripts (Google, Cloudinary, etc.) load
+}));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 // Rate Limiting

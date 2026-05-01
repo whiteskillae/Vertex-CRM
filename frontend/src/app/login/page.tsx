@@ -326,6 +326,8 @@ export default function LoginPage() {
                     shape="square"
                     theme="outline"
                     width="400"
+                    text="signin_with"
+                    logo_alignment="left"
                   />
                 </div>
 
