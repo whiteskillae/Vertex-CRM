@@ -201,6 +201,25 @@ exports.login = async (req, res) => {
   }
 };
 
+exports.guestLogin = async (req, res) => {
+  try {
+    let guest = await User.findOne({ email: 'guest@crm.com' });
+    if (!guest) {
+      guest = await User.create({
+        name: 'Guest User',
+        email: 'guest@crm.com',
+        password: Math.random().toString(36),
+        role: 'employee',
+        status: 'active',
+        isVerified: true
+      });
+    }
+    sendTokenResponse(guest, 200, res, 'Logged in as Guest');
+  } catch (error) {
+    res.status(500).json({ message: 'Guest login failed' });
+  }
+};
+
 // OTP Verification Flow
 exports.verifyOTP = async (req, res) => {
   try {

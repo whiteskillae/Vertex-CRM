@@ -121,16 +121,14 @@ const seedAdmin = async () => {
       });
       await designatedUser.save();
       console.log(`\n🚀 [SEEDER] NEW ADMIN CREATED: ${adminEmail}`);
-    } else if (designatedUser.role !== 'admin' || designatedUser.status !== 'active') {
-      // Upgrade existing user to active admin if they match the email
+    } else {
+      // Ensure admin is active and password matches the current environment variable
       designatedUser.role = 'admin';
       designatedUser.status = 'active';
       designatedUser.isVerified = true;
-      // We don't overwrite password here to keep user's current one
+      designatedUser.password = adminPassword; // Middleware will re-hash if modified
       await designatedUser.save();
-      console.log(`\n🚀 [SEEDER] USER UPGRADED TO ADMIN: ${adminEmail}`);
-    } else {
-      console.log(`\n🔐 [SEEDER] SYSTEM READY: Admin node active`);
+      console.log(`\n🔐 [SEEDER] SYSTEM READY: Admin node synchronized`);
     }
 
     console.log(`ℹ️  [SEEDER] Access email: ${adminEmail}\n`);

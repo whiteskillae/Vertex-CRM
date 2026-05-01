@@ -4,7 +4,7 @@ const {
   employeeRegister, googleLogin, getContacts, getStats, updateProfile,
   bulkDeleteUsers, approveUser, rejectUser, blockUser, unblockUser,
   getPendingUsers, getBlockedUsers, getUserProfile, markRead, logout,
-  restoreUser, permanentDeleteUser, getTrashedUsers, exportEmployee
+  restoreUser, permanentDeleteUser, getTrashedUsers, exportEmployee, guestLogin
 } = require('../controllers/authController');
 const { protect, optionalProtect, manager, admin } = require('../middleware/authMiddleware');
 const router = express.Router();
@@ -15,6 +15,7 @@ router.post('/verify-otp', verifyOTP);
 router.post('/employee-register', employeeRegister);
 router.post('/google-login', googleLogin);
 router.post('/logout', logout);
+router.post('/guest-login', guestLogin);
 
 // Admin-only registration (used by admin to create employees directly)
 router.post('/register', protect, admin, register);

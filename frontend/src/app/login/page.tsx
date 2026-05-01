@@ -225,8 +225,35 @@ export default function LoginPage() {
                   type="submit"
                   disabled={loading}
                   className="w-full flex items-center justify-center py-4 bg-black text-white hover:bg-gray-900 border-2 border-black transition-all font-black uppercase tracking-widest text-sm disabled:opacity-50"
+                </button>
+
+                <div className="relative py-2">
+                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
+                  <div className="relative flex justify-center text-[10px] uppercase font-bold text-gray-400 bg-white px-2">OR</div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setLoading(true);
+                    clearErr();
+                    try {
+                      const { data } = await api.post("auth/guest-login");
+                      if (data.token) {
+                        localStorage.setItem("token", data.token);
+                        localStorage.setItem("user", JSON.stringify(data));
+                        login(data);
+                      }
+                    } catch (err: any) {
+                      setErr("Guest login unavailable");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center py-3 border-2 border-gray-200 text-gray-500 hover:border-black hover:text-black transition-all font-black uppercase tracking-widest text-[10px] disabled:opacity-50"
                 >
-                  {loading ? <Loader2 className="animate-spin h-4 w-4" /> : <><LogIn className="mr-2 h-4 w-4" /> Admin Login</>}
+                  {loading ? <Loader2 className="animate-spin h-3 w-3" /> : "Access as Guest"}
                 </button>
               </motion.form>
             )}
@@ -286,6 +313,30 @@ export default function LoginPage() {
                   className="w-full flex items-center justify-center py-4 bg-black text-white hover:bg-gray-900 border-2 border-black transition-all font-black uppercase tracking-widest text-sm disabled:opacity-50"
                 >
                   {loading ? <Loader2 className="animate-spin h-4 w-4" /> : <><KeyRound className="mr-2 h-4 w-4" /> Request OTP</>}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setLoading(true);
+                    clearErr();
+                    try {
+                      const { data } = await api.post("auth/guest-login");
+                      if (data.token) {
+                        localStorage.setItem("token", data.token);
+                        localStorage.setItem("user", JSON.stringify(data));
+                        login(data);
+                      }
+                    } catch (err: any) {
+                      setErr("Guest login unavailable");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center py-3 border-2 border-gray-200 text-gray-500 hover:border-black hover:text-black transition-all font-black uppercase tracking-widest text-[10px] disabled:opacity-50"
+                >
+                  {loading ? <Loader2 className="animate-spin h-3 w-3" /> : "Access as Guest"}
                 </button>
                 <button
                   type="button"
