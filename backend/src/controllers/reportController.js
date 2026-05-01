@@ -9,8 +9,11 @@ exports.submitReport = async (req, res) => {
   try {
     const { title, content, files, taskId, workLog } = req.body;
     
+    console.log('[DEBUG] submitReport called with:', { title, taskId, employeeId: req.user?.id });
+    
     // Validate taskId if present to prevent casting errors (fixes 500 error)
     if (taskId && !mongoose.Types.ObjectId.isValid(taskId)) {
+      console.warn('[DEBUG] Invalid Task ID detected:', taskId);
       return res.status(400).json({ message: 'Invalid Task ID provided' });
     }
 
@@ -20,22 +23,26 @@ exports.submitReport = async (req, res) => {
 
     const cleanTaskId = (taskId && mongoose.Types.ObjectId.isValid(taskId)) ? taskId : null;
 
+    console.log('[DEBUG] Attempting to create Report document...');
     const report = await Report.create({
-      employeeId: req.user.id,
+      employeeId: req.user._id,
       title,
       content,
       files: Array.isArray(files) ? files : [],
       taskId: cleanTaskId,
       workLog: Array.isArray(workLog) ? workLog : []
     });
+    console.log('[DEBUG] Report created successfully:', report._id);
 
     if (cleanTaskId) {
+      console.log('[DEBUG] Updating task status for taskId:', cleanTaskId);
       await Task.findByIdAndUpdate(cleanTaskId, {
         status: 'review',
         updatedAt: Date.now()
       });
     }
 
+    console.log('[DEBUG] Populating report data...');
     const populated = await Report.findById(report._id)
       .populate('employeeId', 'name email')
       .populate('taskId', 'title');
@@ -43,15 +50,16 @@ exports.submitReport = async (req, res) => {
     // ── FIX: Notify admins/managers via Socket.io ────────────────────────────
     try {
       const io = getIO();
+      console.log('[DEBUG] Emitting task_submission socket event');
       io.emit('task_submission', populated);
     } catch (err) {
-      console.warn('Socket notification skipped:', err.message);
+      console.warn('[DEBUG] Socket notification failed:', err.message);
     }
 
     res.status(201).json(populated);
   } catch (error) {
-    console.error('submitReport error:', error.message);
-    res.status(500).json({ message: 'Failed to submit report' });
+    console.error('❌ [FATAL] submitReport error:', error);
+    res.status(500).json({ message: `Failed to submit report: ${error.message}` });
   }
 };
 

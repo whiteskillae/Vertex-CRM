@@ -47,14 +47,29 @@ export default function DashboardPage() {
 
   const fetchData = async (controller?: AbortController) => {
     try {
-      const results = await Promise.allSettled([
-        api.get("leads", { signal: controller?.signal }),
+      const isEmployee = user?.role === 'employee';
+      
+      const fetchPromises: any[] = [
         api.get("tasks", { signal: controller?.signal }),
         api.get("reports", { signal: controller?.signal }),
         api.get("announcements", { signal: controller?.signal })
-      ]);
+      ];
 
-      const [leadsResult, tasksResult, reportsResult, annResult] = results;
+      // Only fetch leads for managers and admins
+      if (!isEmployee) {
+        fetchPromises.unshift(api.get("leads", { signal: controller?.signal }));
+      }
+
+      const results = await Promise.allSettled(fetchPromises);
+
+      let leadsResult, tasksResult, reportsResult, annResult;
+      
+      if (!isEmployee) {
+        [leadsResult, tasksResult, reportsResult, annResult] = results;
+      } else {
+        [tasksResult, reportsResult, annResult] = results;
+        leadsResult = { status: 'rejected', reason: 'Access Restricted' };
+      }
 
       // Extract data safely from potentially paginated responses
       const leads = leadsResult.status === 'fulfilled' 
