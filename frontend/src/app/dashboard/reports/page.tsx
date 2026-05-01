@@ -12,7 +12,6 @@ import {
   User as UserIcon,
   X,
   Trash2,
-  Download,
   Filter,
   Search,
   ChevronRight,

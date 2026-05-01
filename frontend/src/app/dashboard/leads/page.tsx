@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { 
   FileSearch, Plus, Upload, Download, Search, Filter, Mail, Phone, Building, 
-  ChevronLeft, ChevronRight, Loader2, Trash2, Edit, FileSpreadsheet, X, 
-  RotateCcw, AlertTriangle, Info, MoreVertical, ExternalLink
+  ChevronLeft, ChevronRight, Loader2, Trash2, Edit, X, 
+  AlertTriangle, Info, MoreVertical, ExternalLink
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";

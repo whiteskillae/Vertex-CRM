@@ -90,7 +90,7 @@ app.use('/api/storage', storageRoutes);
 app.use('/api/logs', require('./routes/logRoutes'));
 
 app.get('/', (req, res) => {
-  res.json({ message: 'CRM Backend API is running...', port: process.env.PORT || 5001, version: '2.0.5' });
+  res.json({ message: 'CRM Backend API is running...', port: process.env.PORT || 5001, version: '2.0.6' });
 });
 
 // ── FIX: Centralized error handler (must be AFTER routes) ────────────────────
