@@ -190,6 +190,29 @@ export default function LeadsPage() {
     }
   };
 
+  const handleAnalyse = async (emp: any) => {
+    setAnalysisNode(emp);
+    setAnalyzing(true);
+    try {
+      const { data } = await api.get(`auth/profile/${emp._id}`);
+      setAnalysisData({
+        stats: {
+          score: data.honorScore?.score || 0,
+          taskRate: data.totalTasks > 0 ? ((data.honorScore?.tasksCompleted / data.totalTasks) * 100).toFixed(0) : 0,
+          doneTasks: data.honorScore?.tasksCompleted || 0,
+          totalTasks: data.totalTasks || 0,
+          totalReports: data.honorScore?.reportsSubmitted || 0
+        },
+        reports: data.recentTasks || []
+      });
+    } catch (err) {
+      console.error("Analysis failed", err);
+      setMessage({ text: "Failed to gather node intelligence", type: "error" });
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
   const trashedLeads = getByType("lead");
 
   return (
@@ -287,14 +310,14 @@ export default function LeadsPage() {
                 <tbody className="divide-y-4 divide-black/5">
                   {loading ? (
                     <tr>
-                      <td colSpan={4} className="p-24 text-center">
+                      <td colSpan={5} className="p-24 text-center">
                         <Loader2 className="h-12 w-12 animate-spin mx-auto text-black mb-4" />
                         <span className="text-[10px] font-black uppercase tracking-[0.5em]">Establishing Uplink...</span>
                       </td>
                     </tr>
                   ) : leads.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="p-24 text-center uppercase font-black text-xs text-gray-300 italic">No intelligence matching current parameters</td>
+                      <td colSpan={5} className="p-24 text-center uppercase font-black text-xs text-gray-300 italic">No intelligence matching current parameters</td>
                     </tr>
                   ) : (
                     leads.map((lead) => (

@@ -184,6 +184,22 @@ export default function ReportsPage() {
     }
   };
 
+  const handleDeleteFile = async (reportId: string, fileUrl: string) => {
+    if (!confirm('Permanently purge this artifact evidence?')) return;
+    try {
+      await api.post('reports/delete-file', { reportId, fileUrl });
+      setReports(prev => prev.map(r => {
+        if (r._id === reportId) {
+          return { ...r, files: r.files.filter((f: any) => f.url !== fileUrl) };
+        }
+        return r;
+      }));
+    } catch (err) {
+      console.error("Failed to delete file", err);
+      alert("Failed to purge artifact from record");
+    }
+  };
+
   const handleMarkDone = async (id: string) => {
     try {
       await api.patch(`reports/${id}/done`);
