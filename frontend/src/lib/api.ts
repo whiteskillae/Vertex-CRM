@@ -19,7 +19,13 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
+      let token = localStorage.getItem('token');
+      // ── FIX: Ensure we don't send "null" or "undefined" as strings ──────────
+      if (token === 'null' || token === 'undefined') {
+        token = null;
+        localStorage.removeItem('token');
+      }
+      
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }

@@ -46,8 +46,10 @@ const sendTokenResponse = (user, statusCode, res, message = undefined) => {
 
 exports.logout = (req, res) => {
   res.cookie('token', 'none', {
-    expires: new Date(Date.now() + 10 * 1000),
+    expires: new Date(Date.now() + 5 * 1000), // 5 seconds
     httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   });
   res.status(200).json({ message: 'Logged out successfully' });
 };
