@@ -20,7 +20,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (user) {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
       const socketUrl = apiUrl.endsWith('/api') ? apiUrl.replace('/api', '') : apiUrl;
 
       const socketInstance = io(socketUrl, {
