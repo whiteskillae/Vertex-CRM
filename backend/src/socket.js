@@ -8,22 +8,11 @@ const activeStreamers = new Map();
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: (origin, callback) => {
-        const allowedOrigins = [
-          'http://localhost:3000',
-          'http://localhost:3001',
-          'https://vertex-crm-three.vercel.app',
-          'https://vertex-crm.onrender.com'
-        ];
-        if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.includes('render.com')) {
-          callback(null, true);
-        } else {
-          callback(new Error('Not allowed by CORS'));
-        }
-      },
+      origin: true, // Dynamically allow request origin for credentials support
       methods: ['GET', 'POST'],
       credentials: true
-    }
+    },
+    transports: ['polling', 'websocket'] // Update to use polling as primary
   });
 
   io.on('connection', (socket) => {
