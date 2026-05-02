@@ -43,16 +43,17 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
       };
 
       pcRef.current = pc;
-
-      // Create Offer
-      const offer = await pc.createOffer({ offerToReceiveVideo: true });
-      await pc.setLocalDescription(offer);
-      socket.emit('screen:offer', { to: userId, offer });
+      
+      // Request stream from employee
+      socket.emit('screen:request', { to: userId });
     };
 
-    socket.on('screen:answer', async ({ from, answer }) => {
+    socket.on('screen:offer', async ({ from, offer }) => {
       if (from === userId && pcRef.current) {
-        await pcRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+        await pcRef.current.setRemoteDescription(new RTCSessionDescription(offer));
+        const answer = await pcRef.current.createAnswer();
+        await pcRef.current.setLocalDescription(answer);
+        socket.emit('screen:answer', { to: userId, answer });
       }
     });
 
@@ -66,6 +67,7 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
 
     return () => {
       pcRef.current?.close();
+      socket.off('screen:offer');
       socket.off('screen:answer');
       socket.off('screen:candidate');
     };

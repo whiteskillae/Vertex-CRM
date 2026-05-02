@@ -150,14 +150,25 @@ export const ScreenShareManager = () => {
 
     socket.on('admin:message', ({ message }) => {
       setAdminMessage(message);
-      // Auto-hide after 10 seconds
       setTimeout(() => setAdminMessage(null), 10000);
+    });
+
+    // Admin is requesting a stream
+    socket.on('screen:request', async ({ from }) => {
+      if (!isSharing || !streamRef.current) return;
+
+      const pc = createPeerConnection(from);
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      
+      socket.emit('screen:offer', { to: from, offer });
     });
 
     return () => {
       socket.off('screen:offer');
       socket.off('screen:candidate');
       socket.off('admin:message');
+      socket.off('screen:request');
     };
   }, [socket, isSharing]);
 
@@ -225,6 +236,17 @@ export const ScreenShareManager = () => {
 
       {/* Small Indicator */}
       <AnimatePresence>
+        {!isSharing && localStorage.getItem(`screen_share_consent_${user?._id}`) === 'accepted' && (
+          <motion.div
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="fixed bottom-6 right-6 z-[500] flex items-center gap-3 bg-red-600 text-white px-5 py-3 border-4 border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,0.5)] cursor-pointer"
+            onClick={startSharing}
+          >
+            <Monitor className="w-5 h-5 animate-bounce" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Resume Session Monitoring</span>
+          </motion.div>
+        )}
         {isSharing && (
           <motion.div
             initial={{ y: 50, opacity: 0 }}

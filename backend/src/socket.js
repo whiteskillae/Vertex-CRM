@@ -69,6 +69,10 @@ const initSocket = (server) => {
     });
 
     // WebRTC Signaling
+    socket.on('screen:request', ({ to }) => {
+      socket.to(to).emit('screen:request', { from: socket.userId });
+    });
+
     socket.on('screen:offer', ({ to, offer }) => {
       socket.to(to).emit('screen:offer', { from: socket.userId, offer });
     });
