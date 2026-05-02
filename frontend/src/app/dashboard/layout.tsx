@@ -23,10 +23,12 @@ import {
   Loader2,
   HardDrive,
   History,
+  Video,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useSocket } from "@/context/SocketContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { ScreenShareManager } from "@/components/monitoring/ScreenShareManager";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface NavItem {
@@ -165,6 +167,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     ...(isAdmin
       ? [
           { name: "Storage", href: "/dashboard/storage", icon: HardDrive, adminOnly: true },
+          { name: "Monitoring", href: "/dashboard/monitoring", icon: Video, adminOnly: true },
           { name: "Activity Logs", href: "/dashboard/logs", icon: ScrollText, adminOnly: true }
         ]
       : []),
@@ -330,6 +333,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <div className="flex-1 overflow-y-auto p-6 md:p-10 lg:p-16 custom-scrollbar relative z-10">
           {children}
+          <ScreenShareManager />
         </div>
       </main>
 

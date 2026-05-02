@@ -119,6 +119,7 @@ app.use('/api/todos', todoRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/storage', storageRoutes);
+app.use('/api/monitoring', require('./routes/monitoringRoutes'));
 app.use('/api/logs', require('./routes/logRoutes'));
 
 app.get('/', (req, res) => {
