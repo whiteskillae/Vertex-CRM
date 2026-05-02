@@ -4,6 +4,7 @@ export interface MonitoringStatus {
   _id: string;
   name: string;
   email: string;
+  role: string;
   isSharing: boolean;
   status: string;
 }

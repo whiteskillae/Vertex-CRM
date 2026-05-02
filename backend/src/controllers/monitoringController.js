@@ -3,9 +3,8 @@ const MonitoringSession = require('../models/MonitoringSession');
 const { getActiveStreamers } = require('../socket');
 
 // Get all employees with their monitoring status
-exports.getMonitoringStatus = async (req, res) => {
+const getMonitoringStatus = async (req, res) => {
   try {
-    // Include both employee and manager roles, excluding deleted users
     const employees = await User.find({ 
       role: { $in: ['employee', 'manager'] },
       isDeleted: { $ne: true }
@@ -29,7 +28,7 @@ exports.getMonitoringStatus = async (req, res) => {
 };
 
 // Get session history for an employee
-exports.getSessionHistory = async (req, res) => {
+const getSessionHistory = async (req, res) => {
   try {
     const { employeeId } = req.params;
     const sessions = await MonitoringSession.find({ employeeId })
@@ -42,7 +41,7 @@ exports.getSessionHistory = async (req, res) => {
 };
 
 // Save a screenshot (Admin capability)
-exports.saveScreenshot = async (req, res) => {
+const saveScreenshot = async (req, res) => {
   try {
     const { sessionId, screenshot } = req.body;
     await MonitoringSession.findByIdAndUpdate(sessionId, { lastScreenshot: screenshot });
@@ -50,4 +49,10 @@ exports.saveScreenshot = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+};
+
+module.exports = {
+  getMonitoringStatus,
+  getSessionHistory,
+  saveScreenshot
 };
