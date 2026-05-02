@@ -69,20 +69,20 @@ const initSocket = (server) => {
     });
 
     // WebRTC Signaling
-    socket.on('screen:request', ({ to }) => {
-      socket.to(to).emit('screen:request', { from: socket.userId });
+    socket.on('screen:request', ({ to, viewerId }) => {
+      socket.to(to).emit('screen:request', { from: socket.userId, viewerId });
     });
 
-    socket.on('screen:offer', ({ to, offer }) => {
-      socket.to(to).emit('screen:offer', { from: socket.userId, offer });
+    socket.on('screen:offer', ({ to, viewerId, offer }) => {
+      socket.to(to).emit('screen:offer', { from: socket.userId, viewerId, offer });
     });
 
-    socket.on('screen:answer', ({ to, answer }) => {
-      socket.to(to).emit('screen:answer', { from: socket.userId, answer });
+    socket.on('screen:answer', ({ to, viewerId, answer }) => {
+      socket.to(to).emit('screen:answer', { from: socket.userId, viewerId, answer });
     });
 
-    socket.on('screen:candidate', ({ to, candidate }) => {
-      socket.to(to).emit('screen:candidate', { from: socket.userId, candidate });
+    socket.on('screen:candidate', ({ to, viewerId, candidate }) => {
+      socket.to(to).emit('screen:candidate', { from: socket.userId, viewerId, candidate });
     });
 
     // Activity Updates
