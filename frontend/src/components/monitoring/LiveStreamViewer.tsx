@@ -32,7 +32,7 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
 
       pc.onicecandidate = (event) => {
         if (event.candidate) {
-          socket.emit('screen:candidate', { to: userId, candidate: event.candidate });
+          socket.emit('screen:candidate', { to: userId, viewerId, candidate: event.candidate });
         }
       };
 
@@ -45,21 +45,21 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
       pcRef.current = pc;
       
       // Request stream from employee
-      socket.emit('screen:request', { to: userId });
+      socket.emit('screen:request', { to: userId, viewerId });
     };
 
-    socket.on('screen:offer', async ({ from, offer }) => {
-      if (from === userId && pcRef.current) {
-        await pcRef.current.setRemoteDescription(new RTCSessionDescription(offer));
+    socket.on('screen:offer', async (data) => {
+      if (data.from === userId && data.viewerId === viewerId && pcRef.current) {
+        await pcRef.current.setRemoteDescription(new RTCSessionDescription(data.offer));
         const answer = await pcRef.current.createAnswer();
         await pcRef.current.setLocalDescription(answer);
-        socket.emit('screen:answer', { to: userId, answer });
+        socket.emit('screen:answer', { to: userId, viewerId, answer });
       }
     });
 
-    socket.on('screen:candidate', async ({ from, candidate }) => {
-      if (from === userId && pcRef.current) {
-        await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+    socket.on('screen:candidate', async (data) => {
+      if (data.from === userId && data.viewerId === viewerId && pcRef.current) {
+        await pcRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
       }
     });
 

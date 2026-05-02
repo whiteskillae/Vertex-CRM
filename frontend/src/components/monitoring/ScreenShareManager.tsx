@@ -111,7 +111,7 @@ export const ScreenShareManager = () => {
   useEffect(() => {
     if (!socket || !isSharing) return;
 
-    const createPeerConnection = (adminId: string) => {
+    const createPeerConnection = (adminId: string, viewerId: string) => {
       const pc = new RTCPeerConnection({
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
       });
@@ -122,31 +122,14 @@ export const ScreenShareManager = () => {
 
       pc.onicecandidate = (event) => {
         if (event.candidate) {
-          socket.emit('screen:candidate', { to: adminId, candidate: event.candidate });
+          socket.emit('screen:candidate', { to: adminId, viewerId, candidate: event.candidate });
         }
       };
 
-      peerConnections.current.set(adminId, pc);
+      const key = `${adminId}-${viewerId}`;
+      peerConnections.current.set(key, pc);
       return pc;
     };
-
-    socket.on('screen:offer', async ({ from, offer }) => {
-      let pc = peerConnections.current.get(from);
-      if (!pc) pc = createPeerConnection(from);
-
-      await pc.setRemoteDescription(new RTCSessionDescription(offer));
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      
-      socket.emit('screen:answer', { to: from, answer });
-    });
-
-    socket.on('screen:candidate', async ({ from, candidate }) => {
-      const pc = peerConnections.current.get(from);
-      if (pc) {
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
-      }
-    });
 
     socket.on('admin:message', ({ message }) => {
       setAdminMessage(message);
@@ -154,18 +137,35 @@ export const ScreenShareManager = () => {
     });
 
     // Admin is requesting a stream
-    socket.on('screen:request', async ({ from }) => {
+    socket.on('screen:request', async ({ from, viewerId }) => {
       if (!isSharing || !streamRef.current) return;
 
-      const pc = createPeerConnection(from);
+      const pc = createPeerConnection(from, viewerId);
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
       
-      socket.emit('screen:offer', { to: from, offer });
+      socket.emit('screen:offer', { to: from, viewerId, offer });
+    });
+
+    socket.on('screen:answer', async ({ from, viewerId, answer }) => {
+      const key = `${from}-${viewerId}`;
+      const pc = peerConnections.current.get(key);
+      if (pc) {
+        await pc.setRemoteDescription(new RTCSessionDescription(answer));
+      }
+    });
+
+    socket.on('screen:candidate', async ({ from, viewerId, candidate }) => {
+      const key = `${from}-${viewerId}`;
+      const pc = peerConnections.current.get(key);
+      if (pc) {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+      }
     });
 
     return () => {
       socket.off('screen:offer');
+      socket.off('screen:answer');
       socket.off('screen:candidate');
       socket.off('admin:message');
       socket.off('screen:request');
