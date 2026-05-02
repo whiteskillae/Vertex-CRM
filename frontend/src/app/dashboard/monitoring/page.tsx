@@ -137,7 +137,10 @@ export default function MonitoringDashboard() {
                 </div>
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-tight">{emp.name}</h3>
-                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{emp.email}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{emp.email}</p>
+                    <span className="text-[8px] bg-zinc-100 px-1 font-black uppercase border border-black/10">{emp.role}</span>
+                  </div>
                 </div>
               </div>
               <div className={`px-2 py-1 border-2 border-black text-[8px] font-black uppercase ${emp.isSharing ? 'bg-green-500 text-white animate-pulse' : 'bg-zinc-100 text-zinc-400'}`}>

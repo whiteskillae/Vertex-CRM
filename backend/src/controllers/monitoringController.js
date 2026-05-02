@@ -5,13 +5,19 @@ const { getActiveStreamers } = require('../socket');
 // Get all employees with their monitoring status
 exports.getMonitoringStatus = async (req, res) => {
   try {
-    const employees = await User.find({ role: 'employee' }).select('name email status jobType bio');
+    // Include both employee and manager roles, excluding deleted users
+    const employees = await User.find({ 
+      role: { $in: ['employee', 'manager'] },
+      isDeleted: { $ne: true }
+    }).select('name email role status jobType bio');
+    
     const activeStreamers = getActiveStreamers();
 
     const statusList = employees.map(emp => ({
       _id: emp._id,
       name: emp.name,
       email: emp.email,
+      role: emp.role,
       isSharing: activeStreamers.has(emp._id.toString()),
       status: emp.status
     }));

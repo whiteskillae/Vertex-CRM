@@ -171,6 +171,32 @@ export const ScreenShareManager = () => {
         onDecline={handleDecline} 
       />
       
+      {/* Persistent Tracking Banner (Prominent "SRM App" style) */}
+      <AnimatePresence>
+        {isSharing && (
+          <motion.div
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -100, opacity: 0 }}
+            className="fixed top-0 left-0 right-0 z-[2000] bg-red-600 text-white flex items-center justify-center gap-6 py-2 border-b-4 border-black shadow-[0px_4px_10px_rgba(0,0,0,0.3)]"
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-white rounded-full animate-ping" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Live Monitoring Active</span>
+            </div>
+            <div className="h-4 w-px bg-white/30" />
+            <p className="text-[9px] font-bold uppercase tracking-widest italic opacity-90">
+              Your screen is being shared with Mission Control for quality & compliance
+            </p>
+            <div className="h-4 w-px bg-white/30" />
+            <div className="flex items-center gap-2">
+              <Monitor className="w-3 h-3" />
+              <span className="text-[9px] font-black uppercase">Secure Protocol v2.0</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Admin Message Notification */}
       <AnimatePresence>
         {adminMessage && (
