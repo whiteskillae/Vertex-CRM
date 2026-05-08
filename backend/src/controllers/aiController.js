@@ -1,6 +1,6 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.AI_API_GOOGLE || process.env.GEMINI_API_KEY);
 
 const systemPrompt = `
 You are the Vertex CRM AI Assistant, a powerful enterprise-grade intelligence integrated into the Vertex CRM system.
@@ -59,8 +59,8 @@ exports.chatWithAI = async (req, res) => {
     }
 
     // ── Call Gemini API ────────────────────────────────────────────────────
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ message: 'AI configuration error: GEMINI_API_KEY missing.' });
+    if (!process.env.AI_API_GOOGLE && !process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ message: 'AI configuration error: AI_API_GOOGLE or GEMINI_API_KEY missing.' });
     }
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
