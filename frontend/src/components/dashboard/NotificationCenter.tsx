@@ -11,11 +11,18 @@ export default function NotificationCenter() {
   const [isOpen, setIsOpen] = useState(false);
   const { notifications, unreadCount, markAsRead, markAllRead, deleteNotification } = useNotifications();
 
+  const toggleOpen = () => {
+    if (!isOpen && unreadCount > 0) {
+      markAllRead();
+    }
+    setIsOpen(!isOpen);
+  };
+
   return (
     <div className="relative">
       {/* Bell Trigger */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleOpen}
         className={`
           relative p-3 border-4 border-black transition-all
           ${isOpen ? "bg-black text-white" : "bg-white text-black hover:bg-black hover:text-white"}

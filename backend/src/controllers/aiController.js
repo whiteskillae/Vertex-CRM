@@ -30,11 +30,38 @@ ROLES:
 Always be professional, concise, and helpful. If you don't know something about the specific data, ask the user to check the relevant module.
 `;
 
+const User = require('../models/User');
+
 exports.chatWithAI = async (req, res) => {
   try {
     const { message, history } = req.body;
+    const userId = req.user.id;
 
     if (!message) return res.status(400).json({ message: 'Message is required' });
+
+    // ── Check Daily Limit ──────────────────────────────────────────────────
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const now = new Date();
+    const lastReset = new Date(user.aiUsage?.lastReset || 0);
+    const isNewDay = now.toDateString() !== lastReset.toDateString();
+
+    if (isNewDay) {
+      user.aiUsage = { count: 0, lastReset: now };
+    }
+
+    if (user.role !== 'admin' && user.aiUsage.count >= 20) {
+      return res.status(429).json({ 
+        message: 'Daily AI limit reached (20/20). Please wait until tomorrow or contact an administrator.',
+        limitReached: true
+      });
+    }
+
+    // ── Call Gemini API ────────────────────────────────────────────────────
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ message: 'AI configuration error: GEMINI_API_KEY missing.' });
+    }
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -53,17 +80,42 @@ exports.chatWithAI = async (req, res) => {
     const response = await result.response;
     const text = response.text();
 
-    res.json({ response: text });
+    // ── Update Usage ──────────────────────────────────────────────────────
+    user.aiUsage.count += 1;
+    await user.save();
+
+    res.json({ 
+      response: text, 
+      usage: {
+        count: user.aiUsage.count,
+        limit: 20,
+        isAdmin: user.role === 'admin'
+      }
+    });
   } catch (error) {
     console.error('AI Chat Error:', error);
-    res.status(500).json({ message: 'AI processing failed. Please ensure GEMINI_API_KEY is configured.' });
+    res.status(500).json({ message: 'AI processing failed. Please check network connection or API quota.' });
   }
 };
 
 exports.streamChatWithAI = async (req, res) => {
-    // Basic streaming implementation
     try {
         const { message, history } = req.body;
+        const userId = req.user.id;
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const now = new Date();
+        const lastReset = new Date(user.aiUsage?.lastReset || 0);
+        if (now.toDateString() !== lastReset.toDateString()) {
+          user.aiUsage = { count: 0, lastReset: now };
+        }
+
+        if (user.role !== 'admin' && user.aiUsage.count >= 20) {
+          return res.status(429).json({ message: 'Daily limit reached' });
+        }
+
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         
         res.setHeader('Content-Type', 'text/event-stream');
@@ -87,6 +139,9 @@ exports.streamChatWithAI = async (req, res) => {
             const chunkText = chunk.text();
             res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
         }
+
+        user.aiUsage.count += 1;
+        await user.save();
 
         res.write('data: [DONE]\n\n');
         res.end();

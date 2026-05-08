@@ -190,6 +190,20 @@ export const ScreenShareManager = () => {
     };
   }, [socket, isSharing]);
 
+  // Cleanup on Unmount
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      peerConnections.current.forEach(pc => pc.close());
+      peerConnections.current.clear();
+      if (socket && user) {
+        socket.emit('screen:stop', { userId: user._id });
+      }
+    };
+  }, [socket, user]);
+
   if (!isEmployee) return null;
 
   return (

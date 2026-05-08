@@ -102,10 +102,16 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
         }
       });
 
-      socket.emit('screen:request', { to: userId, viewerId });
+    socket.emit('screen:request', { to: userId, viewerId });
+
+    const handleStatusUpdate = (data: { userId: string, status: string }) => {
+      if (data.userId === userId && (data.status === 'online' || data.status === 'offline')) {
+        setStatus('offline');
+        pcRef.current?.close();
+      }
     };
 
-    startWatching();
+    socket.on('monitoring:update', handleStatusUpdate);
 
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -116,6 +122,7 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
       pcRef.current?.close();
       socket.off('screen:offer');
       socket.off('screen:candidate');
+      socket.off('monitoring:update', handleStatusUpdate);
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, [socket, userId]);

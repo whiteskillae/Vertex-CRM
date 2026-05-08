@@ -16,6 +16,23 @@ interface User {
   lastReadMessagesAt?: string;
   phone?: string;
   bio?: string;
+  country?: string;
+  state?: string;
+  address?: string;
+  department?: string;
+  skills?: string[];
+  socialLinks?: {
+    linkedin?: string;
+    twitter?: string;
+    github?: string;
+  };
+  honorScore?: {
+    score: number;
+    tasksCompleted: number;
+    tasksOnTime: number;
+    tasksLate: number;
+    reportsSubmitted: number;
+  };
 }
 
 interface AuthContextType {

@@ -33,6 +33,12 @@ const sendTokenResponse = (user, statusCode, res, message = undefined) => {
     phone: user.phone,
     jobType: user.jobType,
     bio: user.bio,
+    country: user.country,
+    state: user.state,
+    address: user.address,
+    department: user.department,
+    skills: user.skills,
+    socialLinks: user.socialLinks,
     isVerified: user.isVerified,
     token // Still sending in payload for backward compatibility with mobile apps
   };
@@ -464,7 +470,7 @@ exports.getStats = async (req, res) => {
 // ── Profile Update — role is NEVER accepted ──────────────────────────────────
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, phone, jobType, bio } = req.body;
+    const { name, phone, jobType, bio, country, state, address, department, skills, socialLinks } = req.body;
     const user = await User.findById(req.user.id);
 
     if (user) {
@@ -472,6 +478,12 @@ exports.updateProfile = async (req, res) => {
       user.phone = phone || user.phone;
       user.jobType = jobType || user.jobType;
       user.bio = bio || user.bio;
+      user.country = country || user.country;
+      user.state = state || user.state;
+      user.address = address || user.address;
+      user.department = department || user.department;
+      user.skills = skills || user.skills;
+      user.socialLinks = socialLinks || user.socialLinks;
 
       const updatedUser = await user.save();
       res.json({
@@ -483,6 +495,12 @@ exports.updateProfile = async (req, res) => {
         phone: updatedUser.phone,
         jobType: updatedUser.jobType,
         bio: updatedUser.bio,
+        country: updatedUser.country,
+        state: updatedUser.state,
+        address: updatedUser.address,
+        department: updatedUser.department,
+        skills: updatedUser.skills,
+        socialLinks: updatedUser.socialLinks,
         isVerified: updatedUser.isVerified
       });
     } else {

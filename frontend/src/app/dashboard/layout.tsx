@@ -55,13 +55,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Notification state from hook
   const { unreadCount, notifications } = useNotifications();
 
-  // Profile edit state
-  const [editOpen, setEditOpen] = useState(false);
-  const [editName, setEditName] = useState("");
-  const [editPhone, setEditPhone] = useState("");
-  const [editBio, setEditBio] = useState("");
-  const [isUpdating, setIsUpdating] = useState(false);
-
   const isAdmin = user?.role === "admin";
   const isEmployee = user?.role === "employee";
 
@@ -73,6 +66,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // ── Nav Items — role-based ─────────────────────────────────────────────────
   const navItems: NavItem[] = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Personnel Hub", href: "/dashboard/profile", icon: User },
     // Leads: admin/manager only — employees never see this
     ...(!isEmployee
       ? [
@@ -111,24 +105,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       : []),
   ];
 
-  // ── Profile Update ─────────────────────────────────────────────────────────
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsUpdating(true);
-    try {
-      const { data } = await api.put("auth/update-profile", {
-        name: editName,
-        phone: editPhone,
-        bio: editBio,
-      });
-      updateUser(data);
-      setEditOpen(false);
-    } catch {
-      // Handle silently
-    } finally {
-      setIsUpdating(false);
-    }
-  };
 
   if (!user) {
     return (
@@ -142,9 +118,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     href === "/dashboard" ? pathname === href : pathname.startsWith(href);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col lg:flex-row">
+    <div className="h-screen bg-white flex flex-col lg:flex-row overflow-hidden">
       {/* ── Mobile Header ── */}
-      <header className="lg:hidden bg-black text-white px-6 py-4 flex items-center justify-between border-b-8 border-black sticky top-0 z-[100]">
+      <header className="lg:hidden bg-black text-white px-6 py-4 flex items-center justify-between border-b-8 border-black z-[100] shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-white text-black flex items-center justify-center font-black text-xs border-2 border-white">C</div>
           <h1 className="font-black text-sm uppercase tracking-widest italic">Mission Control</h1>
@@ -163,14 +139,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ── Sidebar ── */}
       <aside
         className={`
-          fixed lg:sticky top-0 h-screen z-[110] lg:z-40 bg-white border-r-8 border-black flex flex-col
-          transition-all duration-300 ease-in-out shadow-[10px_0px_50px_0px_rgba(0,0,0,0.1)] lg:shadow-none
+          fixed lg:relative top-0 left-0 bottom-0 z-[110] lg:z-40 bg-white border-r-8 border-black flex flex-col h-full
+          transition-all duration-300 ease-in-out shadow-[10px_0px_50px_0px_rgba(0,0,0,0.1)] lg:shadow-none shrink-0
           ${collapsed ? "w-24" : "w-72"}
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
         {/* Logo Section */}
-        <div className={`p-6 border-b-8 border-black bg-black text-white flex items-center ${collapsed ? "justify-center" : "justify-between"}`}>
+        <div className={`p-6 border-b-8 border-black bg-black text-white flex items-center shrink-0 ${collapsed ? "justify-center" : "justify-between"}`}>
           {!collapsed && (
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white text-black flex items-center justify-center font-black text-xl border-2 border-white shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)]">M</div>
@@ -191,7 +167,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* User Quick Info */}
-        <div className={`p-6 border-b-4 border-black bg-zinc-50 ${collapsed ? "flex justify-center" : ""}`}>
+        <div className={`p-6 border-b-4 border-black bg-zinc-50 shrink-0 ${collapsed ? "flex justify-center" : ""}`}>
           {!collapsed ? (
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-black text-white flex items-center justify-center font-black text-xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
@@ -246,15 +222,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* Footer Actions */}
-        <div className="mt-auto p-4 border-t-8 border-black space-y-2">
-          <button
-            onClick={() => setEditOpen(true)}
+        <div className="mt-auto p-4 border-t-8 border-black space-y-2 shrink-0">
+          <Link
+            href="/dashboard/profile"
             className={`w-full flex items-center gap-4 p-4 border-4 border-black hover:bg-black hover:text-white transition-all ${collapsed ? "justify-center" : ""}`}
             title="Update Protocol"
           >
             <Settings className="h-5 w-5" />
             {!collapsed && <span className="text-[10px] font-black uppercase tracking-widest">Profile Hub</span>}
-          </button>
+          </Link>
           <button
             onClick={() => logout()}
             className={`w-full flex items-center gap-4 p-4 border-4 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all ${collapsed ? "justify-center" : ""}`}
@@ -266,14 +242,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* ── Main Content Area ── */}
-      <main className="flex-1 flex flex-col min-w-0 bg-white overflow-hidden relative min-h-screen">
+      <main className="flex-1 flex flex-col min-w-0 bg-white relative h-full">
         {/* Background Decorative Grid */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.03] overflow-hidden">
           <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(#000 2px, transparent 2px)', backgroundSize: '40px 40px' }}></div>
         </div>
 
         {/* Desktop Header Integration */}
-        <header className="hidden lg:flex items-center justify-end p-6 border-b-4 border-black/5 bg-white/80 backdrop-blur-md sticky top-0 z-30">
+        <header className="hidden lg:flex items-center justify-end p-6 border-b-4 border-black/5 bg-white/80 backdrop-blur-md sticky top-0 z-30 shrink-0">
           <div className="flex items-center gap-6">
             <div className="hidden xl:flex flex-col items-end">
               <span className="text-[8px] font-black uppercase text-zinc-400 tracking-[0.3em]">System Time</span>
@@ -283,77 +259,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6 md:p-10 lg:p-16 custom-scrollbar relative z-10">
+        <div className="flex-1 overflow-y-auto p-6 md:p-10 lg:p-12 custom-scrollbar relative z-10 h-full">
           {children}
           <ScreenShareManager />
         </div>
       </main>
 
-      {/* ── Edit Profile Modal ── */}
-      <AnimatePresence>
-        {editOpen && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setEditOpen(false)}
-            />
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="relative bg-white border-4 border-black w-full max-w-md p-8 shadow-[20px_20px_0px_0px_rgba(0,0,0,1)]"
-            >
-              <button
-                onClick={() => setEditOpen(false)}
-                className="absolute top-4 right-4"
-              >
-                <X className="h-5 w-5" />
-              </button>
-              <h2 className="text-2xl font-black uppercase tracking-tighter mb-6">Edit Profile</h2>
-              <form onSubmit={handleUpdateProfile} className="space-y-4">
-                <div>
-                  <label className="text-xs font-black uppercase block mb-1">Name</label>
-                  <input
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="w-full border-2 border-black p-3 text-sm outline-none"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-black uppercase block mb-1">Phone</label>
-                  <input
-                    value={editPhone}
-                    onChange={(e) => setEditPhone(e.target.value)}
-                    className="w-full border-2 border-black p-3 text-sm outline-none"
-                    placeholder="+91 00000 00000"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-black uppercase block mb-1">Bio</label>
-                  <textarea
-                    value={editBio}
-                    onChange={(e) => setEditBio(e.target.value)}
-                    rows={3}
-                    className="w-full border-2 border-black p-3 text-sm outline-none resize-none"
-                    placeholder="Brief description..."
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={isUpdating}
-                  className="w-full py-4 bg-black text-white font-black uppercase text-sm border-2 border-black hover:bg-white hover:text-black transition-all disabled:opacity-50"
-                >
-                  {isUpdating ? <Loader2 className="animate-spin h-4 w-4 mx-auto" /> : "Save Changes"}
-                </button>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      </main>
     </div>
   );
 }

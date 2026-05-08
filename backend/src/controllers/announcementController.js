@@ -25,9 +25,15 @@ exports.createAnnouncement = async (req, res) => {
 
 exports.getAnnouncements = async (req, res) => {
   try {
-    const announcements = await Announcement.find()
+    const query = Announcement.find()
       .sort({ createdAt: -1 })
       .populate('createdBy', 'name');
+    
+    if (req.user.role !== 'employee') {
+      query.populate('seenBy', 'name email');
+    }
+    
+    const announcements = await query;
     res.json(announcements);
   } catch (error) {
     console.error('getAnnouncements error:', error.message);

@@ -141,6 +141,10 @@ const initSocket = (server) => {
       io.emit('team_message', data);
     });
 
+    socket.on('message:read', ({ messageId, senderId }) => {
+      socket.to(senderId).emit('message:read', { messageId, readerId: socket.userId });
+    });
+
     socket.on('disconnect', async () => {
       if (socket.userId && activeStreamers.get(socket.userId) === socket.id) {
         activeStreamers.delete(socket.userId);

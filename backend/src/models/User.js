@@ -17,9 +17,20 @@ const userSchema = new mongoose.Schema({
   phone: { type: String, maxlength: 30 },
   jobType: { type: String, enum: ['remote', 'hybrid', 'office'], default: 'office' },
   bio: { type: String, maxlength: 1000 },
+  country: { type: String, maxlength: 100 },
+  state: { type: String, maxlength: 100 },
+  address: { type: String, maxlength: 500 },
+  department: { type: String, maxlength: 100 },
+  skills: [{ type: String }],
+  socialLinks: {
+    linkedin: { type: String },
+    twitter: { type: String },
+    github: { type: String }
+  },
   managerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
   otp: { type: String },
   otpExpires: { type: Date },
+  lastActiveAt: { type: Date, default: Date.now },
   // ── Honor Score System ─────────────────────────────────────────────────────
   honorScore: {
     score: { type: Number, default: 50, min: 0, max: 100 },
@@ -32,6 +43,10 @@ const userSchema = new mongoose.Schema({
   // ── Notification Tracking ──────────────────────────────────────────────────
   lastReadTasksAt: { type: Date, default: Date.now },
   lastReadAnnouncementsAt: { type: Date, default: Date.now },
+  aiUsage: {
+    count: { type: Number, default: 0 },
+    lastReset: { type: Date, default: Date.now }
+  },
   isDeleted: { type: Boolean, default: false, index: true },
   deletedAt: { type: Date },
   createdAt: { type: Date, default: Date.now },

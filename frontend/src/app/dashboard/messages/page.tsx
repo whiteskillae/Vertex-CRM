@@ -38,7 +38,7 @@ interface Message {
 
 export default function MessagesPage() {
   const { user } = useAuth();
-  const socket = useSocket();
+  const { socket } = useSocket();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [isTeamChat, setIsTeamChat] = useState(false);

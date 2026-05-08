@@ -59,6 +59,8 @@ export default function AIPage() {
     window.speechSynthesis.speak(utterance);
   };
 
+  const [usage, setUsage] = useState<{ count: number; limit: number; isAdmin: boolean } | null>(null);
+
   const handleSend = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!input.trim() || loading) return;
@@ -76,10 +78,21 @@ export default function AIPage() {
 
       const aiResponse = data.response;
       setMessages(prev => [...prev, { role: 'model', content: aiResponse }]);
+      setUsage(data.usage);
       speak(aiResponse);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setMessages(prev => [...prev, { role: 'model', content: "Protocol Failure: Unable to establish connection with neural core. Ensure API keys are active." }]);
+      if (err.response?.status === 429) {
+        setMessages(prev => [...prev, { 
+          role: 'model', 
+          content: "DEPLOYMENT REJECTED: Daily operational quota exceeded (20/20). Neural link will reset in 24 hours. Contact administrator for priority access." 
+        }]);
+      } else {
+        setMessages(prev => [...prev, { 
+          role: 'model', 
+          content: "Protocol Failure: Unable to establish connection with neural core. Error: " + (err.response?.data?.message || "Internal Uplink Fault")
+        }]);
+      }
     } finally {
       setLoading(false);
     }
@@ -106,7 +119,19 @@ export default function AIPage() {
           </div>
           <div>
             <h2 className="text-xl font-black uppercase italic tracking-tighter leading-none">Vertex AI Core</h2>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-widest mt-1">Operational Assistant — v1.0.4</p>
+            <div className="flex items-center gap-3 mt-1">
+              <p className="text-[10px] text-zinc-500 uppercase tracking-widest">Operational Assistant — v1.0.4</p>
+              {usage && !usage.isAdmin && (
+                <span className="text-[10px] font-black bg-white text-black px-2 border border-white">
+                  QUOTA: {usage.count}/{usage.limit}
+                </span>
+              )}
+              {usage?.isAdmin && (
+                <span className="text-[10px] font-black bg-white text-black px-2 border border-white">
+                  ADMIN_UNLIMITED
+                </span>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex gap-3">
