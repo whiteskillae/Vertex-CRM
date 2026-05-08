@@ -94,6 +94,15 @@ const initSocket = (server) => {
       socket.to(to).emit('admin:message', { message, timestamp: new Date() });
     });
 
+    // Chat Typing Indicators
+    socket.on('typing', ({ to, isTyping }) => {
+      socket.to(to).emit('typing', { from: socket.userId, isTyping });
+    });
+
+    socket.on('team:typing', ({ isTyping, userName }) => {
+      socket.broadcast.emit('team:typing', { userId: socket.userId, userName, isTyping });
+    });
+
     socket.on('disconnect', async () => {
       if (socket.userId && activeStreamers.get(socket.userId) === socket.id) {
         activeStreamers.delete(socket.userId);

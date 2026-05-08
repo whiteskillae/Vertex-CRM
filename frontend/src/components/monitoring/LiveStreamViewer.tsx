@@ -16,16 +16,23 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
   const [status, setStatus] = useState<'connecting' | 'streaming' | 'offline'>('connecting');
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !socket.id) return;
+    
+    const viewerId = socket.id;
 
     const startWatching = async () => {
       const pc = new RTCPeerConnection({
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
       });
 
+      const candidateQueue: RTCIceCandidateInit[] = [];
+
       pc.ontrack = (event) => {
+        console.log('Stream track received:', event.streams[0]);
         if (videoRef.current) {
           videoRef.current.srcObject = event.streams[0];
+          // Force play
+          videoRef.current.play().catch(e => console.error('Video play failed:', e));
           setStatus('streaming');
         }
       };
@@ -37,6 +44,7 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
       };
 
       pc.oniceconnectionstatechange = () => {
+        console.log('ICE Connection State:', pc.iceConnectionState);
         if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
           setStatus('offline');
         }
@@ -44,31 +52,44 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
 
       pcRef.current = pc;
       
+      socket.on('screen:offer', async (data) => {
+        if (data.from === userId && data.viewerId === viewerId && pcRef.current) {
+          try {
+            await pcRef.current.setRemoteDescription(new RTCSessionDescription(data.offer));
+            const answer = await pcRef.current.createAnswer();
+            await pcRef.current.setLocalDescription(answer);
+            socket.emit('screen:answer', { to: userId, viewerId, answer });
+            
+            // Process queued candidates
+            while (candidateQueue.length > 0) {
+              const cand = candidateQueue.shift();
+              if (cand) await pcRef.current.addIceCandidate(new RTCIceCandidate(cand));
+            }
+          } catch (e) {
+            console.error('Error handling offer:', e);
+          }
+        }
+      });
+
+      socket.on('screen:candidate', async (data) => {
+        if (data.from === userId && data.viewerId === viewerId && pcRef.current) {
+          if (pcRef.current.remoteDescription) {
+            await pcRef.current.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(e => console.error(e));
+          } else {
+            candidateQueue.push(data.candidate);
+          }
+        }
+      });
+
       // Request stream from employee
       socket.emit('screen:request', { to: userId, viewerId });
     };
-
-    socket.on('screen:offer', async (data) => {
-      if (data.from === userId && data.viewerId === viewerId && pcRef.current) {
-        await pcRef.current.setRemoteDescription(new RTCSessionDescription(data.offer));
-        const answer = await pcRef.current.createAnswer();
-        await pcRef.current.setLocalDescription(answer);
-        socket.emit('screen:answer', { to: userId, viewerId, answer });
-      }
-    });
-
-    socket.on('screen:candidate', async (data) => {
-      if (data.from === userId && data.viewerId === viewerId && pcRef.current) {
-        await pcRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
-      }
-    });
 
     startWatching();
 
     return () => {
       pcRef.current?.close();
       socket.off('screen:offer');
-      socket.off('screen:answer');
       socket.off('screen:candidate');
     };
   }, [socket, userId]);

@@ -18,6 +18,7 @@ const taskSchema = new mongoose.Schema({
   assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
   relatedLead: { type: mongoose.Schema.Types.ObjectId, ref: 'Lead' },
+  projectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', index: true },
   submission: { type: String, maxlength: 10000 },
   submissionAttachment: { type: String }, // Cloudinary URL
   submissionDate: { type: Date },

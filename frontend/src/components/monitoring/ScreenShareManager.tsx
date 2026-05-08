@@ -116,6 +116,8 @@ export const ScreenShareManager = () => {
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
       });
 
+      const candidateQueue: RTCIceCandidateInit[] = [];
+
       streamRef.current?.getTracks().forEach(track => {
         pc.addTrack(track, streamRef.current!);
       });
@@ -128,7 +130,8 @@ export const ScreenShareManager = () => {
 
       const key = `${adminId}-${viewerId}`;
       peerConnections.current.set(key, pc);
-      return pc;
+
+      return { pc, candidateQueue };
     };
 
     socket.on('admin:message', ({ message }) => {
@@ -140,11 +143,15 @@ export const ScreenShareManager = () => {
     socket.on('screen:request', async ({ from, viewerId }) => {
       if (!isSharing || !streamRef.current) return;
 
-      const pc = createPeerConnection(from, viewerId);
+      const { pc, candidateQueue } = createPeerConnection(from, viewerId);
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
       
       socket.emit('screen:offer', { to: from, viewerId, offer });
+
+      // Save candidate queue in a weak map or similar if needed, 
+      // but here we can just attach it to the PC object or use a mapping.
+      (pc as any)._candidateQueue = candidateQueue;
     });
 
     socket.on('screen:answer', async ({ from, viewerId, answer }) => {
@@ -152,6 +159,13 @@ export const ScreenShareManager = () => {
       const pc = peerConnections.current.get(key);
       if (pc) {
         await pc.setRemoteDescription(new RTCSessionDescription(answer));
+        const queue = (pc as any)._candidateQueue;
+        if (queue) {
+          while (queue.length > 0) {
+            const cand = queue.shift();
+            await pc.addIceCandidate(new RTCIceCandidate(cand)).catch(e => console.error(e));
+          }
+        }
       }
     });
 
@@ -159,7 +173,11 @@ export const ScreenShareManager = () => {
       const key = `${from}-${viewerId}`;
       const pc = peerConnections.current.get(key);
       if (pc) {
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        if (pc.remoteDescription) {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(e => console.error(e));
+        } else {
+          (pc as any)._candidateQueue?.push(candidate);
+        }
       }
     });
 

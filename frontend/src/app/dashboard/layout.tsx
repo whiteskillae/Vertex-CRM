@@ -156,6 +156,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       icon: CheckSquare,
       hasAlert: hasNewTasks,
     },
+    { name: "Projects", href: "/dashboard/projects", icon: ScrollText },
     { name: "Reports", href: "/dashboard/reports", icon: BarChart3 },
     {
       name: "Messages",
@@ -163,12 +164,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       icon: MessageSquare,
       hasAlert: hasNewMessages,
     },
+    { name: "AI Assistant", href: "/dashboard/ai", icon: ShieldCheck },
     // Admin Only Intelligence Hubs
     ...(isAdmin
       ? [
           { name: "Storage", href: "/dashboard/storage", icon: HardDrive, adminOnly: true },
+          { name: "Secure Vault", href: "/dashboard/vault", icon: Settings, adminOnly: true },
           { name: "Monitoring", href: "/dashboard/monitoring", icon: Video, adminOnly: true },
-          { name: "Activity Logs", href: "/dashboard/logs", icon: ScrollText, adminOnly: true }
+          { name: "Activity Logs", href: "/dashboard/logs", icon: History, adminOnly: true }
         ]
       : []),
   ];

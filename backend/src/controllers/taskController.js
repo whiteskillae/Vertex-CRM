@@ -4,7 +4,7 @@ const { sendNotification } = require('../utils/notificationUtils');
 
 exports.createTask = async (req, res) => {
   try {
-    const { title, description, dueDate, priority, assignedTo, relatedLead } = req.body;
+    const { title, description, dueDate, priority, assignedTo, relatedLead, projectId } = req.body;
 
     if (!title) {
       return res.status(400).json({ message: 'Task title is required' });
@@ -21,6 +21,7 @@ exports.createTask = async (req, res) => {
       priority,
       assignedTo,
       relatedLead,
+      projectId,
       createdBy: req.user.id,
       history: [{
         action: 'created',

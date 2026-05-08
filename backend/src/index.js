@@ -119,6 +119,9 @@ app.use('/api/todos', todoRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/storage', storageRoutes);
+app.use('/api/projects', require('./routes/projectRoutes'));
+app.use('/api/ai', require('./routes/aiRoutes'));
+app.use('/api/vault', require('./routes/vaultRoutes'));
 app.use('/api/monitoring', require('./routes/monitoringRoutes'));
 app.use('/api/logs', require('./routes/logRoutes'));
 

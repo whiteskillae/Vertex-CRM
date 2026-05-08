@@ -4,15 +4,20 @@ const { getIO } = require('../socket');
 
 exports.sendMessage = async (req, res) => {
   try {
-    const { receiverId, message, fileUrl, fileType, voiceUrl } = req.body;
+    const { receiverId, message, fileUrl, fileType, voiceUrl, isTeamChat } = req.body;
 
-    if (!receiverId || (!message && !fileUrl && !voiceUrl)) {
-      return res.status(400).json({ message: 'Receiver and content are required' });
+    if (!isTeamChat && !receiverId) {
+      return res.status(400).json({ message: 'Receiver is required for private messages' });
+    }
+
+    if (!message && !fileUrl && !voiceUrl) {
+      return res.status(400).json({ message: 'Message content is required' });
     }
 
     const newMessage = await Message.create({
       senderId: req.user.id,
-      receiverId,
+      receiverId: isTeamChat ? null : receiverId,
+      isTeamChat: !!isTeamChat,
       message,
       fileUrl,
       fileType,
@@ -25,7 +30,13 @@ exports.sendMessage = async (req, res) => {
 
     // Real-time delivery
     const io = getIO();
-    io.to(receiverId.toString()).emit('new_message', populated);
+    if (isTeamChat) {
+      io.emit('team_message', populated);
+    } else {
+      io.to(receiverId.toString()).emit('new_message', populated);
+      // Also emit to sender for multi-device sync
+      io.to(req.user.id.toString()).emit('new_message', populated);
+    }
 
     res.status(201).json(populated);
   } catch (error) {
@@ -36,23 +47,23 @@ exports.sendMessage = async (req, res) => {
 
 exports.getMessages = async (req, res) => {
   try {
-    const { contactId } = req.query;
-    let query = {
-      $or: [
+    const { contactId, isTeamChat } = req.query;
+    let query = { isDeleted: false };
+
+    if (isTeamChat === 'true') {
+      query.isTeamChat = true;
+    } else if (contactId) {
+      query.$or = [
+        { senderId: req.user.id, receiverId: contactId },
+        { senderId: contactId, receiverId: req.user.id }
+      ];
+      query.isTeamChat = false;
+    } else {
+      query.$or = [
         { senderId: req.user.id },
         { receiverId: req.user.id }
-      ],
-      isDeleted: false
-    };
-
-    if (contactId) {
-      query = {
-        $or: [
-          { senderId: req.user.id, receiverId: contactId },
-          { senderId: contactId, receiverId: req.user.id }
-        ],
-        isDeleted: false
-      };
+      ];
+      query.isTeamChat = false;
     }
 
     const messages = await Message.find(query)

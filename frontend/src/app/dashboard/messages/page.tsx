@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
-import { io, Socket } from "socket.io-client";
+import { useSocket } from "@/context/SocketContext";
 
 interface Contact {
   _id: string;
@@ -40,41 +40,37 @@ interface Message {
 
 export default function MessagesPage() {
   const { user } = useAuth();
+  const { socket } = useSocket();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadingChat, setLoadingChat] = useState(false);
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  
+  const [isTeamChat, setIsTeamChat] = useState(false);
+  const [teamUnreadCount, setTeamUnreadCount] = useState(0);
+  const [teamTypingUsers, setTeamTypingUsers] = useState<{userId: string, userName: string}[]>([]);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [processing, setProcessing] = useState(false);
 
-  // ── Voice Recording State ──────────────────────────────────────────────────
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
 
-  // Initialize Socket
+  // ── Stable Socket Listeners ───────────────────────────────────────────
   useEffect(() => {
-    if (!user) return;
-    // ── FIX: Robust Socket URL Calculation ───────────────────────────────────
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api";
-    const socketUrl = apiBase.replace(/\/api\/?$/, ""); // Removes /api or /api/ from the end
-      
-    const s = io(socketUrl, {
-      auth: { token: localStorage.getItem("token") }
-    });
-    setSocket(s);
-    s.emit("join", user._id);
+    if (!socket || !user) return;
 
-    s.on("new_message", (msg: Message) => {
-      setMessages(prev => [...prev, msg]);
+    const handleNewMessage = (msg: Message) => {
+      setMessages(prev => {
+        if (prev.find(m => m._id === msg._id)) return prev;
+        return [...prev, msg];
+      });
       
       const senderId = typeof msg.senderId === 'string' ? msg.senderId : msg.senderId?._id;
 
@@ -84,26 +80,53 @@ export default function MessagesPage() {
         }
         return c;
       }));
-    });
+    };
 
-    s.on("messages_seen", ({ viewerId }) => {
+    const handleTeamMessage = (msg: Message) => {
+      if (isTeamChat) {
+        setMessages(prev => {
+          if (prev.find(m => m._id === msg._id)) return prev;
+          return [...prev, msg];
+        });
+      } else {
+        setTeamUnreadCount(prev => prev + 1);
+      }
+    };
+
+    socket.on("new_message", handleNewMessage);
+    socket.on("team_message", handleTeamMessage);
+    
+    socket.on("messages_seen", ({ viewerId }) => {
       setMessages(prev => prev.map(m => 
         (typeof m.senderId === 'string' ? m.senderId : m.senderId?._id) === user._id ? { ...m, isSeen: true } : m
       ));
     });
 
-    s.on("typing", ({ senderId }) => {
-      if (!typingUsers.includes(senderId)) {
-        setTypingUsers(prev => [...prev, senderId]);
-      }
+    socket.on("typing", ({ senderId }) => {
+      setTypingUsers(prev => prev.includes(senderId) ? prev : [...prev, senderId]);
     });
 
-    s.on("stop_typing", ({ senderId }) => {
+    socket.on("stop_typing", ({ senderId }) => {
       setTypingUsers(prev => prev.filter(id => id !== senderId));
     });
 
-    return () => { s.disconnect(); };
-  }, [user, selectedContact]);
+    socket.on("team:typing", ({ userId, userName, isTyping }) => {
+      if (isTyping) {
+        setTeamTypingUsers(prev => prev.some(u => u.userId === userId) ? prev : [...prev, { userId, userName }]);
+      } else {
+        setTeamTypingUsers(prev => prev.filter(u => u.userId !== userId));
+      }
+    });
+
+    return () => {
+      socket.off("new_message", handleNewMessage);
+      socket.off("team_message", handleTeamMessage);
+      socket.off("messages_seen");
+      socket.off("typing");
+      socket.off("stop_typing");
+      socket.off("team:typing");
+    };
+  }, [socket, user, selectedContact, isTeamChat]);
 
   const fetchContacts = useCallback(async () => {
     try {
@@ -124,7 +147,6 @@ export default function MessagesPage() {
       const { data } = await api.get(`messages?contactId=${contactId}`);
       setMessages(data);
       setLoadingChat(false);
-      // Mark as seen
       await api.post("messages/mark-seen", { contactId });
       setContacts(prev => prev.map(c => c._id === contactId ? { ...c, unreadCount: 0 } : c));
     } catch (err) {
@@ -133,11 +155,26 @@ export default function MessagesPage() {
     }
   }, []);
 
+  const fetchTeamMessages = useCallback(async () => {
+    setLoadingChat(true);
+    try {
+      const { data } = await api.get(`messages?isTeamChat=true`);
+      setMessages(data);
+      setLoadingChat(false);
+      setTeamUnreadCount(0);
+    } catch (err) {
+      console.error(err);
+      setLoadingChat(false);
+    }
+  }, []);
+
   useEffect(() => {
-    if (selectedContact) {
+    if (isTeamChat) {
+      fetchTeamMessages();
+    } else if (selectedContact) {
       fetchMessages(selectedContact._id);
     }
-  }, [selectedContact, fetchMessages]);
+  }, [selectedContact, isTeamChat, fetchMessages, fetchTeamMessages]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -145,356 +182,232 @@ export default function MessagesPage() {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedContact) return;
+    if (!newMessage.trim() || processing) return;
+
+    setProcessing(true);
+    const msgData = {
+      message: newMessage,
+      receiverId: selectedContact?._id,
+      isTeamChat
+    };
 
     try {
-      const { data } = await api.post("messages", {
-        receiverId: selectedContact._id,
-        message: newMessage
-      });
-      setMessages(prev => [...prev, data]);
+      const { data } = await api.post("messages", msgData);
+      if (!isTeamChat) {
+        setMessages(prev => [...prev, data]);
+      }
       setNewMessage("");
-      socket?.emit("stop_typing", { receiverId: selectedContact._id, senderId: user?._id });
-    } catch (err) { console.error(err); }
-  };
-
-  const handleCall = () => {
-    if (!selectedContact?.phone) {
-      alert("No mobile frequency registered for this node.");
-      return;
-    }
-    // Remove non-numeric characters for WhatsApp API
-    const cleanPhone = selectedContact.phone.replace(/\D/g, '');
-    window.open(`https://wa.me/${cleanPhone}`, '_blank');
-  };
-
-  // ── Voice Logic ────────────────────────────────────────────────────────────
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      const chunks: BlobPart[] = [];
-
-      recorder.ondataavailable = (e) => chunks.push(e.data);
-      recorder.onstop = async () => {
-        setIsRecording(false);
-        setMediaRecorder(null);
-        setRecordingTime(0);
-
-        // Access the shouldSend ref or state to determine if we should upload
-        // For simplicity, I'll use a local closure or check a flag.
-        // Actually, I'll pass a parameter to stopRecording.
-      };
-
-      recorder.start();
-      setMediaRecorder(recorder);
-      setIsRecording(true);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        handleStopTyping();
+      }
     } catch (err) {
-      console.error("Mic access denied:", err);
-      alert("Microphone access required for voice transmissions.");
+      console.error(err);
+    } finally {
+      setProcessing(false);
     }
   };
 
-  const stopRecording = async (shouldSend: boolean = true) => {
-    if (mediaRecorder && isRecording) {
-      const chunks: BlobPart[] = [];
-      mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
-      
-      mediaRecorder.onstop = async () => {
-        if (shouldSend) {
-          const audioBlob = new Blob(chunks, { type: 'audio/webm' });
-          const { uploadToCloudinary } = await import("@/lib/cloudinary");
-          const audioFile = new File([audioBlob], `voice_${Date.now()}.webm`, { type: 'audio/webm' });
-          
-          try {
-            setProcessing(true);
-            const voiceUrl = await uploadToCloudinary(audioFile);
-            const { data } = await api.post("messages", {
-              receiverId: selectedContact?._id,
-              voiceUrl,
-              message: "🎤 Voice Transmission"
-            });
-            setMessages(prev => [...prev, data]);
-          } catch (err) {
-            console.error("Voice upload failed:", err);
-          } finally {
-            setProcessing(false);
-          }
-        }
-        
-        mediaRecorder.stream.getTracks().forEach(track => track.stop());
-        setIsRecording(false);
-        setMediaRecorder(null);
-        setRecordingTime(0);
-      };
-
-      mediaRecorder.stop();
-    }
-  };
-
-  useEffect(() => {
-    let interval: any;
-    if (isRecording) {
-      interval = setInterval(() => setRecordingTime(prev => prev + 1), 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isRecording]);
-
-  const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewMessage(e.target.value);
-    if (!socket || !selectedContact) return;
-
-    if (!isTyping) {
-      setIsTyping(true);
-      socket.emit("typing", { receiverId: selectedContact._id, senderId: user?._id });
+  const handleTyping = () => {
+    if (!socket) return;
+    if (isTeamChat) {
+      socket.emit("team:typing", { isTyping: true, userName: user?.name });
+    } else if (selectedContact) {
+      socket.emit("typing", { to: selectedContact._id, isTyping: true });
     }
 
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    typingTimeoutRef.current = setTimeout(() => {
-      setIsTyping(false);
-      socket.emit("stop_typing", { receiverId: selectedContact._id, senderId: user?._id });
-    }, 2000);
+    typingTimeoutRef.current = setTimeout(handleStopTyping, 2000);
   };
 
-  const filteredContacts = contacts.filter(c => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleStopTyping = () => {
+    if (!socket) return;
+    if (isTeamChat) {
+      socket.emit("team:typing", { isTyping: false });
+    } else if (selectedContact) {
+      socket.emit("typing", { to: selectedContact._id, isTyping: false });
+    }
+  };
 
   return (
-    <div className="h-[calc(100vh-140px)] flex flex-col md:flex-row gap-6">
-      {/* Sidebar: Contacts */}
-      <div className={`flex-col w-full md:w-96 bg-white border-4 border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] ${selectedContact ? 'hidden md:flex' : 'flex'}`}>
-        <div className="p-6 border-b-4 border-black bg-black text-white">
-          <h2 className="text-2xl font-black uppercase italic tracking-tighter flex items-center gap-3">
-            <ShieldCheck className="h-6 w-6" /> Comms Hub
-          </h2>
-          <div className="mt-4 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+    <div className="h-[calc(100vh-120px)] flex flex-col md:flex-row gap-6">
+      {/* Sidebar - Contacts */}
+      <div className="w-full md:w-80 flex flex-col bg-white border-4 border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+        <div className="p-6 border-b-4 border-black bg-zinc-50 space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-black uppercase italic tracking-tighter">Comms Hub</h2>
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+          </div>
+          
+          {/* Team Chat Tab */}
+          <button 
+            onClick={() => { setIsTeamChat(true); setSelectedContact(null); }}
+            className={`w-full p-4 border-4 flex items-center justify-between transition-all group ${isTeamChat ? 'bg-black text-white border-black' : 'bg-white border-black hover:bg-zinc-100'}`}
+          >
+            <div className="flex items-center gap-3">
+              <ShieldCheck className={`h-5 w-5 ${isTeamChat ? 'text-white' : 'text-black'}`} />
+              <span className="text-[10px] font-black uppercase tracking-widest">Team Command</span>
+            </div>
+            {teamUnreadCount > 0 && (
+              <span className="bg-red-600 text-white text-[8px] px-2 py-1 border-2 border-white">
+                {teamUnreadCount}
+              </span>
+            )}
+          </button>
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search personnel..."
+              placeholder="Filter Nodes..." 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full bg-zinc-900 border-2 border-zinc-700 pl-11 pr-4 py-3 text-xs font-bold uppercase focus:border-white focus:outline-none transition-all"
+              className="w-full pl-10 pr-4 py-3 border-2 border-black text-[10px] font-black uppercase outline-none focus:bg-white"
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
+        <div className="flex-1 overflow-y-auto custom-scrollbar divide-y-2 divide-black/5">
           {loading ? (
-            <div className="p-10 flex flex-col items-center justify-center gap-3 opacity-20">
-              <Loader2 className="animate-spin h-8 w-8" />
-              <span className="text-[10px] font-black uppercase">Scanning Frequencies...</span>
-            </div>
-          ) : filteredContacts.length === 0 ? (
-            <div className="p-10 text-center opacity-30 italic">
-              <p className="text-xs font-black uppercase">No active nodes detected</p>
+            <div className="p-10 flex flex-col items-center opacity-30 gap-3">
+              <Loader2 className="animate-spin h-6 w-6" />
+              <p className="text-[8px] font-black uppercase tracking-widest">Scanning Network...</p>
             </div>
           ) : (
-            filteredContacts.map(contact => (
-              <button 
+            contacts.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase())).map(contact => (
+              <button
                 key={contact._id}
-                onClick={() => setSelectedContact(contact)}
-                className={`w-full p-5 flex items-center gap-4 border-b-4 border-black/5 hover:bg-gray-50 transition-all text-left relative group ${selectedContact?._id === contact._id ? 'bg-gray-100' : ''}`}
+                onClick={() => { setSelectedContact(contact); setIsTeamChat(false); }}
+                className={`w-full p-5 flex items-center gap-4 hover:bg-zinc-50 transition-all text-left ${selectedContact?._id === contact._id ? 'bg-zinc-100 border-l-8 border-black' : ''}`}
               >
                 <div className="relative">
-                  <div className={`w-14 h-14 border-4 border-black flex items-center justify-center bg-white group-hover:scale-105 transition-transform ${contact.status === 'active' ? 'border-green-500' : 'border-black'}`}>
-                    <UserIcon className="h-7 w-7 text-black" />
+                  <div className="w-12 h-12 bg-black text-white flex items-center justify-center border-4 border-black font-black text-lg">
+                    {contact.name[0].toUpperCase()}
                   </div>
-                  {contact.status === 'active' && (
-                    <div className="absolute -right-1 -bottom-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full shadow-sm" />
-                  )}
+                  <div className={`absolute -bottom-1 -right-1 w-4 h-4 border-2 border-white rounded-full ${contact.status === 'active' ? 'bg-green-500' : 'bg-gray-400'}`} />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 overflow-hidden">
                   <div className="flex justify-between items-start">
-                    <span className="text-sm font-black uppercase truncate pr-2">{contact.name}</span>
+                    <p className="text-[10px] font-black uppercase truncate">{contact.name}</p>
                     {contact.unreadCount > 0 && (
-                      <span className="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 border-2 border-black animate-bounce shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                      <span className="bg-red-600 text-white text-[8px] px-2 py-1 border-2 border-white font-black animate-bounce">
                         {contact.unreadCount}
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase mt-1 truncate">{contact.role} — {contact.email}</p>
+                  <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1">{contact.role}</p>
                 </div>
-                {selectedContact?._id === contact._id && (
-                  <div className="absolute right-0 top-0 bottom-0 w-2 bg-black" />
-                )}
               </button>
             ))
           )}
         </div>
       </div>
 
-      {/* Main: Chat Area */}
-      <div className={`flex-1 bg-white border-4 border-black shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] flex-col relative ${!selectedContact ? 'hidden md:flex opacity-20 bg-zinc-50' : 'flex'}`}>
-        {selectedContact ? (
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col bg-white border-4 border-black shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+        {selectedContact || isTeamChat ? (
           <>
-            {/* Chat Header */}
-            <div className="p-6 border-b-4 border-black flex items-center justify-between bg-white z-10">
+            {/* Header */}
+            <div className="p-6 border-b-4 border-black bg-zinc-50 flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <button onClick={() => setSelectedContact(null)} className="md:hidden p-2 hover:bg-gray-100 border-2 border-black">
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <div className="w-12 h-12 border-4 border-black flex items-center justify-center">
-                  <UserIcon className="h-6 w-6" />
+                <div className={`w-12 h-12 flex items-center justify-center border-4 border-black text-white font-black text-lg ${isTeamChat ? 'bg-red-600' : 'bg-black'}`}>
+                  {isTeamChat ? <ShieldCheck className="h-6 w-6" /> : selectedContact?.name[0].toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-lg font-black uppercase italic leading-none">{selectedContact.name}</h3>
+                  <h3 className="text-sm font-black uppercase italic tracking-tighter">
+                    {isTeamChat ? 'Team Command Channel' : selectedContact?.name}
+                  </h3>
                   <div className="flex items-center gap-2 mt-1">
-                    <div className={`w-2 h-2 rounded-full ${selectedContact.status === 'active' ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
-                      {typingUsers.includes(selectedContact._id) ? "Transmitting..." : selectedContact.status === 'active' ? "Connected" : "Standby"}
-                    </span>
+                    <div className={`w-2 h-2 rounded-full ${isTeamChat || selectedContact?.status === 'active' ? 'bg-green-500' : 'bg-gray-400'}`} />
+                    <p className="text-[8px] font-black uppercase text-gray-400 tracking-widest">
+                      {isTeamChat ? 'All Personnel Connected' : (selectedContact?.status === 'active' ? 'Signal Active' : 'Offline')}
+                    </p>
                   </div>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <button 
-                  onClick={handleCall}
-                  className="p-3 border-2 border-black hover:bg-black hover:text-white transition-all"
-                  title="WhatsApp Frequency"
-                >
-                  <Phone className="h-5 w-5" />
-                </button>
-                <button className="p-3 border-2 border-black hover:bg-black hover:text-white transition-all"><MoreVertical className="h-5 w-5" /></button>
+              <div className="flex gap-3">
+                <button className="p-3 border-2 border-black hover:bg-black hover:text-white transition-all"><Phone className="h-4 w-4" /></button>
+                <button className="p-3 border-2 border-black hover:bg-black hover:text-white transition-all"><Video className="h-4 w-4" /></button>
+                <button className="p-3 border-2 border-black hover:bg-black hover:text-white transition-all"><MoreVertical className="h-4 w-4" /></button>
               </div>
             </div>
 
             {/* Messages Feed */}
-            <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed">
+            <div className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar bg-zinc-50">
               {loadingChat ? (
-                <div className="h-full flex flex-col items-center justify-center gap-3 opacity-20">
-                  <Loader2 className="animate-spin h-10 w-10 text-black" />
-                  <span className="text-xs font-black uppercase tracking-widest">Decrypting Logs...</span>
-                </div>
-              ) : messages.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center opacity-30 italic">
-                  <div className="w-20 h-20 border-4 border-black border-dashed flex items-center justify-center mb-4">
-                    <Plus className="h-10 w-10" />
-                  </div>
-                  <p className="text-sm font-black uppercase">Initiate Secure Frequency</p>
+                <div className="h-full flex flex-col items-center justify-center opacity-30 gap-3">
+                  <Loader2 className="animate-spin h-8 w-8" />
+                  <p className="text-[10px] font-black uppercase tracking-widest italic">Decrypting Transmission...</p>
                 </div>
               ) : (
                 messages.map((msg, i) => {
-                  const isMe = (typeof msg.senderId === 'string' ? msg.senderId : msg.senderId?._id) === user?._id;
-                  const showTime = i === 0 || format(new Date(messages[i-1].timestamp), 'HH:mm') !== format(new Date(msg.timestamp), 'HH:mm');
+                  const isMine = (typeof msg.senderId === 'string' ? msg.senderId : msg.senderId?._id) === user?._id;
+                  const senderName = typeof msg.senderId === 'string' ? 'Personnel' : msg.senderId?.name;
                   
                   return (
-                    <div key={msg._id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                      {showTime && (
-                        <span className="text-[9px] font-black uppercase text-gray-400 mb-2 px-2 tracking-widest">{format(new Date(msg.timestamp), 'HH:mm — dd MMM')}</span>
+                    <div key={msg._id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                      {!isMine && isTeamChat && (
+                        <span className="text-[8px] font-black uppercase tracking-widest text-zinc-400 mb-2 ml-2">
+                          {senderName}
+                        </span>
                       )}
-                      <div className="group relative max-w-[90%] md:max-w-[70%]">
-                        <div className={`p-5 border-4 border-black text-sm font-bold leading-relaxed shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] ${isMe ? 'bg-black text-white rounded-l-2xl rounded-tr-2xl' : 'bg-white text-black rounded-r-2xl rounded-tl-2xl'}`}>
-                          {msg.voiceUrl ? (
-                            <div className="flex flex-col gap-3 min-w-[200px]">
-                              <div className="flex items-center gap-3">
-                                <Mic className={`h-4 w-4 ${isMe ? 'text-zinc-500' : 'text-gray-400'}`} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Voice Memo</span>
-                              </div>
-                              <audio src={msg.voiceUrl} controls className={`w-full h-8 ${isMe ? 'invert' : ''}`} />
-                            </div>
-                          ) : msg.fileUrl ? (
-                            <div className="flex flex-col gap-3">
-                              <div className="p-4 bg-zinc-100 border-2 border-black flex items-center gap-3">
-                                <Paperclip className="h-4 w-4 text-black" />
-                                <span className="text-[10px] font-black uppercase text-black">Attachment</span>
-                              </div>
-                              <a href={msg.fileUrl} target="_blank" className="text-xs underline font-black uppercase text-blue-400">View Resource</a>
-                            </div>
-                          ) : (
-                            msg.message
+                      <div className={`group relative max-w-[80%] p-5 border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,0.1)] ${isMine ? 'bg-black text-white' : 'bg-white text-black'}`}>
+                        <p className="text-xs font-bold leading-relaxed">{msg.message}</p>
+                        <div className={`flex items-center gap-2 mt-3 text-[8px] font-black uppercase ${isMine ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                          <span>{format(new Date(msg.timestamp), 'HH:mm')}</span>
+                          {isMine && (
+                            msg.isSeen ? <CheckCheck className="h-3 w-3 text-blue-500" /> : <Check className="h-3 w-3" />
                           )}
-                          <div className={`flex items-center gap-1 mt-2 ${isMe ? 'text-zinc-500' : 'text-gray-400'}`}>
-                            {isMe && (msg.isSeen ? <CheckCheck className="h-3 w-3 text-blue-400" /> : <Check className="h-3 w-3" />)}
-                            <span className="text-[8px] font-black uppercase">{format(new Date(msg.timestamp), 'HH:mm')}</span>
-                            {msg.isEdited && <span className="text-[8px] font-black uppercase italic ml-1">(MODIFIED)</span>}
-                          </div>
                         </div>
                       </div>
                     </div>
                   );
                 })
               )}
+              {/* Typing indicators */}
+              {(isTeamChat ? teamTypingUsers.length > 0 : typingUsers.length > 0) && (
+                <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-widest text-zinc-400 italic">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  {isTeamChat 
+                    ? `${teamTypingUsers.map(u => u.userName).join(', ')} typing...`
+                    : `${selectedContact?.name} typing...`}
+                </div>
+              )}
               <div ref={scrollRef} />
             </div>
 
             {/* Input Area */}
             <div className="p-6 border-t-4 border-black bg-white">
-              <form onSubmit={handleSend} className="flex gap-4 items-end">
-                <div className="flex gap-2 mb-1">
-                  <button type="button" className="p-3 border-2 border-black hover:bg-gray-100 transition-all"><Paperclip className="h-5 w-5" /></button>
+              <form onSubmit={handleSend} className="flex gap-4">
+                <div className="flex gap-2">
+                  <button type="button" className="p-4 border-2 border-black hover:bg-zinc-100 transition-all"><Paperclip className="h-5 w-5" /></button>
+                  <button type="button" className="p-4 border-2 border-black hover:bg-zinc-100 transition-all"><Mic className="h-5 w-5" /></button>
                 </div>
-                <div className="flex-1 relative">
-                  <input 
-                    type="text" 
-                    value={newMessage}
-                    onChange={handleTyping}
-                    placeholder="ENTER SECURE TRANSMISSION..."
-                    className="w-full bg-white border-4 border-black p-5 pr-14 text-sm font-black uppercase placeholder:opacity-30 focus:outline-none transition-all shadow-[inset_4px_4px_0px_0px_rgba(0,0,0,0.05)]"
-                  />
-                  <button 
-                    type="submit" 
-                    disabled={!newMessage.trim()}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-black hover:scale-110 disabled:opacity-20 transition-all"
-                  >
-                    <Send className="h-6 w-6" />
-                  </button>
-                </div>
-                {isRecording ? (
-                  <div className="flex items-center gap-2 sm:gap-4 bg-red-600 text-white p-2 sm:p-4 border-4 border-black">
-                    <div className="flex items-end gap-1 h-6 w-12 px-2">
-                      {[1, 2, 3, 4, 5].map(i => (
-                        <motion.div 
-                          key={i}
-                          animate={{ height: [4, 16, 4] }}
-                          transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.1 }}
-                          className="w-1 bg-white"
-                        />
-                      ))}
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest">{recordingTime}s</span>
-                    <div className="flex gap-2 ml-4">
-                      <button 
-                        type="button" 
-                        onClick={() => stopRecording(false)} 
-                        className="p-2 bg-black text-white hover:bg-white hover:text-black transition-all border-2 border-black"
-                        title="Abort Transmission"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                      <button 
-                        type="button" 
-                        onClick={() => stopRecording(true)} 
-                        className="p-2 bg-green-500 text-white hover:bg-white hover:text-green-500 transition-all border-2 border-black"
-                        title="Execute Transmission"
-                      >
-                        <Check className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <button 
-                    type="button" 
-                    onClick={startRecording}
-                    disabled={processing}
-                    className="p-5 bg-black text-white border-4 border-black hover:bg-zinc-900 transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)]"
-                  >
-                    {processing ? <Loader2 className="animate-spin h-6 w-6" /> : <Mic className="h-6 w-6" />}
-                  </button>
-                )}
+                <input 
+                  type="text"
+                  value={newMessage}
+                  onChange={e => { setNewMessage(e.target.value); handleTyping(); }}
+                  placeholder="TRANSMIT MESSAGE..."
+                  className="flex-1 border-4 border-black p-4 text-xs font-black uppercase outline-none focus:bg-zinc-50 shadow-[inset_4px_4px_0px_0px_rgba(0,0,0,0.05)]"
+                />
+                <button 
+                  type="submit"
+                  disabled={!newMessage.trim() || processing}
+                  className="px-8 py-4 bg-black text-white border-4 border-black font-black uppercase text-xs hover:bg-zinc-900 transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)] disabled:opacity-50"
+                >
+                  {processing ? <Loader2 className="animate-spin h-5 w-5" /> : <Send className="h-5 w-5" />}
+                </button>
               </form>
             </div>
           </>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center p-12 text-center">
-            <div className="w-32 h-32 border-8 border-black flex items-center justify-center bg-white rotate-12 mb-8 shadow-[15px_15px_0px_0px_rgba(0,0,0,1)]">
-              <ShieldCheck className="h-16 w-16" />
+          <div className="h-full flex flex-col items-center justify-center text-center p-12 opacity-30">
+            <div className="w-24 h-24 border-8 border-black border-dashed flex items-center justify-center mb-8 animate-pulse">
+              <MessageSquare className="h-12 w-12" />
             </div>
-            <h2 className="text-3xl font-black uppercase italic italic tracking-tighter mb-4">Frequency Standby</h2>
-            <p className="max-w-md text-xs font-bold text-gray-400 uppercase tracking-widest leading-loose">
-              Select a secure node from the operational manifest to initiate encrypted communication. All transmissions are logged and audited.
+            <h3 className="text-3xl font-black uppercase italic tracking-tighter mb-4">Comms Link Standby</h3>
+            <p className="max-w-md text-xs font-bold uppercase tracking-widest leading-loose">
+              Select a personnel node or team channel to initiate secure encrypted communication protocols.
             </p>
           </div>
         )}
@@ -502,3 +415,6 @@ export default function MessagesPage() {
     </div>
   );
 }
+
+// Re-add missing icons
+import { MessageSquare } from "lucide-react";
