@@ -5,7 +5,7 @@ import api from "@/lib/api";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import axios from "axios";
 import { 
-  CheckCircle2, Circle, Clock, AlertCircle, Loader2, Plus, Send, Calendar, 
+  CircleCheck, Circle, Clock, AlertCircle, Loader2, Plus, Send, Calendar, 
   X, Target, Trash2, RotateCcw, History, FileSpreadsheet, AlertTriangle,
   ChevronDown, ChevronUp, MoreVertical, FileText, ExternalLink, Filter, Search,
   ChevronRight, ArrowRight, User as UserIcon, Edit, Upload
@@ -274,7 +274,7 @@ export default function TasksPage() {
                   {/* Phase Indicator */}
                   <div className="flex lg:flex-col items-center gap-4">
                     <div className={`w-16 h-16 flex-shrink-0 border-4 border-black flex items-center justify-center ${task.status === 'completed' ? 'bg-black text-white' : 'bg-white text-black'}`}>
-                      {task.status === 'completed' ? <CheckCircle2 className="h-8 w-8" /> : task.status === 'review' ? <Clock className="h-8 w-8 animate-pulse" /> : <Target className="h-8 w-8" />}
+                      {task.status === 'completed' ? <CircleCheck className="h-8 w-8" /> : task.status === 'review' ? <Clock className="h-8 w-8 animate-pulse" /> : <Target className="h-8 w-8" />}
                     </div>
                     <div className="flex flex-col lg:items-center">
                       <span className="text-[8px] font-black uppercase text-gray-400">Phase</span>
@@ -308,7 +308,7 @@ export default function TasksPage() {
                     {/* Mission Success Indicator */}
                     {task.status === 'completed' && (
                       <div className="mt-6 px-4 py-3 bg-green-50 border-2 border-green-600 flex items-center gap-3 shadow-[4px_4px_0px_0px_rgba(22,163,74,0.1)]">
-                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        <CircleCheck className="h-4 w-4 text-green-600" />
                         <span className="text-[10px] font-black uppercase text-green-700 tracking-widest">Protocol: Mission Successfully Concluded / Approved</span>
                       </div>
                     )}
@@ -398,7 +398,7 @@ export default function TasksPage() {
                         {task.status === 'review' && (
                           <div className="flex lg:flex-col gap-3 w-full">
                             <button onClick={() => handleApprove(task._id)} className="flex-1 flex items-center justify-center gap-2 px-4 py-4 bg-green-600 text-white text-[10px] font-black uppercase border-4 border-black hover:bg-green-700 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none">
-                              <CheckCircle2 className="h-4 w-4" /> Finalize
+                            <CircleCheck className="h-4 w-4" /> Finalize
                             </button>
                             <button onClick={() => setRedoTaskId(task._id)} className="flex-1 flex items-center justify-center gap-2 px-4 py-4 bg-orange-500 text-white text-[10px] font-black uppercase border-4 border-black hover:bg-orange-600 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none">
                               <RotateCcw className="h-4 w-4" /> Re-Task

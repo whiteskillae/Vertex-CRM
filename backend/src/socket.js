@@ -11,10 +11,26 @@ const activeStreamers = new Map();
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: process.env.NODE_ENV === 'production' 
-        ? ['https://vertex-crm-three.vercel.app', 'https://vertex-crm.onrender.com'] 
-        : ['http://localhost:3000', 'http://localhost:3001'],
-      credentials: true
+      origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        const allowedOrigins = [
+          'http://localhost:3000',
+          'http://localhost:3001',
+          'https://vertex-crm-three.vercel.app',
+          'https://vertex-crm.onrender.com'
+        ];
+        const isAllowed = allowedOrigins.indexOf(origin) !== -1 || 
+                         origin.endsWith('.vercel.app') ||
+                         origin.includes('render.com');
+        
+        if (isAllowed) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
+      credentials: true,
+      methods: ["GET", "POST"]
     },
     transports: ['polling', 'websocket']
   });

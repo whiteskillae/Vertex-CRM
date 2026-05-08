@@ -88,7 +88,7 @@ export default function AdminStats() {
             <TrendingUp className="h-6 w-6 text-zinc-300" />
           </div>
           <div className="flex-1 w-full min-h-0">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={300}>
               <AreaChart data={stats?.taskHistory || []}>
                 <defs>
                   <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
@@ -127,7 +127,7 @@ export default function AdminStats() {
           </div>
           <div className="flex-1 flex flex-col md:flex-row items-center justify-around gap-8 min-h-0">
             <div className="w-full h-full max-h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                 <PieChart>
                   <Pie
                     data={stats?.taskDistribution || []}

@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 import { 
   Plus, Search, Filter, MoreVertical, Calendar, 
-  Clock, CheckCircle2, AlertCircle, Users, 
+  Clock, CircleCheck, AlertCircle, Users, 
   FileText, ExternalLink, Trash2, Edit, 
   BarChart3, Loader2, X, ChevronRight,
   TrendingUp, Activity, Briefcase, Paperclip,
@@ -551,7 +551,7 @@ export default function ProjectsPage() {
                   <div className="space-y-8">
                     <div className="flex justify-between items-center border-b-8 border-black pb-4">
                       <h3 className="text-3xl font-black uppercase italic tracking-tighter flex items-center gap-5">
-                        <CheckCircle2 className="h-8 w-8" /> Active Node Deployments
+                        <CircleCheck className="h-8 w-8" /> Active Node Deployments
                       </h3>
                       {isAdmin && (
                         <button 

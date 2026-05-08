@@ -75,7 +75,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             name: "Personnel",
             href: "/dashboard/personnel",
             icon: Users,
-            hasAlert: isAdmin && pendingCount > 0,
+            hasAlert: false,
           }
         ]
       : []),
@@ -253,7 +253,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-6">
             <div className="hidden xl:flex flex-col items-end">
               <span className="text-[8px] font-black uppercase text-zinc-400 tracking-[0.3em]">System Time</span>
-              <span className="text-[10px] font-black uppercase tracking-widest">{new Date().toLocaleTimeString()}</span>
+              <span className="text-[10px] font-black uppercase tracking-widest">
+                {typeof window !== 'undefined' ? new Date().toLocaleTimeString() : '--:--:--'}
+              </span>
             </div>
             <NotificationCenter />
           </div>
@@ -263,8 +265,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {children}
           <ScreenShareManager />
         </div>
-      </main>
-
       </main>
     </div>
   );

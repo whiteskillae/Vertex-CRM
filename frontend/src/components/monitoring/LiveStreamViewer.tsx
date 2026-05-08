@@ -116,14 +116,18 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
+      if (typeof document !== 'undefined') {
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+      }
 
     return () => {
       pcRef.current?.close();
       socket.off('screen:offer');
       socket.off('screen:candidate');
       socket.off('monitoring:update', handleStatusUpdate);
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      }
     };
   }, [socket, userId]);
 

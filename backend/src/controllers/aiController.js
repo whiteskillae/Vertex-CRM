@@ -1,6 +1,12 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const genAI = new GoogleGenerativeAI(process.env.AI_API_GOOGLE || process.env.GEMINI_API_KEY);
+const apiKey = process.env.AI_API_GOOGLE || process.env.GEMINI_API_KEY;
+
+if (!apiKey) {
+    console.error('❌ CRITICAL: AI_API_GOOGLE or GEMINI_API_KEY is not defined in .env');
+}
+
+const genAI = new GoogleGenerativeAI(apiKey || "DUMMY_KEY");
 
 const systemPrompt = `
 You are the Vertex CRM AI Assistant, a powerful enterprise-grade intelligence integrated into the Vertex CRM system.

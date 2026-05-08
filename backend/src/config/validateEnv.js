@@ -16,6 +16,8 @@ const RECOMMENDED_VARS = [
   'GOOGLE_CLIENT_ID',
   'ADMIN_EMAIL',
   'ADMIN_PASSWORD',
+  'AI_API_GOOGLE',
+  'GEMINI_API_KEY',
 ];
 
 function validateEnv() {

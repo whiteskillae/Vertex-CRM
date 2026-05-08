@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, CheckCircle, Circle, ListTodo, Loader2 } from "lucide-react";
+import { Plus, Trash2, CircleCheck, Circle, ListTodo, Loader2 } from "lucide-react";
 import api from "@/lib/api";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -71,7 +71,7 @@ export default function TodoApp() {
       {/* Assigned Tasks Section */}
       <div className="p-4 bg-zinc-900 text-white">
         <h4 className="text-[10px] font-black uppercase tracking-widest flex items-center">
-          <CheckCircle className="mr-2 h-3 w-3 text-green-500" /> Assigned Directives
+          <CircleCheck className="mr-2 h-3 w-3 text-green-500" /> Assigned Directives
         </h4>
       </div>
       <div className="max-h-[200px] overflow-y-auto p-2 space-y-1 bg-gray-50 border-b-2 border-black">
@@ -126,7 +126,7 @@ export default function TodoApp() {
             >
               <button onClick={() => toggleTodo(todo._id)} className="mr-2">
                 {todo.completed ? (
-                  <CheckCircle className="h-4 w-4 text-black" />
+                  <CircleCheck className="h-4 w-4 text-black" />
                 ) : (
                   <Circle className="h-4 w-4 text-black" />
                 )}

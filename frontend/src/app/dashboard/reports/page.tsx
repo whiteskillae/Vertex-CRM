@@ -19,9 +19,8 @@ import {
   ShieldCheck,
   AlertCircle,
   MessageCircle,
-  CheckCircle2,
-  Eye,
-  CheckCircle
+  CircleCheck,
+  Eye
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -250,7 +249,7 @@ export default function ReportsPage() {
             {user?.role === 'admin' && (
               <>
                 <div className="relative flex-1 max-w-[200px]">
-                  <CheckCircle className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <CircleCheck className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <select 
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
@@ -332,7 +331,7 @@ export default function ReportsPage() {
                   </span>
                   {report.status === 'done' ? (
                     <div className="flex items-center justify-end gap-1 text-[10px] font-black uppercase text-green-600">
-                      <CheckCircle2 className="h-4 w-4" /> MISSION_DONE
+                      <CircleCheck className="h-4 w-4" /> MISSION_DONE
                     </div>
                   ) : (
                     <div className="flex items-center justify-end gap-1 text-[8px] font-black uppercase text-green-600">
@@ -411,7 +410,7 @@ export default function ReportsPage() {
                   onClick={() => handleMarkDone(report._id)}
                   className="flex-1 flex items-center justify-center gap-3 py-4 bg-green-600 text-white text-[10px] font-black uppercase border-4 border-black hover:bg-white hover:text-green-600 transition-all shadow-[4px_4px_0px_0px_rgba(22,163,74,0.1)]"
                 >
-                  Mark Done <CheckCircle2 className="h-4 w-4" />
+                  Mark Done <CircleCheck className="h-4 w-4" />
                 </button>
               )}
 

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Monitor, CheckCircle2, XCircle } from 'lucide-react';
+import { Shield, Monitor, CircleCheck, XCircle } from 'lucide-react';
 
 interface MonitoringPromptProps {
   isOpen: boolean;
@@ -46,13 +46,13 @@ export const MonitoringPrompt: React.FC<MonitoringPromptProps> = ({ isOpen, onAc
               </div>
               <ul className="space-y-3">
                 <li className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-zinc-600">
-                  <CheckCircle2 className="w-4 h-4 text-green-600" /> Real-time activity streaming
+                  <CircleCheck className="w-4 h-4 text-green-600" /> Real-time activity streaming
                 </li>
                 <li className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-zinc-600">
-                  <CheckCircle2 className="w-4 h-4 text-green-600" /> Active/Idle time logging
+                  <CircleCheck className="w-4 h-4 text-green-600" /> Active/Idle time logging
                 </li>
                 <li className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-zinc-600">
-                  <CheckCircle2 className="w-4 h-4 text-green-600" /> Secure Admin visibility
+                  <CircleCheck className="w-4 h-4 text-green-600" /> Secure Admin visibility
                 </li>
               </ul>
             </div>

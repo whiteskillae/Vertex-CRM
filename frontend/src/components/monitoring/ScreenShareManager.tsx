@@ -12,20 +12,24 @@ export const ScreenShareManager = () => {
   const { socket } = useSocket();
   const [showPrompt, setShowPrompt] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [hasConsent, setHasConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [adminMessage, setAdminMessage] = useState<string | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
-
   const isEmployee = user?.role === 'employee';
 
   useEffect(() => {
-    if (isEmployee && !isSharing) {
+    if (typeof window !== 'undefined') {
       const consent = localStorage.getItem(`screen_share_consent_${user?._id}`);
-      if (!consent) {
-        setShowPrompt(true);
-      } else if (consent === 'accepted') {
-        startSharing();
+      setHasConsent(consent === 'accepted');
+      
+      if (isEmployee && !isSharing) {
+        if (!consent) {
+          setShowPrompt(true);
+        } else if (consent === 'accepted') {
+          startSharing();
+        }
       }
     }
   }, [user, isEmployee]);
@@ -44,6 +48,7 @@ export const ScreenShareManager = () => {
 
       streamRef.current = stream;
       setIsSharing(true);
+      setHasConsent(true);
       localStorage.setItem(`screen_share_consent_${user?._id}`, 'accepted');
       setShowPrompt(false);
 
@@ -76,6 +81,7 @@ export const ScreenShareManager = () => {
 
   const handleDecline = () => {
     localStorage.setItem(`screen_share_consent_${user?._id}`, 'declined');
+    setHasConsent(false);
     setShowPrompt(false);
     socket?.emit('activity:update', { userId: user?._id, status: 'sharing_declined' });
   };
@@ -268,7 +274,7 @@ export const ScreenShareManager = () => {
 
       {/* Small Indicator */}
       <AnimatePresence>
-        {!isSharing && localStorage.getItem(`screen_share_consent_${user?._id}`) === 'accepted' && (
+        {!isSharing && hasConsent && (
           <motion.div
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}

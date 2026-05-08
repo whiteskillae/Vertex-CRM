@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { 
   User, Mail, Phone, MapPin, Briefcase, 
-  Linkedin, Twitter, Github, Save, Shield, 
-  Award, Clock, Globe, Cpu, CheckCircle2,
+  Globe, Share2, Link, Save, Shield, 
+  Award, Clock, Cpu, CircleCheck,
   Camera, Plus, X, LayoutDashboard
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -69,7 +69,7 @@ export default function ProfilePage() {
         <div className="flex items-center gap-6">
           <div className="relative group">
             <div className="w-24 h-24 bg-black border-4 border-black flex items-center justify-center text-white text-4xl font-black italic overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-              {user?.name?.[0].toUpperCase()}
+              {user?.name?.[0]?.toUpperCase()}
             </div>
             <button className="absolute -bottom-2 -right-2 p-2 bg-white border-4 border-black text-black hover:bg-black hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <Camera className="w-4 h-4" />
@@ -180,7 +180,7 @@ export default function ProfilePage() {
                 { id: 'core', label: 'Core Identity', icon: User },
                 { id: 'contact', label: 'Contact Grid', icon: Globe },
                 { id: 'skills', label: 'Neural Skills', icon: Cpu },
-                { id: 'social', label: 'Network Links', icon: Linkedin }
+                { id: 'social', label: 'Network Links', icon: Share2 }
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -382,8 +382,8 @@ export default function ProfilePage() {
                   >
                     <div className="space-y-6">
                       <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-blue-600 flex items-center justify-center border-4 border-black text-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                          <Linkedin className="w-6 h-6" />
+                        <div className="w-12 h-12 bg-black text-white flex items-center justify-center border-4 border-black">
+                          <Globe className="w-6 h-6" />
                         </div>
                         <div className="flex-1 space-y-1">
                           <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">LinkedIn Uplink</label>
@@ -398,8 +398,8 @@ export default function ProfilePage() {
                       </div>
 
                       <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-zinc-900 flex items-center justify-center border-4 border-black text-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                          <Twitter className="w-6 h-6" />
+                        <div className="w-12 h-12 bg-black text-white flex items-center justify-center border-4 border-black">
+                          <Globe className="w-6 h-6" />
                         </div>
                         <div className="flex-1 space-y-1">
                           <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">X (Twitter) Link</label>
@@ -414,8 +414,8 @@ export default function ProfilePage() {
                       </div>
 
                       <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-zinc-800 flex items-center justify-center border-4 border-black text-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                          <Github className="w-6 h-6" />
+                        <div className="w-12 h-12 bg-black text-white flex items-center justify-center border-4 border-black">
+                          <Link className="w-6 h-6" />
                         </div>
                         <div className="flex-1 space-y-1">
                           <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">GitHub Repository</label>
