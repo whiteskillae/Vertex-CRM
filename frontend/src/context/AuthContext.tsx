@@ -15,6 +15,7 @@ interface User {
   lastReadTasksAt?: string;
   lastReadMessagesAt?: string;
   phone?: string;
+  jobType?: string;
   bio?: string;
   country?: string;
   state?: string;

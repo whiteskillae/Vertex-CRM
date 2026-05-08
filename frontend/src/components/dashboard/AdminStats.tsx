@@ -7,7 +7,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   AreaChart, Area, PieChart, Pie, Cell 
 } from 'recharts';
-import { TrendingUp, Users, Target, Activity, Loader2 } from "lucide-react";
+import { TrendingUp, Users, Target, Activity, Loader2, Zap } from "lucide-react";
 
 const COLORS = ['#000000', '#444444', '#888888'];
 

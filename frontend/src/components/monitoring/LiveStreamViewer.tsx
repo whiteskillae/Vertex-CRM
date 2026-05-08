@@ -29,25 +29,20 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
     if (!socket || !socket.id) return;
     
     const viewerId = socket.id;
+    const candidateQueue: RTCIceCandidateInit[] = [];
 
     const startWatching = async () => {
       const pc = new RTCPeerConnection({
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
       });
 
-      const candidateQueue: RTCIceCandidateInit[] = [];
-
       pc.ontrack = (event) => {
-        console.log('Stream track received:', event.streams[0]);
         if (videoRef.current) {
           videoRef.current.srcObject = event.streams[0];
-          // Force play safely
           const playPromise = videoRef.current.play();
           if (playPromise !== undefined) {
             playPromise.catch(e => {
-              if (e.name !== 'AbortError') {
-                console.error('Video play failed:', e);
-              }
+              if (e.name !== 'AbortError') console.error('Video play failed:', e);
             });
           }
           setStatus('streaming');
@@ -102,7 +97,10 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
         }
       });
 
-    socket.emit('screen:request', { to: userId, viewerId });
+      socket.emit('screen:request', { to: userId, viewerId });
+    };
+
+    startWatching();
 
     const handleStatusUpdate = (data: { userId: string, status: string }) => {
       if (data.userId === userId && (data.status === 'online' || data.status === 'offline')) {
@@ -116,12 +114,14 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
-      if (typeof document !== 'undefined') {
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
-      }
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('fullscreenchange', handleFullscreenChange);
+    }
 
     return () => {
       pcRef.current?.close();
+      pcRef.current = null;
       socket.off('screen:offer');
       socket.off('screen:candidate');
       socket.off('monitoring:update', handleStatusUpdate);

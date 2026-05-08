@@ -22,6 +22,7 @@ interface Contact {
   status: 'online' | 'offline' | 'away';
   unreadCount?: number;
   phone?: string;
+  isDeleted?: boolean;
 }
 
 interface Message {
@@ -55,7 +56,7 @@ export default function MessagesPage() {
   const [teamTypingUsers, setTeamTypingUsers] = useState<{userId: string, userName: string}[]>([]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
