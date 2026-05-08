@@ -1,10 +1,10 @@
 const express = require('express');
 const { createVaultEntry, getVaultEntries, deleteVaultEntry } = require('../controllers/vaultController');
-const { protect, adminOnly } = require('../middleware/authMiddleware');
+const { protect, admin } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 router.use(protect);
-router.use(adminOnly); // Strict admin access
+router.use(admin); // Strict admin access
 
 router.route('/')
   .post(createVaultEntry)

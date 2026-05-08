@@ -52,12 +52,14 @@ exports.getMessages = async (req, res) => {
 
     if (isTeamChat === 'true') {
       query.isTeamChat = true;
-    } else if (contactId) {
+    } else if (contactId && contactId.match(/^[0-9a-fA-F]{24}$/)) {
       query.$or = [
         { senderId: req.user.id, receiverId: contactId },
         { senderId: contactId, receiverId: req.user.id }
       ];
       query.isTeamChat = false;
+    } else if (contactId) {
+      return res.status(400).json({ message: 'Invalid contact ID format' });
     } else {
       query.$or = [
         { senderId: req.user.id },

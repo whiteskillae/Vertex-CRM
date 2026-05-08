@@ -2,20 +2,20 @@ const express = require('express');
 const { 
   createProject, getProjects, getProjectById, updateProject, deleteProject, getProjectStats 
 } = require('../controllers/projectController');
-const { protect, adminOnly } = require('../middleware/authMiddleware');
+const { protect, admin } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 router.use(protect);
 
-router.get('/stats', adminOnly, getProjectStats);
+router.get('/stats', admin, getProjectStats);
 
 router.route('/')
-  .post(adminOnly, createProject)
+  .post(admin, createProject)
   .get(getProjects);
 
 router.route('/:id')
   .get(getProjectById)
-  .put(adminOnly, updateProject)
-  .delete(adminOnly, deleteProject);
+  .put(admin, updateProject)
+  .delete(admin, deleteProject);
 
 module.exports = router;
