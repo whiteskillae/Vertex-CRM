@@ -24,6 +24,7 @@ import {
   HardDrive,
   History,
   Video,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useSocket } from "@/context/SocketContext";
