@@ -23,9 +23,16 @@ const notificationRoutes = require('./routes/notificationRoutes');
 const storageRoutes = require('./routes/storageRoutes');
 const errorHandler = require('./middleware/errorHandler');
 
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
+
 const app = express();
 
+// ── FIX: Trust proxy for Render/Cloud deployment ─────────────────────────────
+app.set('trust proxy', 1);
+
 // Middleware
+app.use(compression()); // Compress all responses
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 app.use(cookieParser());
@@ -40,7 +47,6 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
     
     const isAllowed = allowedOrigins.indexOf(origin) !== -1 || 
@@ -67,18 +73,37 @@ app.use(cors({
   exposedHeaders: ['Set-Cookie']
 }));
 
+// ── FIX: Strict Content Security Policy ──────────────────────────────────────
 app.use(helmet({
   crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
   crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: false, // Disable CSP for now to ensure all scripts (Google, Cloudinary, etc.) load
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://va.vercel-scripts.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://lh3.googleusercontent.com"],
+      connectSrc: ["'self'", "https://res.cloudinary.com", "https://api.cloudinary.com", "wss://vertex-crm.onrender.com", "ws://localhost:5001"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
 }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
-// Rate Limiting
-const rateLimit = require('express-rate-limit');
+// ── FIX: Global Rate Limiting ────────────────────────────────────────────────
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000, // Limit each IP to 1000 requests per window
+  message: { message: 'Too many requests from this IP. Please try again later.' }
+});
+app.use('/api', globalLimiter);
+
+// Specific Auth Limiter
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // limit each IP to 20 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 30,
   message: { message: 'Too many login attempts. Please try again after 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,

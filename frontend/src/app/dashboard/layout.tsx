@@ -30,6 +30,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useSocket } from "@/context/SocketContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScreenShareManager } from "@/components/monitoring/ScreenShareManager";
+import NotificationCenter from "@/components/dashboard/NotificationCenter";
+import { useNotifications } from "@/hooks/useNotifications";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface NavItem {
@@ -50,10 +52,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Notification state
-  const [hasNewTasks, setHasNewTasks] = useState(false);
-  const [hasNewMessages, setHasNewMessages] = useState(false);
-  const [pendingCount, setPendingCount] = useState(0);
+  // Notification state from hook
+  const { unreadCount, notifications } = useNotifications();
 
   // Profile edit state
   const [editOpen, setEditOpen] = useState(false);
@@ -65,76 +65,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const isAdmin = user?.role === "admin";
   const isEmployee = user?.role === "employee";
 
-  // ── Fetch notification statuses ─────────────────────────────────────────────
-  const fetchNotificationStatus = useCallback(async () => {
-    if (!user) return;
-    try {
-      const [tasksRes, msgsRes] = await Promise.all([
-        api.get("tasks"),
-        api.get("messages"),
-      ]);
-
-      const lastTasksRead = user.lastReadTasksAt
-        ? new Date(user.lastReadTasksAt)
-        : new Date(0);
-
-      const tasks = tasksRes.data?.tasks || [];
-      const msgs = msgsRes.data || [];
-
-      setHasNewTasks(
-        Array.isArray(tasks) &&
-          tasks.some((t: { createdAt: string }) => new Date(t.createdAt) > lastTasksRead)
-      );
-      setHasNewMessages(
-        Array.isArray(msgs) && msgs.some((m: { isSeen: boolean; receiverId: string | { _id: string } }) => {
-          const receiverId = typeof m.receiverId === 'string' ? m.receiverId : m.receiverId?._id;
-          return !m.isSeen && receiverId === user._id;
-        })
-      );
-    } catch {
-      // Non-blocking — notifications are cosmetic
-    }
-  }, [user]);
-
-  const fetchPendingCount = useCallback(async () => {
-    if (!isAdmin) return;
-    try {
-      const { data } = await api.get("auth/pending");
-      setPendingCount(data?.length || 0);
-    } catch {
-      // Ignore
-    }
-  }, [isAdmin]);
-
-  useEffect(() => {
-    if (user) {
-      setEditName(user.name || "");
-      setEditPhone(user.phone || "");
-      setEditBio(user.bio || "");
-      fetchNotificationStatus();
-      fetchPendingCount();
-    }
-  }, [user, fetchNotificationStatus, fetchPendingCount]);
-
-  // ── Socket real-time notifications ─────────────────────────────────────────
-  useEffect(() => {
-    if (!socket) return;
-
-    const onNotification = (notif: { type: string }) => {
-      if (notif.type === "task_reassigned" || notif.type === "task_submission") {
-        setHasNewTasks(true);
-      }
-    };
-    const onNewMessage = () => setHasNewMessages(true);
-
-    socket.on("notification", onNotification);
-    socket.on("new_message", onNewMessage);
-
-    return () => {
-      socket.off("notification", onNotification);
-      socket.off("new_message", onNewMessage);
-    };
-  }, [socket]);
+  // ── Unified Notification Alert Logic ──────────────────────────────────────
+  const hasUnreadTasks = notifications.some(n => !n.isRead && n.type === 'task_reassigned');
+  const hasUnreadMessages = notifications.some(n => !n.isRead && n.type === 'new_message');
+  const hasUnreadPersonnel = notifications.some(n => !n.isRead && n.type === 'announcement');
 
   // ── Nav Items — role-based ─────────────────────────────────────────────────
   const navItems: NavItem[] = [
@@ -155,7 +89,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       name: "Tasks",
       href: "/dashboard/tasks",
       icon: CheckSquare,
-      hasAlert: hasNewTasks,
+      hasAlert: hasUnreadTasks,
     },
     { name: "Projects", href: "/dashboard/projects", icon: ScrollText },
     { name: "Reports", href: "/dashboard/reports", icon: BarChart3 },
@@ -163,7 +97,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       name: "Messages",
       href: "/dashboard/messages",
       icon: MessageSquare,
-      hasAlert: hasNewMessages,
+      hasAlert: hasUnreadMessages,
     },
     { name: "AI Assistant", href: "/dashboard/ai", icon: ShieldCheck },
     // Admin Only Intelligence Hubs
@@ -210,24 +144,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen bg-white flex flex-col lg:flex-row">
       {/* ── Mobile Header ── */}
-      <header className="lg:hidden bg-black text-white px-6 py-4 flex items-center justify-between border-b-8 border-black sticky top-0 z-[60]">
+      <header className="lg:hidden bg-black text-white px-6 py-4 flex items-center justify-between border-b-8 border-black sticky top-0 z-[100]">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-white text-black flex items-center justify-center font-black text-xs border-2 border-white">C</div>
           <h1 className="font-black text-sm uppercase tracking-widest italic">Mission Control</h1>
         </div>
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 border-4 border-white hover:bg-white hover:text-black transition-all"
-        >
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        <div className="flex items-center gap-4">
+          <NotificationCenter />
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="p-2 border-4 border-white hover:bg-white hover:text-black transition-all"
+          >
+            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
       </header>
 
       {/* ── Sidebar ── */}
       <aside
         className={`
-          fixed lg:static inset-y-0 left-0 z-50 bg-white border-r-8 border-black flex flex-col
-          transition-all duration-300 ease-in-out
+          fixed lg:sticky top-0 h-screen z-[110] lg:z-40 bg-white border-r-8 border-black flex flex-col
+          transition-all duration-300 ease-in-out shadow-[10px_0px_50px_0px_rgba(0,0,0,0.1)] lg:shadow-none
           ${collapsed ? "w-24" : "w-72"}
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
@@ -329,11 +266,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* ── Main Content Area ── */}
-      <main className="flex-1 flex flex-col min-w-0 bg-white overflow-hidden relative">
+      <main className="flex-1 flex flex-col min-w-0 bg-white overflow-hidden relative min-h-screen">
         {/* Background Decorative Grid */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.03] overflow-hidden">
           <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(#000 2px, transparent 2px)', backgroundSize: '40px 40px' }}></div>
         </div>
+
+        {/* Desktop Header Integration */}
+        <header className="hidden lg:flex items-center justify-end p-6 border-b-4 border-black/5 bg-white/80 backdrop-blur-md sticky top-0 z-30">
+          <div className="flex items-center gap-6">
+            <div className="hidden xl:flex flex-col items-end">
+              <span className="text-[8px] font-black uppercase text-zinc-400 tracking-[0.3em]">System Time</span>
+              <span className="text-[10px] font-black uppercase tracking-widest">{new Date().toLocaleTimeString()}</span>
+            </div>
+            <NotificationCenter />
+          </div>
+        </header>
 
         <div className="flex-1 overflow-y-auto p-6 md:p-10 lg:p-16 custom-scrollbar relative z-10">
           {children}

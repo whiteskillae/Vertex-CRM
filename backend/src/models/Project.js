@@ -31,6 +31,11 @@ const projectSchema = new mongoose.Schema({
   notes: { type: String },
   technicalDetails: { type: String },
   members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  startDate: { type: Date },
+  workflow: [{
+    employeeName: String,
+    taskName: String
+  }],
   progress: { type: Number, default: 0, min: 0, max: 100 },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   isDeleted: { type: Boolean, default: false },

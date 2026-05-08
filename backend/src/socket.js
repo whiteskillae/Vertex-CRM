@@ -1,27 +1,61 @@
 const { Server } = require('socket.io');
 const MonitoringSession = require('./models/MonitoringSession');
 
+const cookie = require('cookie');
+const jwt = require('jsonwebtoken');
+const User = require('./models/User');
+
 let io;
-// Keep track of active streamers: userId -> socketId
 const activeStreamers = new Map();
 
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: true, // Dynamically allow request origin for credentials support
-      methods: ['GET', 'POST'],
+      origin: process.env.NODE_ENV === 'production' 
+        ? ['https://vertex-crm-three.vercel.app', 'https://vertex-crm.onrender.com'] 
+        : ['http://localhost:3000', 'http://localhost:3001'],
       credentials: true
     },
-    transports: ['polling', 'websocket'] // Update to use polling as primary
+    transports: ['polling', 'websocket']
+  });
+
+  // ── FIX: Socket Authentication Middleware ──────────────────────────────────
+  io.use(async (socket, next) => {
+    try {
+      const cookies = socket.handshake.headers.cookie;
+      if (!cookies) return next(new Error('Authentication error: No cookies found'));
+
+      const parsedCookies = cookie.parse(cookies);
+      const token = parsedCookies.token;
+
+      if (!token) return next(new Error('Authentication error: Token missing'));
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.id).select('-password');
+
+      if (!user) return next(new Error('Authentication error: User not found'));
+
+      socket.user = user;
+      socket.userId = user._id.toString();
+      next();
+    } catch (err) {
+      console.error('Socket Auth Error:', err.message);
+      next(new Error('Authentication error'));
+    }
   });
 
   io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
+    console.log(`User connected: ${socket.id} (User: ${socket.userId})`);
 
+    // Users automatically join their personal room on connection
+    socket.join(socket.userId);
+    console.log(`Socket ${socket.id} automatically joined room: ${socket.userId}`);
+
+    // Still handle 'join' for backward compatibility or explicit room management
     socket.on('join', (userId) => {
-      socket.join(userId);
-      socket.userId = userId;
-      console.log(`User ${userId} joined their personal room`);
+      if (userId === socket.userId) {
+        socket.join(userId);
+      }
     });
 
     // ── Screen Sharing & Monitoring ──
@@ -101,6 +135,10 @@ const initSocket = (server) => {
 
     socket.on('team:typing', ({ isTyping, userName }) => {
       socket.broadcast.emit('team:typing', { userId: socket.userId, userName, isTyping });
+    });
+
+    socket.on('team:message', (data) => {
+      io.emit('team_message', data);
     });
 
     socket.on('disconnect', async () => {

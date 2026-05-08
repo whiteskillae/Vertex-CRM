@@ -387,7 +387,20 @@ exports.getContacts = async (req, res) => {
 
 exports.getStats = async (req, res) => {
   try {
-    const [totalUsers, activeUsers, pendingUsers, blockedUsers, totalLeads, totalTasks, completedTasks] = await Promise.all([
+    const { getActiveStreamers } = require('../socket');
+    const activeStreamers = getActiveStreamers();
+
+    const [
+      totalUsers, 
+      activeUsers, 
+      pendingUsers, 
+      blockedUsers, 
+      totalLeads, 
+      totalTasks, 
+      completedTasks,
+      recentLeads,
+      taskHistory
+    ] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ status: 'active' }),
       User.countDocuments({ status: 'pending' }),
@@ -395,6 +408,18 @@ exports.getStats = async (req, res) => {
       Lead.countDocuments(),
       Task.countDocuments(),
       Task.countDocuments({ status: 'completed' }),
+      Lead.find().sort({ createdAt: -1 }).limit(10).select('createdAt value name'),
+      Task.aggregate([
+        {
+          $group: {
+            _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+            total: { $sum: 1 },
+            completed: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } }
+          }
+        },
+        { $sort: { "_id": 1 } },
+        { $limit: 30 }
+      ])
     ]);
 
     const pendingTasks = totalTasks - completedTasks;
@@ -403,6 +428,18 @@ exports.getStats = async (req, res) => {
       { name: 'Completed', value: completedTasks },
       { name: 'Pending', value: pendingTasks },
     ];
+
+    // Pipeline Trend (last 7 days of leads)
+    const pipelineHistory = await Lead.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          leads: { $sum: 1 }
+        }
+      },
+      { $sort: { "_id": 1 } },
+      { $limit: 7 }
+    ]);
 
     res.json({
       totalUsers,
@@ -413,7 +450,10 @@ exports.getStats = async (req, res) => {
       totalTasks,
       completedTasks,
       taskDistribution,
-      revenue: totalLeads * 100
+      streamingCount: activeStreamers.size,
+      revenue: totalLeads * 100, // Dummy formula
+      pipelineHistory,
+      taskHistory: taskHistory.map(h => ({ date: h._id, total: h.total, completed: h.completed }))
     });
   } catch (error) {
     console.error('getStats error:', error.message);

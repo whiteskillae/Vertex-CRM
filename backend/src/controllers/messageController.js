@@ -152,7 +152,7 @@ exports.getContacts = async (req, res) => {
     const contacts = await User.find({ 
       _id: { $ne: req.user._id }, 
       isDeleted: { $ne: true }
-    }).select('name email role status');
+    }).select('name email role status phone');
     
     console.log(`[DEBUG] Final contacts found: ${contacts.length}`);
     
