@@ -1,9 +1,9 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const apiKey = process.env.AI_API_GOOGLE || process.env.GEMINI_API_KEY;
+const apiKey = process.env.GEMINI_API_KEY;
 
 if (!apiKey) {
-    console.error('❌ CRITICAL: AI_API_GOOGLE or GEMINI_API_KEY is not defined in .env');
+    console.error('❌ CRITICAL: GEMINI_API_KEY is not defined in .env');
 }
 
 const genAI = new GoogleGenerativeAI(apiKey || "DUMMY_KEY");
@@ -65,8 +65,8 @@ exports.chatWithAI = async (req, res) => {
     }
 
     // ── Call Gemini API ────────────────────────────────────────────────────
-    if (!process.env.AI_API_GOOGLE && !process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ message: 'AI configuration error: AI_API_GOOGLE or GEMINI_API_KEY missing.' });
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ message: 'AI configuration error: GEMINI_API_KEY missing.' });
     }
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
