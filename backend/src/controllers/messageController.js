@@ -58,7 +58,7 @@ exports.getMessages = async (req, res) => {
         { senderId: contactId, receiverId: req.user.id }
       ];
       query.isTeamChat = false;
-    } else if (contactId) {
+    } else if (contactId && contactId.trim() !== '') {
       return res.status(400).json({ message: 'Invalid contact ID format' });
     } else {
       query.$or = [

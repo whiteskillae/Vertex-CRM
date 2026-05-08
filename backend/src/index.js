@@ -21,6 +21,11 @@ const todoRoutes = require('./routes/todoRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const storageRoutes = require('./routes/storageRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+const aiRoutes = require('./routes/aiRoutes');
+const vaultRoutes = require('./routes/vaultRoutes');
+const monitoringRoutes = require('./routes/monitoringRoutes');
+const logRoutes = require('./routes/logRoutes');
 const errorHandler = require('./middleware/errorHandler');
 
 const compression = require('compression');
@@ -125,11 +130,14 @@ app.get('/health', (req, res) => {
 });
 
 // ── FIX: Legacy/Malformed URL Redirect ───────────────────────────────────────
-// If a request hits /auth/login instead of /api/auth/login, we redirect it.
-app.use('/auth', (req, res) => {
-  const newPath = `/api/auth${req.path}`;
-  console.log(`[REDIRECT] Malformed request to ${req.originalUrl} -> ${newPath}`);
-  res.redirect(307, newPath); // 307 preserves the POST method and body
+// If a request hits /auth, /projects, etc. instead of /api/..., we redirect it.
+const malformedUrls = ['auth', 'leads', 'tasks', 'reports', 'messages', 'announcements', 'projects', 'ai', 'vault'];
+malformedUrls.forEach(url => {
+  app.use(`/${url}`, (req, res) => {
+    const newPath = `/api/${url}${req.path}`;
+    console.log(`[REDIRECT] Malformed request to ${req.originalUrl} -> ${newPath}`);
+    res.redirect(307, newPath);
+  });
 });
 
 // Routes
@@ -144,11 +152,11 @@ app.use('/api/todos', todoRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/storage', storageRoutes);
-app.use('/api/projects', require('./routes/projectRoutes'));
-app.use('/api/ai', require('./routes/aiRoutes'));
-app.use('/api/vault', require('./routes/vaultRoutes'));
-app.use('/api/monitoring', require('./routes/monitoringRoutes'));
-app.use('/api/logs', require('./routes/logRoutes'));
+app.use('/api/projects', projectRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/vault', vaultRoutes);
+app.use('/api/monitoring', monitoringRoutes);
+app.use('/api/logs', logRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'CRM Backend API is running...', port: process.env.PORT || 5001, version: '2.0.6' });
