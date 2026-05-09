@@ -56,9 +56,10 @@ exports.chatWithAI = async (req, res) => {
       await user.save();
     }
 
-    if (user.role !== 'admin' && user.aiUsage.count >= 20) {
+    // Internal limit increased to 1000 (effectively unlimited for most users)
+    if (user.role !== 'admin' && user.aiUsage.count >= 1000) {
       return res.status(429).json({ 
-        message: 'DAILY QUOTA EXCEEDED: Operational limit reached (20/20). System reset in 24h.',
+        message: 'SYSTEM QUOTA REACHED: Daily operational limit exceeded (1000/1000). Reset in 24h.',
         limitReached: true
       });
     }
@@ -120,14 +121,23 @@ exports.chatWithAI = async (req, res) => {
       reply: text, 
       usage: {
         count: user.aiUsage.count,
-        limit: 20,
+        limit: 1000,
         isAdmin: user.role === 'admin'
       }
     });
   } catch (error) {
     console.error('❌ AI Chat Error:', error);
+    
+    // Handle Google API Quota issues specifically
+    if (error.status === 429) {
+      return res.status(429).json({ 
+        message: 'GOOGLE API LIMIT REACHED: The underlying AI provider is temporarily rate-limiting requests. Please wait a minute.',
+        details: error.message
+      });
+    }
+
     res.status(500).json({ 
-      message: 'AI processing failed. Please check network connection or API quota.',
+      message: 'AI processing failed. Please check network connection or API key status.',
       details: error.message
     });
   }
@@ -147,8 +157,8 @@ exports.streamChatWithAI = async (req, res) => {
           user.aiUsage = { count: 0, lastReset: now };
         }
 
-        if (user.role !== 'admin' && user.aiUsage.count >= 20) {
-          return res.status(429).json({ message: 'Daily limit reached' });
+        if (user.role !== 'admin' && user.aiUsage.count >= 1000) {
+          return res.status(429).json({ message: 'Daily limit reached (1000)' });
         }
 
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
