@@ -40,7 +40,7 @@ export default function LogsPage() {
     try {
       setLoading(true);
       const { data } = await api.get(`logs?page=${page}&limit=50&search=${search}&actionType=${actionFilter}`);
-      setLogs(data.logs);
+      setLogs(data.logs || []);
       setTotalPages(data.pages);
     } catch (err) {
       console.error("Failed to fetch logs");
