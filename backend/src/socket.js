@@ -107,18 +107,33 @@ const initSocket = (server) => {
     });
 
     // Frame Capture (Frame-based Streaming)
-    socket.on('monitoring:frame', ({ frame }) => {
+    socket.on('monitoring:frame', (data) => {
       // Broadcast to specific room for this user so admins can subscribe
-      socket.to(`viewer:${socket.userId}`).emit('monitoring:frame', { frame });
+      // We ensure the userId is attached correctly from the socket
+      if (!activeStreamers.has(socket.userId)) {
+        activeStreamers.set(socket.userId, { socketId: socket.id, status: 'sharing' });
+      }
+      
+      io.to(`viewer:${socket.userId}`).emit('monitoring:frame', { 
+        ...data,
+        userId: socket.userId,
+        timestamp: Date.now() 
+      });
     });
 
     // Viewer Subscription
     socket.on('monitoring:subscribe', (targetUserId) => {
-      console.log(`[SOCKET] Admin ${socket.userId} subscribing to ${targetUserId}`);
+      if (!targetUserId) return;
+      console.log(`[SOCKET] Admin ${socket.userId} (${socket.user.name}) SUBSCRIBING to node: ${targetUserId}`);
       socket.join(`viewer:${targetUserId}`);
+      
+      // Notify the streamer that someone is watching (optional but good for feedback)
+      io.to(targetUserId).emit('admin:watching', { adminId: socket.userId, adminName: socket.user.name });
     });
 
     socket.on('monitoring:unsubscribe', (targetUserId) => {
+      if (!targetUserId) return;
+      console.log(`[SOCKET] Admin ${socket.userId} UNSUBSCRIBING from node: ${targetUserId}`);
       socket.leave(`viewer:${targetUserId}`);
     });
 

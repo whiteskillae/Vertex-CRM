@@ -50,28 +50,40 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
       return;
     }
 
-    console.log(`[STREAM] Attaching listener for monitoring:frame on node ${userId}`);
+    console.log(`[STREAM] Subscribing and attaching listener for node ${userId}`);
+    
+    // Explicitly join the viewer room for this target user
+    socket.emit('monitoring:subscribe', userId);
 
     const handleFrame = (data: { userId: string, frame: string, timestamp: number }) => {
-      // Debug: Log first frame received
-      if (status !== 'streaming') {
-        console.log(`[STREAM] First frame received for ${userId}`);
-      }
-
+      // Direct assignment if the data matches our targeted userId
       if (String(data.userId) === String(userId)) {
+        if (status !== 'streaming') {
+          console.log(`[STREAM] First frame received for ${userId}`);
+          setStatus('streaming');
+        }
         setFrame(data.frame);
-        setStatus('streaming');
-        setLatency(Date.now() - data.timestamp);
+        setLatency(Date.now() - (data.timestamp || Date.now()));
       }
     };
 
     socket.on('monitoring:frame', handleFrame);
     
     return () => {
-      console.log(`[STREAM] Detaching listener for ${userId}`);
+      console.log(`[STREAM] Cleaning up viewer for ${userId}`);
+      socket.emit('monitoring:unsubscribe', userId);
       socket.off('monitoring:frame', handleFrame);
     };
-  }, [socket, userId, status]);
+  }, [socket, userId]); // Removed status from dependencies to avoid loop
+
+  const handleReconnect = () => {
+    setFrame(null);
+    setStatus('connecting');
+    if (socket && userId) {
+      socket.emit('monitoring:unsubscribe', userId);
+      setTimeout(() => socket.emit('monitoring:subscribe', userId), 100);
+    }
+  };
 
   const toggleFullScreen = () => {
     if (!containerRef.current) return;
@@ -128,7 +140,7 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
                 </p>
               </div>
               <button 
-                onClick={() => window.location.reload()} 
+                onClick={handleReconnect} 
                 className="flex items-center gap-2 px-6 py-2.5 bg-white text-black text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-zinc-200 transition-all shadow-xl"
               >
                 <RefreshCcw className="w-3.5 h-3.5" />

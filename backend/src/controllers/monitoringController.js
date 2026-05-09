@@ -14,8 +14,8 @@ const getMonitoringStatus = async (req, res) => {
 
     const statusList = employees.map(emp => ({
       _id: emp._id,
-      name: emp.name,
-      email: emp.email,
+      userName: emp.name,
+      userEmail: emp.email,
       role: emp.role,
       isSharing: activeStreamers.has(emp._id.toString()),
       status: emp.status
