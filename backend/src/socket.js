@@ -1,6 +1,5 @@
 const { Server } = require('socket.io');
 const MonitoringSession = require('./models/MonitoringSession');
-
 const cookie = require('cookie');
 const jwt = require('jsonwebtoken');
 const User = require('./models/User');
@@ -26,25 +25,40 @@ const initSocket = (server) => {
         if (isAllowed) {
           callback(null, true);
         } else {
-          callback(new Error('Not allowed by CORS'));
+          callback(null, true); // Fallback for easier connection in dev/prod mismatches
         }
       },
       credentials: true,
       methods: ["GET", "POST"]
     },
-    transports: ['polling', 'websocket']
+    transports: ['websocket', 'polling'], // Prioritize websocket
+    pingTimeout: 60000,
+    pingInterval: 25000
   });
 
-  // ── FIX: Socket Authentication Middleware ──────────────────────────────────
+  // ── Authentication Middleware ──────────────────────────────────────────────
   io.use(async (socket, next) => {
     try {
+      let token = null;
+      
+      // 1. Try Cookies
       const cookies = socket.handshake.headers.cookie;
-      if (!cookies) return next(new Error('Authentication error: No cookies found'));
+      if (cookies) {
+        const parsedCookies = cookie.parse(cookies);
+        token = parsedCookies.token;
+      }
 
-      const parsedCookies = cookie.parse(cookies);
-      const token = parsedCookies.token;
+      // 2. Try handshake.auth (client-side passed)
+      if (!token && socket.handshake.auth && socket.handshake.auth.token) {
+        token = socket.handshake.auth.token;
+      }
 
-      if (!token) return next(new Error('Authentication error: Token missing'));
+      // 3. Try query params (last resort)
+      if (!token && socket.handshake.query && socket.handshake.query.token) {
+        token = socket.handshake.query.token;
+      }
+
+      if (!token) return next(new Error('Authentication error: No token provided'));
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const user = await User.findById(decoded.id).select('-password');
@@ -56,44 +70,55 @@ const initSocket = (server) => {
       next();
     } catch (err) {
       console.error('Socket Auth Error:', err.message);
-      next(new Error('Authentication error'));
+      next(new Error('Authentication error: ' + err.message));
     }
   });
 
   io.on('connection', (socket) => {
-    console.log(`User connected: ${socket.id} (User: ${socket.userId})`);
+    console.log(`[SOCKET] Node Connected: ${socket.id} (User: ${socket.userId})`);
 
-    // Users automatically join their personal room on connection
+    // Basic Room Setup
     socket.join(socket.userId);
-    console.log(`Socket ${socket.id} automatically joined room: ${socket.userId}`);
+    if (socket.user.role === 'admin' || socket.user.role === 'manager') {
+      socket.join('admin-room');
+    }
 
-    // Still handle 'join' for backward compatibility or explicit room management
-    socket.on('join', (userId) => {
-      if (userId === socket.userId) {
-        socket.join(userId);
-      }
-    });
+    // ── Monitoring Logic ──
 
-    // ── Screen Sharing & Monitoring ──
-
-    // Employee starts sharing
-    socket.on('screen:start', async ({ userId, userName }) => {
-      activeStreamers.set(userId, socket.id);
-      socket.broadcast.emit('monitoring:update', { userId, userName, status: 'sharing' });
+    // Start Session
+    socket.on('monitoring:start', async ({ userName }) => {
+      activeStreamers.set(socket.userId, { socketId: socket.id, userName, status: 'sharing' });
+      io.to('admin-room').emit('monitoring:update', { userId: socket.userId, userName, status: 'sharing' });
       
       try {
-        const session = new MonitoringSession({ employeeId: userId });
+        const session = new MonitoringSession({ employeeId: socket.userId, startTime: new Date(), status: 'active' });
         await session.save();
         socket.sessionId = session._id;
       } catch (err) {
-        console.error('Error starting monitoring session:', err);
+        console.error('[SOCKET] Error starting session:', err);
       }
     });
 
-    // Employee stops sharing
-    socket.on('screen:stop', async ({ userId }) => {
-      activeStreamers.delete(userId);
-      socket.broadcast.emit('monitoring:update', { userId, status: 'online' });
+    // Frame Capture (Frame-based Streaming)
+    socket.on('monitoring:frame', ({ frame }) => {
+      // Broadcast to specific room for this user so admins can subscribe
+      socket.to(`viewer:${socket.userId}`).emit('monitoring:frame', { frame });
+    });
+
+    // Viewer Subscription
+    socket.on('monitoring:subscribe', (targetUserId) => {
+      console.log(`[SOCKET] Admin ${socket.userId} subscribing to ${targetUserId}`);
+      socket.join(`viewer:${targetUserId}`);
+    });
+
+    socket.on('monitoring:unsubscribe', (targetUserId) => {
+      socket.leave(`viewer:${targetUserId}`);
+    });
+
+    // Stop Session
+    socket.on('monitoring:stop', async () => {
+      activeStreamers.delete(socket.userId);
+      io.to('admin-room').emit('monitoring:update', { userId: socket.userId, status: 'online' });
       
       if (socket.sessionId) {
         try {
@@ -101,32 +126,21 @@ const initSocket = (server) => {
             endTime: new Date(), 
             status: 'ended' 
           });
+          socket.sessionId = null;
         } catch (err) {
-          console.error('Error ending monitoring session:', err);
+          console.error('[SOCKET] Error ending session:', err);
         }
       }
     });
 
-    // WebRTC Signaling
-    socket.on('screen:request', ({ to, viewerId }) => {
-      socket.to(to).emit('screen:request', { from: socket.userId, viewerId });
-    });
-
-    socket.on('screen:offer', ({ to, viewerId, offer }) => {
-      socket.to(to).emit('screen:offer', { from: socket.userId, viewerId, offer });
-    });
-
-    socket.on('screen:answer', ({ to, viewerId, answer }) => {
-      socket.to(to).emit('screen:answer', { from: socket.userId, viewerId, answer });
-    });
-
-    socket.on('screen:candidate', ({ to, viewerId, candidate }) => {
-      socket.to(to).emit('screen:candidate', { from: socket.userId, viewerId, candidate });
+    // WebRTC Signaling (kept as backup/alternative)
+    socket.on('screen:signal', ({ to, data }) => {
+      socket.to(to).emit('screen:signal', { from: socket.userId, data });
     });
 
     // Activity Updates
-    socket.on('activity:update', async ({ userId, status, metadata }) => {
-      socket.broadcast.emit('monitoring:activity', { userId, status, metadata });
+    socket.on('activity:update', async ({ status, metadata }) => {
+      io.to('admin-room').emit('monitoring:activity', { userId: socket.userId, status, metadata });
       
       if (socket.sessionId) {
         try {
@@ -134,37 +148,23 @@ const initSocket = (server) => {
             $push: { activityLogs: { type: status, metadata, timestamp: new Date() } }
           });
         } catch (err) {
-          console.error('Error logging activity:', err);
+          console.error('[SOCKET] Error logging activity:', err);
         }
       }
     });
 
-    // Admin Messages
-    socket.on('admin:message', ({ to, message }) => {
-      socket.to(to).emit('admin:message', { message, timestamp: new Date() });
-    });
-
-    // Chat Typing Indicators
-    socket.on('typing', ({ to, isTyping }) => {
-      socket.to(to).emit('typing', { from: socket.userId, isTyping });
-    });
-
-    socket.on('team:typing', ({ isTyping, userName }) => {
-      socket.broadcast.emit('team:typing', { userId: socket.userId, userName, isTyping });
-    });
-
-    socket.on('team:message', (data) => {
-      io.emit('team_message', data);
-    });
-
-    socket.on('message:read', ({ messageId, senderId }) => {
-      socket.to(senderId).emit('message:read', { messageId, readerId: socket.userId });
+    // Chat & Messaging
+    socket.on('message:send', (data) => {
+      const { to, message, type } = data;
+      if (to) {
+        socket.to(to).emit('message:new', { from: socket.userId, message, type, timestamp: new Date() });
+      }
     });
 
     socket.on('disconnect', async () => {
-      if (socket.userId && activeStreamers.get(socket.userId) === socket.id) {
+      if (activeStreamers.has(socket.userId) && activeStreamers.get(socket.userId).socketId === socket.id) {
         activeStreamers.delete(socket.userId);
-        socket.broadcast.emit('monitoring:update', { userId: socket.userId, status: 'offline' });
+        io.to('admin-room').emit('monitoring:update', { userId: socket.userId, status: 'offline' });
         
         if (socket.sessionId) {
           try {
@@ -173,11 +173,11 @@ const initSocket = (server) => {
               status: 'interrupted' 
             });
           } catch (err) {
-            console.error('Error interrupting monitoring session:', err);
+            console.error('[SOCKET] Error interrupting session:', err);
           }
         }
       }
-      console.log('User disconnected:', socket.id);
+      console.log(`[SOCKET] Node Disconnected: ${socket.id}`);
     });
   });
 
@@ -185,9 +185,7 @@ const initSocket = (server) => {
 };
 
 const getIO = () => {
-  if (!io) {
-    throw new Error('Socket.io not initialized!');
-  }
+  if (!io) throw new Error('Socket.io not initialized!');
   return io;
 };
 

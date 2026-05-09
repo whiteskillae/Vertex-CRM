@@ -1,15 +1,20 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 
 interface SocketContextType {
   socket: Socket | null;
   isConnected: boolean;
+  reconnect: () => void;
 }
 
-const SocketContext = createContext<SocketContextType>({ socket: null, isConnected: false });
+const SocketContext = createContext<SocketContextType>({ 
+  socket: null, 
+  isConnected: false,
+  reconnect: () => {}
+});
 
 export const useSocket = () => useContext(SocketContext);
 
@@ -17,44 +22,71 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const socketRef = useRef<Socket | null>(null);
+
+  const connectSocket = () => {
+    if (!user) return;
+
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+    }
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+    const socketUrl = apiUrl.endsWith('/api') ? apiUrl.replace('/api', '') : apiUrl;
+
+    // Get token from cookie or localStorage fallback
+    const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+
+    console.log('[SOCKET] Initializing connection to:', socketUrl);
+
+    const socketInstance = io(socketUrl, {
+      withCredentials: true,
+      transports: ['websocket', 'polling'],
+      reconnectionAttempts: 15,
+      reconnectionDelay: 2000,
+      auth: { token } // Pass token in auth object for robust server-side middleware handling
+    });
+
+    socketInstance.on('connect', () => {
+      setIsConnected(true);
+      console.log('[SOCKET] Connected established:', socketInstance.id);
+    });
+
+    socketInstance.on('connect_error', (err) => {
+      console.error('[SOCKET] Connection Error:', err.message);
+      setIsConnected(false);
+    });
+
+    socketInstance.on('disconnect', (reason) => {
+      console.warn('[SOCKET] Disconnected:', reason);
+      setIsConnected(false);
+    });
+
+    socketRef.current = socketInstance;
+    setSocket(socketInstance);
+  };
 
   useEffect(() => {
     if (user) {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
-      const socketUrl = apiUrl.endsWith('/api') ? apiUrl.replace('/api', '') : apiUrl;
-
-      const socketInstance = io(socketUrl, {
-        withCredentials: true,
-        transports: ['polling', 'websocket'],
-        reconnectionAttempts: 10,
-        reconnectionDelay: 1000,
-      });
-
-      socketInstance.on('connect', () => {
-        setIsConnected(true);
-        socketInstance.emit('join', user._id);
-        console.log('Socket connected and joined room:', user._id);
-      });
-
-      socketInstance.on('disconnect', () => {
-        setIsConnected(false);
-      });
-
-      setSocket(socketInstance);
-
-      return () => {
-        socketInstance.disconnect();
-      };
+      connectSocket();
     } else {
-      if (socket) {
-        socket.disconnect();
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
         setSocket(null);
+        setIsConnected(false);
       }
     }
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
   }, [user]);
 
   return (
-    <SocketContext.Provider value={{ socket, isConnected }}>
+    <SocketContext.Provider value={{ socket, isConnected, reconnect: connectSocket }}>
       {children}
     </SocketContext.Provider>
   );

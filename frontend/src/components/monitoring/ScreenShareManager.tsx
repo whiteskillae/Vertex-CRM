@@ -4,106 +4,127 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useSocket } from '@/context/SocketContext';
 import { MonitoringPrompt } from './MonitoringPrompt';
-import { Monitor, AlertCircle } from 'lucide-react';
+import { Monitor, AlertCircle, ShieldCheck, Zap, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const FRAME_RATE = 2; // Low FPS for monitoring stability (frames per second)
+const QUALITY = 0.4; // 0.1 to 1.0
 
 export const ScreenShareManager = () => {
   const { user } = useAuth();
-  const { socket } = useSocket();
+  const { socket, isConnected } = useSocket();
   const [showPrompt, setShowPrompt] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [hasConsent, setHasConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [adminMessage, setAdminMessage] = useState<string | null>(null);
+  
   const streamRef = useRef<MediaStream | null>(null);
-  const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const frameIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
   const isEmployee = user?.role === 'employee';
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const consent = localStorage.getItem(`screen_share_consent_${user?._id}`);
-      setHasConsent(consent === 'accepted');
-      
-      if (isEmployee && !isSharing) {
-        if (!consent) {
-          setShowPrompt(true);
-        } else if (consent === 'accepted') {
-          startSharing();
-        }
-      }
+  // ── Frame Capture & Streaming Logic ────────────────────────────────────────
+  const stopStreaming = useCallback(() => {
+    console.log('[MONITORING] Terminating stream sequence...');
+    if (frameIntervalRef.current) clearInterval(frameIntervalRef.current);
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
     }
-  }, [user, isEmployee]);
+    if (videoRef.current) videoRef.current.srcObject = null;
+    
+    streamRef.current = null;
+    setIsSharing(false);
+    socket?.emit('monitoring:stop');
+  }, [socket]);
 
-  const startSharing = async () => {
+  const startStreaming = async () => {
     try {
       setError(null);
+      console.log('[MONITORING] Initializing screen capture sequence...');
+      
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: {
           width: { max: 1280 },
           height: { max: 720 },
-          frameRate: { max: 15 }
+          frameRate: { max: 10 }
         },
         audio: false
       });
 
       streamRef.current = stream;
-      setIsSharing(true);
-      setHasConsent(true);
-      localStorage.setItem(`screen_share_consent_${user?._id}`, 'accepted');
-      setShowPrompt(false);
-
-      socket?.emit('screen:start', { userId: user?._id, userName: user?.name });
-
-      // Handle stream end (user clicks "Stop sharing" in browser UI)
-      stream.getVideoTracks()[0].onended = () => {
-        stopSharing();
+      
+      // Handle manual stop (user clicks "Stop Sharing" in browser bar)
+      stream.getTracks()[0].onended = () => {
+        stopStreaming();
       };
 
+      // Set up hidden video element for frame extraction
+      if (!videoRef.current) {
+        videoRef.current = document.createElement('video');
+        videoRef.current.muted = true;
+        videoRef.current.playsInline = true;
+      }
+      videoRef.current.srcObject = stream;
+      await videoRef.current.play();
+
+      // Set up hidden canvas for frame processing
+      if (!canvasRef.current) {
+        canvasRef.current = document.createElement('canvas');
+      }
+
+      setIsSharing(true);
+      setHasConsent(true);
+      setShowPrompt(false);
+      
+      socket?.emit('monitoring:start', { userName: user?.name });
+
+      // Frame Extraction Loop (Reliable monitoring method)
+      if (frameIntervalRef.current) clearInterval(frameIntervalRef.current);
+      frameIntervalRef.current = setInterval(() => {
+        if (!videoRef.current || !canvasRef.current || !socket || !isConnected) return;
+
+        const canvas = canvasRef.current;
+        const video = videoRef.current;
+        const context = canvas.getContext('2d');
+
+        if (context && video.videoWidth > 0) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          
+          // Convert to compressed WebP for minimal bandwidth usage
+          const frame = canvas.toDataURL('image/webp', QUALITY);
+          socket.emit('monitoring:frame', { frame });
+        }
+      }, 1000 / FRAME_RATE);
+
     } catch (err: any) {
-      console.error('Error sharing screen:', err);
-      setError('Permission denied or failed to start stream.');
+      console.error('[MONITORING] Startup Error:', err);
+      setError(err.name === 'NotAllowedError' ? 'Permission denied by user' : 'Failed to initialize uplink');
       setIsSharing(false);
     }
   };
 
-  const stopSharing = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    setIsSharing(false);
-    socket?.emit('screen:stop', { userId: user?._id });
-    
-    // Close all peer connections
-    peerConnections.current.forEach(pc => pc.close());
-    peerConnections.current.clear();
-  };
-
-  const handleDecline = () => {
-    localStorage.setItem(`screen_share_consent_${user?._id}`, 'declined');
-    setHasConsent(false);
-    setShowPrompt(false);
-    socket?.emit('activity:update', { userId: user?._id, status: 'sharing_declined' });
-  };
-
-  // Activity Tracking Logic
+  // ── Activity Tracking ──────────────────────────────────────────────────────
   useEffect(() => {
-    if (!isSharing) return;
+    if (!isEmployee || !socket || !isConnected) return;
 
     let idleTimer: NodeJS.Timeout;
-    const IDLE_THRESHOLD = 5 * 60 * 1000; // 5 minutes
+    const IDLE_THRESHOLD = 300000; // 5 minutes
 
     const resetIdleTimer = () => {
       clearTimeout(idleTimer);
-      socket?.emit('activity:update', { userId: user?._id, status: 'active' });
+      socket.emit('activity:update', { status: 'active', metadata: { lastActive: new Date() } });
       idleTimer = setTimeout(() => {
-        socket?.emit('activity:update', { userId: user?._id, status: 'idle' });
+        socket.emit('activity:update', { status: 'idle' });
       }, IDLE_THRESHOLD);
     };
 
     window.addEventListener('mousemove', resetIdleTimer);
     window.addEventListener('keydown', resetIdleTimer);
-
     resetIdleTimer();
 
     return () => {
@@ -111,214 +132,131 @@ export const ScreenShareManager = () => {
       window.removeEventListener('keydown', resetIdleTimer);
       clearTimeout(idleTimer);
     };
-  }, [isSharing, user, socket]);
+  }, [isEmployee, socket, isConnected]);
 
-  // WebRTC Signaling Logic
+  // ── Admin Message Listener ─────────────────────────────────────────────────
   useEffect(() => {
-    if (!socket || !isSharing) return;
-
-    const createPeerConnection = (adminId: string, viewerId: string) => {
-      const pc = new RTCPeerConnection({
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' },
-          { urls: 'stun:stun2.l.google.com:19302' },
-          { urls: 'stun:stun3.l.google.com:19302' },
-          { urls: 'stun:stun4.l.google.com:19302' },
-        ]
-      });
-
-      const candidateQueue: RTCIceCandidateInit[] = [];
-
-      streamRef.current?.getTracks().forEach(track => {
-        pc.addTrack(track, streamRef.current!);
-      });
-
-      pc.onicecandidate = (event) => {
-        if (event.candidate) {
-          socket.emit('screen:candidate', { to: adminId, viewerId, candidate: event.candidate });
-        }
-      };
-
-      const key = `${adminId}-${viewerId}`;
-      peerConnections.current.set(key, pc);
-
-      return { pc, candidateQueue };
-    };
-
-    socket.on('admin:message', ({ message }) => {
+    if (!socket) return;
+    const handleAdminMessage = ({ message }: { message: string }) => {
       setAdminMessage(message);
       setTimeout(() => setAdminMessage(null), 10000);
-    });
-
-    // Admin is requesting a stream
-    socket.on('screen:request', async ({ from, viewerId }) => {
-      if (!isSharing || !streamRef.current) return;
-
-      const { pc, candidateQueue } = createPeerConnection(from, viewerId);
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      
-      socket.emit('screen:offer', { to: from, viewerId, offer });
-
-      // Save candidate queue in a weak map or similar if needed, 
-      // but here we can just attach it to the PC object or use a mapping.
-      (pc as any)._candidateQueue = candidateQueue;
-    });
-
-    socket.on('screen:answer', async ({ from, viewerId, answer }) => {
-      const key = `${from}-${viewerId}`;
-      const pc = peerConnections.current.get(key);
-      if (pc) {
-        await pc.setRemoteDescription(new RTCSessionDescription(answer));
-        const queue = (pc as any)._candidateQueue;
-        if (queue) {
-          while (queue.length > 0) {
-            const cand = queue.shift();
-            await pc.addIceCandidate(new RTCIceCandidate(cand)).catch(e => console.error(e));
-          }
-        }
-      }
-    });
-
-    socket.on('screen:candidate', async ({ from, viewerId, candidate }) => {
-      const key = `${from}-${viewerId}`;
-      const pc = peerConnections.current.get(key);
-      if (pc) {
-        if (pc.remoteDescription) {
-          await pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(e => console.error(e));
-        } else {
-          (pc as any)._candidateQueue?.push(candidate);
-        }
-      }
-    });
-
-    return () => {
-      socket.off('screen:offer');
-      socket.off('screen:answer');
-      socket.off('screen:candidate');
-      socket.off('admin:message');
-      socket.off('screen:request');
     };
-  }, [socket, isSharing]);
+    socket.on('admin:message', handleAdminMessage);
+    return () => { socket.off('admin:message', handleAdminMessage); };
+  }, [socket]);
 
-  // Cleanup on Unmount
+  // Initial prompt for employees
   useEffect(() => {
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
-      peerConnections.current.forEach(pc => pc.close());
-      peerConnections.current.clear();
-      if (socket && user) {
-        socket.emit('screen:stop', { userId: user._id });
-      }
-    };
-  }, [socket, user]);
+    if (isEmployee && !hasConsent && !showPrompt) {
+      const timer = setTimeout(() => setShowPrompt(true), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isEmployee, hasConsent, showPrompt]);
 
   if (!isEmployee) return null;
 
   return (
     <>
-      <MonitoringPrompt 
-        isOpen={showPrompt} 
-        onAccept={startSharing} 
-        onDecline={handleDecline} 
-      />
-      
-      {/* Persistent Tracking Banner */}
       <AnimatePresence>
-        {isSharing && (
-          <motion.div
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -100, opacity: 0 }}
-            className="fixed top-0 left-0 right-0 z-[2000] bg-brand-rose text-white flex items-center justify-center gap-8 py-3 shadow-2xl"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-2.5 h-2.5 bg-white rounded-full animate-pulse shadow-sm" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Monitoring Protocol Active</span>
-            </div>
-            <div className="h-5 w-px bg-white/20" />
-            <p className="text-[10px] font-bold opacity-90 tracking-tight">
-              Screen stream synchronized with Mission Control
-            </p>
-            <div className="h-5 w-px bg-white/20" />
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4" />
-              <span className="text-[10px] font-black uppercase tracking-widest">Secure Link 2.4</span>
-            </div>
-          </motion.div>
+        {showPrompt && (
+          <MonitoringPrompt 
+            isOpen={showPrompt}
+            onAccept={startStreaming} 
+            onDecline={() => setShowPrompt(false)} 
+          />
         )}
-      </AnimatePresence>
 
-      {/* Admin Message Notification */}
-      <AnimatePresence>
         {adminMessage && (
-          <motion.div
-            initial={{ x: 300, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 300, opacity: 0 }}
-            className="fixed top-24 right-8 z-[600] w-96 bg-white border border-zinc-100 rounded-3xl p-8 shadow-2xl"
+          <motion.div 
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[200] w-full max-w-lg px-8"
           >
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-10 h-10 bg-brand-rose/10 text-brand-rose flex items-center justify-center rounded-xl">
-                <AlertCircle className="w-6 h-6" />
+            <div className="bg-zinc-950 border-2 border-brand-indigo p-6 rounded-[2rem] shadow-2xl flex items-start gap-6">
+              <div className="p-3 bg-brand-indigo/20 rounded-2xl">
+                <ShieldCheck className="w-6 h-6 text-brand-indigo" />
               </div>
-              <span className="text-xs font-black uppercase tracking-widest text-zinc-900">Admin Dispatch</span>
+              <div className="flex-1">
+                <h4 className="text-[10px] font-black text-brand-indigo uppercase tracking-[0.3em] mb-2">Command Center Broadcast</h4>
+                <p className="text-sm font-bold text-white leading-relaxed">{adminMessage}</p>
+              </div>
             </div>
-            <p className="text-sm font-bold text-zinc-600 leading-relaxed mb-8">
-              {adminMessage}
-            </p>
-            <button 
-              onClick={() => setAdminMessage(null)}
-              className="w-full py-4 bg-black text-white font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-black/10"
-            >
-              Acknowledge Dispatch
-            </button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Small Indicator */}
-      <AnimatePresence>
-        {!isSharing && hasConsent && (
-          <motion.div
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="fixed bottom-10 right-10 z-[500] flex items-center gap-4 bg-brand-rose text-white px-8 py-4 rounded-3xl shadow-2xl cursor-pointer hover:scale-105 active:scale-95 transition-all"
-            onClick={startSharing}
-          >
-            <Monitor className="w-6 h-6 animate-bounce" />
-            <span className="text-xs font-black uppercase tracking-[0.1em]">Resume Monitoring</span>
-          </motion.div>
-        )}
-        {isSharing && (
-          <motion.div
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 50, opacity: 0 }}
-            className="fixed bottom-10 right-10 z-[500] flex items-center gap-4 bg-black text-white px-8 py-4 rounded-3xl shadow-2xl"
-          >
-            <div className="relative">
-              <Monitor className="w-6 h-6" />
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-brand-emerald rounded-full animate-pulse border-2 border-black shadow-sm"></span>
-            </div>
-            <span className="text-xs font-black uppercase tracking-[0.1em]">Session Encrypted</span>
-          </motion.div>
-        )}
+      <div className="fixed bottom-10 right-10 z-[150] flex flex-col items-end gap-6">
         {error && (
-          <motion.div
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="fixed bottom-10 right-10 z-[500] flex items-center gap-4 bg-white border border-brand-rose/20 text-brand-rose px-8 py-4 rounded-3xl shadow-2xl"
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="px-6 py-3 bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-2xl flex items-center gap-3 border-2 border-rose-400"
           >
-            <AlertCircle className="w-6 h-6" />
-            <span className="text-xs font-black uppercase tracking-widest">{error}</span>
-            <button onClick={startSharing} className="underline text-xs font-bold ml-4">Retry Link</button>
+            <AlertCircle className="w-4 h-4" /> {error}
           </motion.div>
         )}
-      </AnimatePresence>
+
+        <button
+          onClick={isSharing ? stopStreaming : startStreaming}
+          className={`
+            group relative p-8 rounded-[2.5rem] transition-all duration-700 shadow-2xl overflow-hidden
+            ${isSharing 
+              ? 'bg-zinc-950 border-2 border-brand-emerald text-brand-emerald' 
+              : 'bg-white border border-zinc-100 text-zinc-400 hover:text-zinc-950'
+            }
+          `}
+        >
+          {isSharing && (
+            <motion.div 
+              animate={{ opacity: [0.1, 0.3, 0.1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="absolute inset-0 bg-brand-emerald/10"
+            />
+          )}
+          
+          <div className="relative z-10 flex items-center gap-6">
+            <div className={`p-4 rounded-2xl transition-all duration-500 ${isSharing ? 'bg-brand-emerald/20 rotate-12' : 'bg-zinc-50'}`}>
+              {isSharing ? <Zap className="w-6 h-6" /> : <Monitor className="w-6 h-6" />}
+            </div>
+            
+            <div className="text-left">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-1">
+                {isSharing ? 'Uplink Established' : 'Satellite Hub'}
+              </p>
+              <h4 className="text-xs font-black uppercase tracking-tight italic">
+                {isSharing ? 'Live_Transmission' : 'Initiate Mirroring'}
+              </h4>
+            </div>
+
+            {isSharing && (
+              <div className="flex gap-1.5 ml-4">
+                {[1, 2, 3].map(i => (
+                  <motion.div 
+                    key={i}
+                    animate={{ height: [4, 12, 4] }}
+                    transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2 }}
+                    className="w-1 bg-brand-emerald rounded-full"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </button>
+
+        {isSharing && (
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-4 px-6 py-3 bg-zinc-950/80 backdrop-blur-xl rounded-2xl border border-white/5"
+          >
+            <Activity className="w-4 h-4 text-brand-indigo animate-pulse" />
+            <span className="text-[9px] font-black text-white uppercase tracking-widest italic">
+              Bitrate: <span className="text-zinc-400">Adaptive</span> // Sync: <span className="text-brand-emerald">Optimal</span>
+            </span>
+          </motion.div>
+        )}
+      </div>
     </>
   );
 };
