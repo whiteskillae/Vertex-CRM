@@ -86,8 +86,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [socket, isAdmin]);
 
-  const hasUnreadTasks = notifications.some(n => !n.isRead && n.type === 'task_reassigned');
-  const hasUnreadMessages = notifications.some(n => !n.isRead && n.type === 'new_message');
+  const hasUnreadTasks = notifications.some(n => !n.isRead && (n.type.startsWith('task_') || n.type.startsWith('mission_')));
+  const hasUnreadMessages = notifications.some(n => !n.isRead && (n.type === 'new_message' || n.type === 'chat_message' || n.type === 'announcement'));
 
   const navItems: NavItem[] = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },

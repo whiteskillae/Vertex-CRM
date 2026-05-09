@@ -130,7 +130,7 @@ app.get('/health', (req, res) => {
 
 // ── FIX: Legacy/Malformed URL Redirect ───────────────────────────────────────
 // If a request hits /auth, /projects, etc. instead of /api/..., we redirect it.
-const malformedUrls = ['auth', 'leads', 'tasks', 'reports', 'messages', 'announcements', 'projects', 'vault'];
+const malformedUrls = ['auth', 'leads', 'tasks', 'reports', 'messages', 'announcements', 'projects', 'vault', 'logs', 'monitoring'];
 malformedUrls.forEach(url => {
   app.use(`/${url}`, (req, res) => {
     const newPath = `/api/${url}${req.path}`;

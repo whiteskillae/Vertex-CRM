@@ -417,16 +417,22 @@ export default function TasksPage() {
                   </div>
 
                   {/* Actions Column */}
-                  <div className="flex flex-row lg:flex-col justify-end gap-3 lg:w-40 border-t lg:border-t-0 lg:border-l border-zinc-100 pt-6 lg:pt-0 lg:pl-10">
+                  <div className="flex flex-col justify-end gap-3 lg:w-48 border-t lg:border-t-0 lg:border-l border-zinc-100 pt-6 lg:pt-0 lg:pl-10 min-w-[180px]">
                     {isAdminOrManager && (
                       <>
                         {task.status === 'review' && (
-                          <div className="flex lg:flex-col gap-2 w-full">
-                            <button onClick={() => handleApprove(task._id)} className="flex-1 flex items-center justify-center gap-2 py-3 bg-brand-emerald text-white rounded-xl text-[10px] font-bold uppercase hover:scale-105 transition-all shadow-lg shadow-brand-emerald/20">
-                              Approve
+                          <div className="flex flex-col gap-2 w-full">
+                            <button 
+                              onClick={() => handleApprove(task._id)} 
+                              className="w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-600 text-white rounded-xl text-[11px] font-bold uppercase hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/20"
+                            >
+                              <CircleCheck className="h-4 w-4" /> Approve Task
                             </button>
-                            <button onClick={() => setRedoTaskId(task._id)} className="flex-1 flex items-center justify-center gap-2 py-3 bg-brand-amber text-white rounded-xl text-[10px] font-bold uppercase hover:scale-105 transition-all shadow-lg shadow-brand-amber/20">
-                              Revise
+                            <button 
+                              onClick={() => setRedoTaskId(task._id)} 
+                              className="w-full flex items-center justify-center gap-2 py-3.5 bg-rose-600 text-white rounded-xl text-[11px] font-bold uppercase hover:bg-rose-700 transition-all shadow-lg shadow-rose-500/20"
+                            >
+                              <RotateCcw className="h-4 w-4" /> Reject / Revise
                             </button>
                           </div>
                         )}
@@ -442,13 +448,15 @@ export default function TasksPage() {
                               setNewDueDate(task.dueDate ? task.dueDate.split('T')[0] : ""); 
                               setIsModalOpen(true); 
                             }} 
-                            className="flex-1 py-3 bg-zinc-50 rounded-xl hover:bg-zinc-100 transition-all text-zinc-400 hover:text-black flex items-center justify-center"
+                            className="flex-1 py-3 bg-zinc-50 rounded-xl hover:bg-zinc-100 transition-all text-zinc-500 hover:text-black flex items-center justify-center border border-zinc-100"
+                            title="Edit Task"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button 
                             onClick={() => handleDeleteTask(task)} 
-                            className="flex-1 py-3 bg-zinc-50 rounded-xl hover:bg-rose-50 transition-all text-zinc-400 hover:text-brand-rose flex items-center justify-center"
+                            className="flex-1 py-3 bg-zinc-50 rounded-xl hover:bg-rose-50 transition-all text-zinc-500 hover:text-rose-600 flex items-center justify-center border border-zinc-100"
+                            title="Archive Task"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -456,11 +464,18 @@ export default function TasksPage() {
                       </>
                     )}
                     {user?.role === 'employee' && task.status === 'todo' && !submittingId && (
-                      <button onClick={() => setSubmittingId(task._id)} className="w-full py-3 bg-zinc-950 text-white text-[9px] font-bold uppercase tracking-widest rounded-xl hover:bg-zinc-800 transition-all shadow-lg">
-                        Submit Outcome
+                      <button 
+                        onClick={() => setSubmittingId(task._id)} 
+                        className="w-full py-4 bg-zinc-950 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-zinc-800 transition-all shadow-xl"
+                      >
+                        Submit Mission Result
                       </button>
                     )}
-                    <button onClick={() => setSelectedTaskHistory(task.history)} className="py-3 bg-zinc-50 rounded-xl hover:bg-zinc-100 transition-all text-zinc-300 hover:text-zinc-600 flex items-center justify-center" title="History">
+                    <button 
+                      onClick={() => setSelectedTaskHistory(task.history)} 
+                      className="py-3 bg-zinc-50 rounded-xl hover:bg-zinc-100 transition-all text-zinc-400 hover:text-zinc-600 flex items-center justify-center border border-zinc-100" 
+                      title="View Audit Trail"
+                    >
                       <History className="h-4 w-4" />
                     </button>
                   </div>

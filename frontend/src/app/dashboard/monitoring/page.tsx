@@ -23,7 +23,8 @@ import {
   Maximize2,
   Zap,
   RefreshCcw,
-  Eye
+  Eye,
+  AlertCircle
 } from 'lucide-react';
 
 const LiveTimer = ({ startTime }: { startTime: string | Date }) => {
@@ -61,6 +62,7 @@ export default function MonitoringDashboard() {
   const [userLogs, setUserLogs] = useState<any[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (selectedUser) {
@@ -89,8 +91,9 @@ export default function MonitoringDashboard() {
     try {
       const data = await getMonitoringStatus();
       setMonitors(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to fetch monitoring status:", err);
+      setError(err.response?.status === 404 ? "Monitoring API endpoint not found. Please ensure backend is updated." : "Failed to sync personnel status.");
     } finally {
       setLoading(false);
     }
@@ -148,6 +151,26 @@ export default function MonitoringDashboard() {
   };
 
   if (!mounted) return null;
+
+  if (error) {
+    return (
+      <div className="h-[60vh] flex flex-col items-center justify-center gap-6 text-center px-4">
+        <div className="p-4 bg-rose-500/10 rounded-full">
+          <AlertCircle className="w-8 h-8 text-rose-500" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-xl font-bold">System Sync Failure</h2>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto">{error}</p>
+        </div>
+        <button 
+          onClick={() => { setError(null); setLoading(true); fetchStatus(); }}
+          className="px-8 py-3 bg-primary text-primary-foreground rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:opacity-90 transition-all"
+        >
+          Attempt Re-Sync
+        </button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
