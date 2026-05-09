@@ -111,6 +111,11 @@ exports.chatWithAI = async (req, res) => {
 
     const result = await chat.sendMessage(message);
     const response = await result.response;
+    
+    if (!response || !response.text) {
+      throw new Error('AI returned an empty or invalid response. Possibly blocked by safety filters.');
+    }
+    
     const text = response.text();
 
     // ── Update Usage ──────────────────────────────────────────────────────
@@ -126,19 +131,16 @@ exports.chatWithAI = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('❌ AI Chat Error:', error);
+    console.error('❌ AI Chat Core Error:', error);
     
-    // Handle Google API Quota issues specifically
-    if (error.status === 429) {
-      return res.status(429).json({ 
-        message: 'GOOGLE API LIMIT REACHED: The underlying AI provider is temporarily rate-limiting requests. Please wait a minute.',
-        details: error.message
-      });
-    }
-
-    res.status(500).json({ 
-      message: 'AI processing failed. Please check network connection or API key status.',
-      details: error.message
+    // Pass through status codes from Google API (404, 429, etc.)
+    const statusCode = error.status || 500;
+    const errorMessage = error.message || 'Unknown AI error';
+    
+    res.status(statusCode).json({ 
+      message: statusCode === 404 ? 'AI Model not found or API key invalid.' : 'AI processing failed.',
+      details: errorMessage,
+      code: statusCode
     });
   }
 };

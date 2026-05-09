@@ -66,9 +66,9 @@ export default function AIPage() {
       
       setMessages(prev => [...prev, { role: 'ai', content: data.reply }]);
     } catch (err: any) {
-      console.error(err);
-      const errorMsg = err.response?.data?.message || "Protocol error: Connection to AI core interrupted.";
-      setMessages(prev => [...prev, { role: 'ai', content: errorMsg }]);
+      const errorData = err.response?.data;
+      const errorMsg = errorData?.details || errorData?.message || "Protocol error: Connection to AI core interrupted.";
+      setMessages(prev => [...prev, { role: 'ai', content: `[ERROR] ${errorMsg}` }]);
     } finally {
       setIsTyping(false);
     }
