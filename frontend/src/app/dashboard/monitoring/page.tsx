@@ -20,7 +20,8 @@ import {
   X,
   Globe,
   Send,
-  ChevronRight
+  ChevronRight,
+  Maximize2
 } from 'lucide-react';
 
 export default function MonitoringDashboard() {
