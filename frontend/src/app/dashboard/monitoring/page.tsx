@@ -60,6 +60,7 @@ export default function MonitoringDashboard() {
   const [inputMessage, setInputMessage] = useState("");
   const [userLogs, setUserLogs] = useState<any[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     if (selectedUser) {
