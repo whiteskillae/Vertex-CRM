@@ -1,13 +1,5 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const apiKey = process.env.GEMINI_API_KEY;
-
-if (!apiKey) {
-    console.error('❌ CRITICAL: GEMINI_API_KEY is not defined in .env');
-}
-
-const genAI = new GoogleGenerativeAI(apiKey || "DUMMY_KEY");
-
 const systemPrompt = `
 You are the Vertex CRM AI Assistant, a powerful enterprise-grade intelligence integrated into the Vertex CRM system.
 Your goal is to help employees and administrators navigate the CRM, understand company workflows, and manage projects/tasks efficiently.
@@ -78,17 +70,46 @@ exports.chatWithAI = async (req, res) => {
       return res.status(500).json({ message: 'NEURAL LINK OFFLINE: AI configuration error. Contact Admin.' });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const genAI = new GoogleGenerativeAI(currentApiKey);
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      systemInstruction: systemPrompt 
+    });
+
+    // Filter and format history to ensure it alternates correctly and starts with 'user'
+    let formattedHistory = [];
+    let lastRole = null;
+
+    if (history && Array.isArray(history)) {
+      for (const h of history) {
+        if (!h.content || !h.role) continue;
+        
+        const role = h.role === 'user' ? 'user' : 'model';
+        
+        // Gemini history MUST start with 'user'
+        if (formattedHistory.length === 0 && role !== 'user') continue;
+        
+        // Gemini history MUST alternate roles
+        if (role === lastRole) continue;
+        
+        formattedHistory.push({
+          role: role,
+          parts: [{ text: h.content }]
+        });
+        lastRole = role;
+      }
+    }
+
+    // If history ended with a user message, the next sendMessage(message) would be User-User.
+    // So we must ensure history ends with a model message if we are about to send a user message.
+    if (formattedHistory.length > 0 && formattedHistory[formattedHistory.length - 1].role === 'user') {
+      // If the user's current message is about to be sent, we should probably remove the last user message from history
+      // or the API will complain about consecutive user messages.
+      formattedHistory.pop();
+    }
 
     const chat = model.startChat({
-      history: [
-        { role: "user", parts: [{ text: systemPrompt }] },
-        { role: "model", parts: [{ text: "Understood. I am ready to assist as the Vertex CRM AI Assistant." }] },
-        ...(history || []).map(h => ({
-          role: h.role === 'user' ? 'user' : 'model',
-          parts: [{ text: h.content }]
-        }))
-      ],
+      history: formattedHistory,
     });
 
     const result = await chat.sendMessage(message);
@@ -100,7 +121,7 @@ exports.chatWithAI = async (req, res) => {
     await user.save();
 
     res.json({ 
-      response: text, 
+      reply: text, 
       usage: {
         count: user.aiUsage.count,
         limit: 20,
@@ -131,21 +152,47 @@ exports.streamChatWithAI = async (req, res) => {
           return res.status(429).json({ message: 'Daily limit reached' });
         }
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-1.5-flash",
+            systemInstruction: systemPrompt
+        });
         
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
 
+        // Filter and format history to ensure it alternates correctly and starts with 'user'
+        let formattedHistory = [];
+        let lastRole = null;
+
+        if (history && Array.isArray(history)) {
+          for (const h of history) {
+            if (!h.content || !h.role) continue;
+            
+            const role = h.role === 'user' ? 'user' : 'model';
+            
+            // Gemini history MUST start with 'user'
+            if (formattedHistory.length === 0 && role !== 'user') continue;
+            
+            // Gemini history MUST alternate roles
+            if (role === lastRole) continue;
+            
+            formattedHistory.push({
+              role: role,
+              parts: [{ text: h.content }]
+            });
+            lastRole = role;
+          }
+        }
+
+        // Ensure history ends with a model message so next message is 'user'
+        if (formattedHistory.length > 0 && formattedHistory[formattedHistory.length - 1].role === 'user') {
+          formattedHistory.pop();
+        }
+
         const chat = model.startChat({
-            history: [
-                { role: "user", parts: [{ text: systemPrompt }] },
-                { role: "model", parts: [{ text: "Understood." }] },
-                ...(history || []).map(h => ({
-                    role: h.role === 'user' ? 'user' : 'model',
-                    parts: [{ text: h.content }]
-                }))
-            ],
+            history: formattedHistory,
         });
 
         const result = await chat.sendMessageStream(message);

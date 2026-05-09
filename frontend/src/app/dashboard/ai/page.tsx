@@ -55,11 +55,20 @@ export default function AIPage() {
     setIsTyping(true);
 
     try {
-      const { data } = await api.post("ai/chat", { message: userMsg });
+      // Pass history (excluding the greeting if preferred, but usually good to include)
+      const { data } = await api.post("ai/chat", { 
+        message: userMsg,
+        history: messages.map(m => ({
+          role: m.role,
+          content: m.content
+        }))
+      });
+      
       setMessages(prev => [...prev, { role: 'ai', content: data.reply }]);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setMessages(prev => [...prev, { role: 'ai', content: "Protocol error: Connection to AI core interrupted." }]);
+      const errorMsg = err.response?.data?.message || "Protocol error: Connection to AI core interrupted.";
+      setMessages(prev => [...prev, { role: 'ai', content: errorMsg }]);
     } finally {
       setIsTyping(false);
     }
