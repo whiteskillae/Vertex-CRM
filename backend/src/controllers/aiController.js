@@ -100,13 +100,28 @@ exports.chatWithAI = async (req, res) => {
     for (const modelName of modelsToTry) {
       try {
         console.log(`🤖 TRYING AI MODEL: ${modelName}`);
-        const model = genAI.getGenerativeModel({ 
-          model: modelName,
-          systemInstruction: systemPrompt 
-        });
+        
+        const modelConfig = { model: modelName };
+        
+        // systemInstruction is supported in gemini-1.5+ but not in gemini-1.0-pro
+        if (modelName.includes("1.5")) {
+          modelConfig.systemInstruction = systemPrompt;
+        }
 
-        const chat = model.startChat({ history: formattedHistory });
-        const result = await chat.sendMessage(message);
+        const model = genAI.getGenerativeModel(modelConfig);
+
+        // For models that don't support systemInstruction (like gemini-pro), 
+        // we can prepend the instructions to the history if it's empty, 
+        // or just add them as a 'user' message.
+        let finalHistory = [...formattedHistory];
+        let finalMessage = message;
+        
+        if (!modelName.includes("1.5")) {
+          finalMessage = `${systemPrompt}\n\nUSER REQUEST: ${message}`;
+        }
+
+        const chat = model.startChat({ history: finalHistory });
+        const result = await chat.sendMessage(finalMessage);
         const response = await result.response;
         
         if (!response || !response.text) {
@@ -120,8 +135,8 @@ exports.chatWithAI = async (req, res) => {
       } catch (e) {
         lastError = e;
         console.error(`❌ Model ${modelName} failed:`, e.message);
-        if (e.status !== 404) {
-          // If it's not a 404 (e.g., 429 or 400), don't bother trying other models
+        if (e.status !== 404 && e.status !== 400) {
+          // If it's a 429 or other severe error, stop trying
           break;
         }
       }
@@ -177,11 +192,8 @@ exports.streamChatWithAI = async (req, res) => {
         }
 
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        // Try gemini-pro as it's often more widely available on legacy keys
-        const model = genAI.getGenerativeModel({ 
-            model: "gemini-pro",
-            systemInstruction: systemPrompt
-        });
+        // Fallback to gemini-pro for streaming to ensure stability
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
         
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
@@ -220,7 +232,7 @@ exports.streamChatWithAI = async (req, res) => {
             history: formattedHistory,
         });
 
-        const result = await chat.sendMessageStream(message);
+        const result = await chat.sendMessageStream(`${systemPrompt}\n\nUSER REQUEST: ${message}`);
 
         for await (const chunk of result.stream) {
             const chunkText = chunk.text();
