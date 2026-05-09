@@ -72,10 +72,11 @@ exports.chatWithAI = async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(currentApiKey);
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
-      systemInstruction: systemPrompt 
-    });
+    const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-pro", "gemini-1.0-pro"];
+    
+    let text = "";
+    let lastError;
+    let success = false;
 
     // Filter and format history to ensure it alternates correctly and starts with 'user'
     let formattedHistory = [];
@@ -84,19 +85,10 @@ exports.chatWithAI = async (req, res) => {
     if (history && Array.isArray(history)) {
       for (const h of history) {
         if (!h.content || !h.role) continue;
-        
         const role = h.role === 'user' ? 'user' : 'model';
-        
-        // Gemini history MUST start with 'user'
         if (formattedHistory.length === 0 && role !== 'user') continue;
-        
-        // Gemini history MUST alternate roles
         if (role === lastRole) continue;
-        
-        formattedHistory.push({
-          role: role,
-          parts: [{ text: h.content }]
-        });
+        formattedHistory.push({ role: role, parts: [{ text: h.content }] });
         lastRole = role;
       }
     }
@@ -105,18 +97,39 @@ exports.chatWithAI = async (req, res) => {
       formattedHistory.pop();
     }
 
-    const chat = model.startChat({
-      history: formattedHistory,
-    });
+    for (const modelName of modelsToTry) {
+      try {
+        console.log(`🤖 TRYING AI MODEL: ${modelName}`);
+        const model = genAI.getGenerativeModel({ 
+          model: modelName,
+          systemInstruction: systemPrompt 
+        });
 
-    const result = await chat.sendMessage(message);
-    const response = await result.response;
-    
-    if (!response || !response.text) {
-      throw new Error('AI returned an empty or invalid response. Possibly blocked by safety filters.');
+        const chat = model.startChat({ history: formattedHistory });
+        const result = await chat.sendMessage(message);
+        const response = await result.response;
+        
+        if (!response || !response.text) {
+          throw new Error('Empty response');
+        }
+        
+        text = response.text();
+        success = true;
+        console.log(`✅ SUCCESS WITH MODEL: ${modelName}`);
+        break; 
+      } catch (e) {
+        lastError = e;
+        console.error(`❌ Model ${modelName} failed:`, e.message);
+        if (e.status !== 404) {
+          // If it's not a 404 (e.g., 429 or 400), don't bother trying other models
+          break;
+        }
+      }
     }
-    
-    const text = response.text();
+
+    if (!success) {
+      throw lastError || new Error("All AI models failed.");
+    }
 
     // ── Update Usage ──────────────────────────────────────────────────────
     user.aiUsage.count += 1;
@@ -164,8 +177,9 @@ exports.streamChatWithAI = async (req, res) => {
         }
 
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        // Try gemini-pro as it's often more widely available on legacy keys
         const model = genAI.getGenerativeModel({ 
-            model: "gemini-1.5-flash",
+            model: "gemini-pro",
             systemInstruction: systemPrompt
         });
         
