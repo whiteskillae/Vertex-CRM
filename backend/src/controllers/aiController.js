@@ -100,11 +100,7 @@ exports.chatWithAI = async (req, res) => {
       }
     }
 
-    // If history ended with a user message, the next sendMessage(message) would be User-User.
-    // So we must ensure history ends with a model message if we are about to send a user message.
     if (formattedHistory.length > 0 && formattedHistory[formattedHistory.length - 1].role === 'user') {
-      // If the user's current message is about to be sent, we should probably remove the last user message from history
-      // or the API will complain about consecutive user messages.
       formattedHistory.pop();
     }
 
@@ -129,8 +125,11 @@ exports.chatWithAI = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('AI Chat Error:', error);
-    res.status(500).json({ message: 'AI processing failed. Please check network connection or API quota.' });
+    console.error('❌ AI Chat Error:', error);
+    res.status(500).json({ 
+      message: 'AI processing failed. Please check network connection or API quota.',
+      details: error.message
+    });
   }
 };
 
