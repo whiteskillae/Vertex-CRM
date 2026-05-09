@@ -34,17 +34,21 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
     const socketUrl = apiUrl.endsWith('/api') ? apiUrl.replace('/api', '') : apiUrl;
 
-    // Get token from cookie or localStorage fallback
-    const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+    // Get token from localStorage (Primary) or Cookie (Fallback)
+    let token = localStorage.getItem('token');
+    
+    if (!token) {
+      token = document.cookie.split('; ').find(row => row.trim().startsWith('token='))?.split('=')[1];
+    }
 
-    console.log('[SOCKET] Initializing connection to:', socketUrl);
+    console.log('[SOCKET] Initializing connection to:', socketUrl, 'Auth:', !!token);
 
     const socketInstance = io(socketUrl, {
       withCredentials: true,
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 15,
       reconnectionDelay: 2000,
-      auth: { token } // Pass token in auth object for robust server-side middleware handling
+      auth: { token } 
     });
 
     socketInstance.on('connect', () => {

@@ -41,24 +41,31 @@ const initSocket = (server) => {
     try {
       let token = null;
       
-      // 1. Try Cookies
-      const cookies = socket.handshake.headers.cookie;
-      if (cookies) {
-        const parsedCookies = cookie.parse(cookies);
-        token = parsedCookies.token;
-      }
-
-      // 2. Try handshake.auth (client-side passed)
-      if (!token && socket.handshake.auth && socket.handshake.auth.token) {
+      // 1. Try handshake.auth (client-side passed) - Prioritize this
+      if (socket.handshake.auth && socket.handshake.auth.token) {
         token = socket.handshake.auth.token;
       }
 
-      // 3. Try query params (last resort)
+      // 2. Try Cookies
+      if (!token) {
+        const cookies = socket.handshake.headers.cookie;
+        if (cookies) {
+          const parsedCookies = cookie.parse(cookies);
+          token = parsedCookies.token;
+        }
+      }
+
+      // 3. Try query params
       if (!token && socket.handshake.query && socket.handshake.query.token) {
         token = socket.handshake.query.token;
       }
 
-      if (!token) return next(new Error('Authentication error: No token provided'));
+      console.log(`[SOCKET AUTH] Checking token for socket ${socket.id}. Found: ${!!token}`);
+
+      if (!token) {
+        console.error(`[SOCKET AUTH] Denied: No token for socket ${socket.id}`);
+        return next(new Error('Authentication error: No token provided'));
+      }
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const user = await User.findById(decoded.id).select('-password');
