@@ -22,7 +22,8 @@ import {
   Send,
   Maximize2,
   Zap,
-  RefreshCcw
+  RefreshCcw,
+  Eye
 } from 'lucide-react';
 
 const LiveTimer = ({ startTime }: { startTime: string | Date }) => {
@@ -70,7 +71,7 @@ export default function MonitoringDashboard() {
     try {
       setLogsLoading(true);
       const logs = await getUserLogs(userId);
-      setUserLogs(logs);
+      setUserLogs(logs || []);
     } catch (err) {
       console.error("Failed to fetch user logs");
     } finally {
