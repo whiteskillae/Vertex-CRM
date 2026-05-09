@@ -15,7 +15,8 @@ import {
   Search,
   LayoutGrid,
   List,
-  Loader2
+  Loader2,
+  Activity
 } from 'lucide-react';
 
 export default function MonitoringDashboard() {

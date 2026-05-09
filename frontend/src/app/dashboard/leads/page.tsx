@@ -6,7 +6,7 @@ import api from "@/lib/api";
 import { 
   FileSearch, Plus, Upload, Download, Search, Filter, Mail, Phone, Building, 
   ChevronLeft, ChevronRight, Loader2, Trash2, Edit, X, Check,
-  AlertTriangle, Info, MoreVertical, ExternalLink
+  AlertTriangle, Info, MoreVertical, ExternalLink, Activity
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";

@@ -5,7 +5,7 @@ import api from "@/lib/api";
 import { 
   HardDrive, Trash2, Search, FileText, Image as ImageIcon, 
   FileSpreadsheet, Music, Video, ExternalLink, Loader2,
-  AlertCircle, Filter, Download, ArrowUpDown
+  AlertCircle, Filter, Download, ArrowUpDown, Activity
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
