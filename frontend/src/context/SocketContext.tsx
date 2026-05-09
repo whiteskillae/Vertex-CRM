@@ -25,27 +25,27 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const socketRef = useRef<Socket | null>(null);
 
   const connectSocket = () => {
-    if (!user) return;
+    if (!user || socketRef.current?.connected) return;
 
-    if (socketRef.current) {
-      socketRef.current.disconnect();
+    // If already connecting, don't start another one
+    if (socketRef.current && !socketRef.current.connected) {
+      console.log('[SOCKET] Connection attempt already in progress...');
+      return;
     }
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
     const socketUrl = apiUrl.endsWith('/api') ? apiUrl.replace('/api', '') : apiUrl;
 
-    // Get token from localStorage (Primary) or Cookie (Fallback)
     let token = localStorage.getItem('token');
-    
     if (!token) {
       token = document.cookie.split('; ').find(row => row.trim().startsWith('token='))?.split('=')[1];
     }
 
-    console.log('[SOCKET] Initializing connection to:', socketUrl, 'Auth:', !!token);
+    console.log('[SOCKET] Initializing connection to:', socketUrl);
 
     const socketInstance = io(socketUrl, {
       withCredentials: true,
-      transports: ['polling', 'websocket'], // Polling first for better stability
+      transports: ['polling', 'websocket'],
       reconnectionAttempts: 15,
       reconnectionDelay: 2000,
       auth: { token },
@@ -65,6 +65,11 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     socketInstance.on('disconnect', (reason) => {
       console.warn('[SOCKET] Disconnected:', reason);
       setIsConnected(false);
+      
+      // If disconnected by server, try to reconnect gracefully
+      if (reason === "io server disconnect") {
+        socketInstance.connect();
+      }
     });
 
     socketRef.current = socketInstance;
@@ -72,10 +77,13 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
+    let mounted = true;
+
     if (user) {
       connectSocket();
     } else {
       if (socketRef.current) {
+        console.log('[SOCKET] Cleaning up connection due to user logout');
         socketRef.current.disconnect();
         socketRef.current = null;
         setSocket(null);
@@ -84,9 +92,9 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
+      mounted = false;
+      // We don't necessarily want to disconnect the global socket on every re-render
+      // Only if the provider is actually unmounting or user changes
     };
   }, [user]);
 
