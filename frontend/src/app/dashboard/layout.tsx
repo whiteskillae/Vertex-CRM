@@ -125,150 +125,130 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     href === "/dashboard" ? pathname === href : pathname.startsWith(href);
 
   return (
-    <div className="h-screen bg-[#fafafa] flex flex-col lg:flex-row overflow-hidden">
+    <div className="h-screen flex bg-background overflow-hidden selection:bg-primary selection:text-primary-foreground">
       <Toaster position="top-right" />
       
-      {/* Mobile Header */}
-      <header className="lg:hidden bg-white px-6 py-4 flex items-center justify-between border-b border-zinc-100 z-[100] shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-zinc-950 text-white flex items-center justify-center font-bold text-sm rounded-lg">V</div>
-          <h1 className="font-bold text-sm tracking-tight uppercase">Vertex CRM</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <NotificationCenter />
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 hover:bg-zinc-50 rounded-lg transition-all"
-          >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
-      </header>
-
-      {/* Sidebar */}
+      {/* Sidebar - ChatGPT Style */}
       <aside
         className={`
-          fixed lg:relative top-0 left-0 bottom-0 z-[110] lg:z-40 bg-white border-r border-zinc-100 flex flex-col h-full
-          transition-all duration-300 ease-in-out
-          ${collapsed ? "w-24" : "w-72"}
+          fixed inset-y-0 left-0 z-50 bg-card border-r border-border transition-all duration-300 ease-in-out lg:relative
+          ${collapsed ? "w-[var(--sidebar-collapsed-width)]" : "w-[var(--sidebar-width)]"}
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        <div className={`p-6 flex items-center shrink-0 ${collapsed ? "justify-center" : "justify-between"}`}>
-          {!collapsed && (
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-zinc-950 text-white flex items-center justify-center font-bold text-lg rounded-lg">V</div>
-              <div>
-                <h2 className="text-xs font-bold tracking-tight text-zinc-950 uppercase italic leading-none">Vertex</h2>
-                <p className="text-[7px] text-zinc-400 font-bold uppercase tracking-widest mt-1">Enterprise Core</p>
-              </div>
+        <div className="flex flex-col h-full">
+          {/* Logo Section */}
+          <div className="h-16 flex items-center px-6 border-b border-border">
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="w-8 h-8 bg-primary text-primary-foreground flex items-center justify-center font-bold rounded-lg shrink-0">V</div>
+              {!collapsed && (
+                <span className="font-semibold tracking-tight uppercase text-sm">Vertex CRM</span>
+              )}
             </div>
-          )}
-          {collapsed && <div className="w-8 h-8 bg-zinc-950 text-white flex items-center justify-center font-bold text-lg rounded-lg">V</div>}
-          
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="hidden lg:flex items-center justify-center w-7 h-7 text-zinc-300 hover:text-zinc-950 hover:bg-zinc-50 rounded-lg transition-all"
-          >
-            {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
-          </button>
-        </div>
-
-        <div className={`px-6 py-2 shrink-0 ${collapsed ? "flex justify-center" : ""}`}>
-          <div className={`bg-zinc-50/50 rounded-2xl p-4 border border-zinc-100 flex items-center ${collapsed ? "justify-center" : "gap-4"} group cursor-pointer hover:bg-white hover:border-zinc-200 transition-all`}>
-            <div className="w-10 h-10 bg-white border border-zinc-100 text-zinc-950 flex items-center justify-center font-bold text-base rounded-lg shrink-0 shadow-sm">
-              {user.name?.[0]?.toUpperCase()}
-            </div>
-            {!collapsed && (
-              <div className="overflow-hidden">
-                <p className="text-[11px] font-bold text-zinc-950 truncate uppercase tracking-tight italic">{user.name}</p>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <div className="w-1 h-1 bg-emerald-500 rounded-full" />
-                  <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">{user.role}</p>
-                </div>
-              </div>
-            )}
           </div>
-        </div>
 
-        <nav className="flex-1 overflow-y-auto py-8 space-y-1 px-4 custom-scrollbar">
-          {navItems.map((item) => {
-            const active = isActive(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={`
-                  relative flex items-center transition-all group rounded-xl
-                  ${collapsed ? "justify-center p-3.5" : "px-5 py-3 gap-4"}
-                  ${active
-                    ? "bg-zinc-950 text-white shadow-lg shadow-black/10"
-                    : "text-zinc-400 hover:text-zinc-950 hover:bg-zinc-50"
-                  }
-                `}
-              >
-                <item.icon className={`h-4 w-4 flex-shrink-0 transition-transform ${active ? "text-white" : "text-zinc-300 group-hover:text-zinc-950"}`} />
-                {!collapsed && (
-                  <span className="text-[10px] font-bold uppercase tracking-widest flex-1 italic">
-                    {item.name}
-                  </span>
-                )}
-                {item.hasAlert && (
-                  <span className={`
-                    flex-shrink-0 h-1.5 w-1.5 bg-rose-500 rounded-full shadow-[0_0_8px_rgba(244,63,94,0.3)]
-                    ${collapsed ? "absolute top-3 right-3" : ""}
-                  `} />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+          {/* Navigation */}
+          <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1 custom-scrollbar">
+            {navItems.map((item) => {
+              const active = isActive(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`
+                    flex items-center gap-3 px-3 py-2 rounded-lg transition-all group relative
+                    ${active 
+                      ? "bg-secondary text-foreground font-medium" 
+                      : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                    }
+                    ${collapsed ? "justify-center" : ""}
+                  `}
+                >
+                  <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
+                  {!collapsed && <span className="text-sm truncate">{item.name}</span>}
+                  {item.hasAlert && (
+                    <div className="absolute right-3 w-1.5 h-1.5 bg-destructive rounded-full" />
+                  )}
+                  {collapsed && active && (
+                    <div className="absolute left-0 w-1 h-4 bg-primary rounded-r-full" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
 
-        <div className="mt-auto p-6 border-t border-zinc-100 shrink-0">
-          <button
-            onClick={() => logout()}
-            className={`w-full flex items-center gap-4 p-3.5 text-rose-500 font-bold uppercase tracking-widest text-[9px] italic hover:bg-rose-50 rounded-xl transition-all ${collapsed ? "justify-center" : ""}`}
-          >
-            <LogOut className="h-4 w-4" />
-            {!collapsed && <span>Terminate Session</span>}
-          </button>
+          {/* User Section & Logout */}
+          <div className="p-4 border-t border-border">
+            <div className={`flex items-center gap-3 mb-4 ${collapsed ? "justify-center" : ""}`}>
+              <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center font-bold text-xs shrink-0 border border-border">
+                {user.name?.[0]?.toUpperCase()}
+              </div>
+              {!collapsed && (
+                <div className="overflow-hidden">
+                  <p className="text-xs font-semibold truncate">{user.name}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-tight">{user.role}</p>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => logout()}
+              className={`w-full flex items-center gap-3 p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all ${collapsed ? "justify-center" : ""}`}
+            >
+              <LogOut className="h-4 w-4" />
+              {!collapsed && <span className="text-xs font-medium">Log out</span>}
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 bg-[#fafafa] relative overflow-hidden">
-        <header className="hidden lg:flex items-center justify-between px-8 py-4 bg-white border-b border-zinc-100 shrink-0">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header */}
+        <header className="h-16 flex items-center justify-between px-8 border-b border-border bg-background/50 backdrop-blur-md z-30">
           <div className="flex items-center gap-4">
-            <span className="text-[8px] font-bold text-zinc-300 uppercase tracking-widest italic">Nexus Protocol</span>
-            <div className="w-1 h-1 bg-zinc-200 rounded-full" />
-            <span className="text-[9px] font-bold text-zinc-950 uppercase tracking-widest italic">{pathname.split('/').pop()?.replace(/-/g, ' ') || 'Overview'}</span>
+            <button 
+              onClick={() => setMobileOpen(!mobileOpen)} 
+              className="lg:hidden p-2 hover:bg-secondary rounded-lg transition-colors"
+            >
+              <Menu className="h-4 w-4" />
+            </button>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-widest font-semibold">
+              <span>{pathname.split('/').pop()?.replace(/-/g, ' ') || 'Overview'}</span>
+            </div>
           </div>
+
           <div className="flex items-center gap-6">
             <div className="flex flex-col items-end">
-              <span className="text-[7px] font-bold text-zinc-300 uppercase tracking-widest leading-none mb-1">System Clock</span>
-              <span className="text-[11px] font-bold text-zinc-950 tracking-widest tabular-nums">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider tabular-nums">
                 <ClockDisplay />
               </span>
             </div>
-            <div className="h-6 w-[1px] bg-zinc-100"></div>
+            <div className="w-px h-4 bg-border" />
             <NotificationCenter />
+            <button 
+              onClick={() => setCollapsed(!collapsed)}
+              className="hidden lg:flex p-2 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+            >
+              {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </button>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar relative">
-          <div className="p-6 md:p-8 lg:p-10">
+        {/* Viewport Content */}
+        <main className="flex-1 overflow-y-auto bg-background custom-scrollbar">
+          <div className="max-w-[1600px] mx-auto p-8 lg:p-12">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
             >
               {children}
             </motion.div>
           </div>
           <ScreenShareManager />
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

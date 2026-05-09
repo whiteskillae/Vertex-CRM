@@ -5,13 +5,12 @@ import { getMonitoringStatus, MonitoringStatus } from '@/services/monitoringServ
 import { LiveStreamViewer } from '@/components/monitoring/LiveStreamViewer';
 import { useSocket } from '@/context/SocketContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { 
   Users, 
   Monitor, 
   Clock, 
   MessageSquare, 
-  AlertCircle,
-  RefreshCw,
   Search,
   LayoutGrid,
   List,
@@ -20,10 +19,8 @@ import {
   X,
   Globe,
   Send,
-  ChevronRight,
   Maximize2,
-  Zap,
-  Calendar
+  Zap
 } from 'lucide-react';
 
 const LiveTimer = ({ startTime }: { startTime: string | Date }) => {
@@ -33,6 +30,7 @@ const LiveTimer = ({ startTime }: { startTime: string | Date }) => {
     const update = () => {
       const start = new Date(startTime).getTime();
       const diff = Math.floor((Date.now() - start) / 1000);
+      if (diff < 0) return setDuration("0m 0s");
       const h = Math.floor(diff / 3600);
       const m = Math.floor((diff % 3600) / 60);
       const s = diff % 60;
@@ -43,12 +41,13 @@ const LiveTimer = ({ startTime }: { startTime: string | Date }) => {
     return () => clearInterval(interval);
   }, [startTime]);
 
-  return <span>{duration}</span>;
+  return <span className="tabular-nums">{duration}</span>;
 };
 
 export default function MonitoringDashboard() {
+  const router = useRouter();
   const { socket } = useSocket();
-  const [employees, setEmployees] = useState<MonitoringStatus[]>([]);
+  const [monitors, setMonitors] = useState<MonitoringStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -59,37 +58,38 @@ export default function MonitoringDashboard() {
 
   useEffect(() => {
     setMounted(true);
+    fetchStatus();
   }, []);
 
   const fetchStatus = async () => {
     try {
       const data = await getMonitoringStatus();
-      setEmployees(data);
+      setMonitors(data);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to fetch monitoring status:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchStatus();
     if (!socket) return;
 
-    socket.on('monitoring:update', ({ userId, status }: { userId: string, status: string }) => {
-      setEmployees(prev => prev.map(emp => 
-        emp._id === userId ? { ...emp, isSharing: status === 'sharing' } : emp
+    const handleUpdate = ({ userId, status }: { userId: string, status: string }) => {
+      setMonitors(prev => prev.map(m => 
+        m._id === userId ? { ...m, isSharing: status === 'sharing' } : m
       ));
-    });
+    };
 
+    socket.on('monitoring:update', handleUpdate);
     return () => {
-      socket.off('monitoring:update');
+      socket.off('monitoring:update', handleUpdate);
     };
   }, [socket]);
 
-  const filteredEmployees = employees.filter(emp => 
-    emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredMonitors = monitors.filter(m => 
+    m.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    m.userEmail?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSendMessage = () => {
@@ -102,47 +102,47 @@ export default function MonitoringDashboard() {
     setInputMessage("");
   };
 
+  if (!mounted) return null;
+
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 opacity-30">
-        <Loader2 className="w-10 h-10 animate-spin text-zinc-900" />
-        <span className="text-[9px] font-bold uppercase tracking-[0.4em]">Establishing Uplink...</span>
+      <div className="h-[60vh] flex flex-col items-center justify-center gap-6">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground animate-pulse">Syncing Monitoring Grid...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-[1600px] mx-auto space-y-10 pb-24">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 border-b border-zinc-100 pb-10">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight text-zinc-900">Live Monitoring</h1>
-          <p className="text-[11px] text-zinc-400 font-medium mt-2 flex items-center gap-2">
-             <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" /> Personnel Monitoring Active
-          </p>
+    <div className="space-y-12">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <div className="space-y-3">
+          <h1 className="text-4xl font-bold tracking-tight">Live Oversight</h1>
+          <p className="text-muted-foreground text-sm max-w-md">Real-time personnel monitoring and secure screen transmission oversight.</p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-zinc-900 transition-colors" />
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input 
               type="text"
-              placeholder="Search employee..."
+              placeholder="Filter by name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 pr-6 py-3.5 bg-zinc-50 border border-zinc-100 rounded-2xl text-[11px] font-semibold outline-none focus:bg-white focus:border-zinc-900 transition-all w-full sm:w-72"
+              className="pl-10 pr-4 py-2.5 bg-card border border-border rounded-xl text-sm outline-none focus:ring-1 focus:ring-primary transition-all w-64"
             />
           </div>
-          <div className="flex bg-zinc-50 p-1 rounded-xl border border-zinc-100">
+          <div className="flex bg-muted p-1 rounded-xl border border-border">
             <button 
               onClick={() => setViewMode('grid')}
-              className={`p-2.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-400 hover:text-zinc-950'}`}
+              className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
             <button 
               onClick={() => setViewMode('list')}
-              className={`p-2.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-400 hover:text-zinc-950'}`}
+              className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}
             >
               <List className="w-4 h-4" />
             </button>
@@ -150,80 +150,81 @@ export default function MonitoringDashboard() {
         </div>
       </div>
 
-      {/* Grid of Employees */}
-      <div className={`grid gap-12 ${viewMode === 'grid' ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1'}`}>
-        {filteredEmployees.map((emp) => (
+      {/* Monitoring Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        {filteredMonitors.map((monitor) => (
           <motion.div
-            key={emp._id}
+            key={monitor._id}
             layout
-            className="group relative bg-white rounded-[3rem] border border-zinc-100 p-10 hover:border-zinc-300 transition-all duration-500 shadow-sm hover:shadow-2xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="premium-card bg-card overflow-hidden group"
           >
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-zinc-50 text-zinc-900 border border-zinc-100 rounded-xl flex items-center justify-center font-bold text-lg">
-                  {emp.name[0].toUpperCase()}
+            {/* User Info Bar */}
+            <div className="p-5 flex items-center justify-between border-b border-border bg-muted/20">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs">
+                  {monitor.userName?.[0]?.toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-zinc-900 leading-tight">{emp.name}</h3>
-                  <p className="text-[10px] font-medium text-zinc-400 mt-0.5">{emp.role}</p>
+                  <h3 className="text-sm font-semibold truncate max-w-[120px]">{monitor.userName}</h3>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className={`w-1.5 h-1.5 rounded-full ${monitor.isSharing ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground/30'}`} />
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">
+                      {monitor.isSharing ? 'Transmitting' : 'Signal Lost'}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${emp.isSharing ? 'bg-emerald-50 text-emerald-600' : 'bg-zinc-50 text-zinc-400'}`}>
-                {emp.isSharing ? 'Live' : 'Idle'}
-              </div>
+              {monitor.isSharing && (
+                <div className="px-3 py-1 bg-background border border-border rounded-full text-[10px] font-bold tabular-nums">
+                  <LiveTimer startTime={monitor.lastActive || Date.now()} />
+                </div>
+              )}
             </div>
 
-            {emp.isSharing ? (
-              <div className="mb-6 cursor-pointer group/stream relative aspect-video" onClick={() => setSelectedUser(emp)}>
-                <div className="rounded-2xl overflow-hidden border border-zinc-100 h-full">
-                  <LiveStreamViewer userId={emp._id} userName={emp.name} />
-                </div>
-                <div className="absolute inset-0 bg-black/5 opacity-0 group-hover/stream:opacity-100 transition-all rounded-2xl flex items-center justify-center">
-                   <div className="bg-white/90 backdrop-blur-md p-3 rounded-xl shadow-2xl scale-90 group-hover/stream:scale-100 transition-transform">
-                      <Maximize2 className="h-5 w-5 text-zinc-900" />
-                   </div>
-                </div>
-              </div>
-            ) : (
-              <div className="aspect-video bg-zinc-50/50 rounded-2xl border border-dashed border-zinc-200 flex flex-col items-center justify-center text-zinc-300 mb-6 gap-3">
-                <Monitor className="w-6 h-6 opacity-40" />
-                <p className="text-[9px] font-bold uppercase tracking-widest">No Active Stream</p>
-              </div>
-            )}
-
-            <div className="flex flex-col sm:flex-row items-center justify-between pt-8 border-t border-zinc-50 gap-6">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-3">
-                  <div className={`w-2 h-2 rounded-full ${emp.isSharing ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-200'}`} />
-                  <span className="text-[11px] font-bold text-zinc-950 uppercase tracking-widest">{emp.isSharing ? 'Live Transmission' : 'Signal Idle'}</span>
-                </div>
-                {emp.isSharing && (
-                  <div className="flex items-center gap-3 bg-zinc-50 px-4 py-2 rounded-xl border border-zinc-100">
-                    <Clock className="w-4 h-4 text-emerald-500" />
-                    <div className="flex flex-col">
-                      <span className="text-[8px] font-semibold text-zinc-400 uppercase tracking-widest leading-none mb-1">Session Duration</span>
-                      <span className="text-[10px] font-bold text-zinc-950 uppercase">
-                        {mounted ? <LiveTimer startTime={emp.lastActive || Date.now()} /> : '--:--'}
-                      </span>
+            {/* Video Preview */}
+            <div className="aspect-video bg-muted relative group-hover:cursor-pointer" onClick={() => monitor.isSharing && setSelectedUser(monitor)}>
+              {monitor.isSharing ? (
+                <>
+                  <LiveStreamViewer userId={monitor._id} userName={monitor.userName} />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all">
+                      <div className="bg-background/90 backdrop-blur-md p-3 rounded-2xl shadow-2xl">
+                        <Maximize2 className="w-5 h-5" />
+                      </div>
                     </div>
                   </div>
-                )}
+                </>
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center opacity-20">
+                  <Monitor className="w-8 h-8 mb-2" />
+                  <span className="text-[9px] font-bold uppercase tracking-[0.2em]">No Active Feed</span>
+                </div>
+              )}
+            </div>
+
+            {/* Footer Action */}
+            <div className="p-4 flex items-center justify-between border-t border-border">
+              <div className="flex items-center gap-4 text-muted-foreground">
+                <div className="flex flex-col">
+                  <span className="text-[8px] font-bold uppercase tracking-tight">Node Status</span>
+                  <span className="text-[10px] font-medium">{monitor.isSharing ? 'Verified' : 'Standby'}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                {emp.isSharing && (
-                  <button 
-                    onClick={() => setSelectedUser(emp)}
-                    className="flex-1 sm:flex-initial flex items-center justify-center gap-3 px-8 py-4 bg-zinc-950 text-white rounded-2xl hover:bg-zinc-800 transition-all shadow-xl shadow-black/10 group/btn"
-                  >
-                    <Maximize2 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Full Screen</span>
-                  </button>
-                )}
+              <div className="flex items-center gap-2">
                 <button 
-                  onClick={() => router.push(`/dashboard/messages?recipient=${emp._id}`)}
-                  className="p-4 bg-white border border-zinc-100 text-zinc-400 rounded-2xl hover:text-zinc-950 hover:border-zinc-950 transition-all"
+                  onClick={() => router.push(`/dashboard/messages?recipient=${monitor._id}`)}
+                  className="p-2.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-all"
                 >
-                  <MessageSquare className="w-5 h-5" />
+                  <MessageSquare className="w-4 h-4" />
+                </button>
+                <button 
+                  disabled={!monitor.isSharing}
+                  onClick={() => setSelectedUser(monitor)}
+                  className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${monitor.isSharing ? 'bg-primary text-primary-foreground hover:opacity-90' : 'bg-muted text-muted-foreground cursor-not-allowed'}`}
+                >
+                  Oversight
                 </button>
               </div>
             </div>
@@ -231,99 +232,89 @@ export default function MonitoringDashboard() {
         ))}
       </div>
 
-      {/* Expanded Monitoring Modal */}
+      {/* Expanded Modal */}
       <AnimatePresence>
         {selectedUser && (
-          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-8">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:p-12">
             <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-white/60 backdrop-blur-2xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-background/80 backdrop-blur-xl"
               onClick={() => setSelectedUser(null)}
             />
             <motion.div
-              initial={{ scale: 0.98, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.98, opacity: 0, y: 20 }}
-              className="relative bg-white border border-zinc-200 w-full max-w-6xl h-[85vh] flex flex-col shadow-2xl rounded-3xl overflow-hidden"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-7xl h-full bg-card border border-border shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col"
             >
-              {/* Modal Header */}
-              <div className="px-8 py-6 border-b border-zinc-100 flex items-center justify-between bg-white">
+              <div className="h-20 px-8 flex items-center justify-between border-b border-border bg-card">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-zinc-950 text-white rounded-xl flex items-center justify-center">
-                    <Monitor className="w-5 h-5" />
+                  <div className="w-10 h-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center">
+                    <Activity className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-zinc-900 leading-none">{selectedUser.name}</h2>
-                    <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1.5 flex items-center gap-2">
-                       <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" /> Live Uplink Active
+                    <h2 className="text-lg font-bold leading-none">{selectedUser.userName}</h2>
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1.5 flex items-center gap-2">
+                       <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" /> Secure Uplink Established
                     </p>
                   </div>
                 </div>
-                <button onClick={() => setSelectedUser(null)} className="p-3 bg-zinc-50 text-zinc-400 rounded-xl hover:bg-rose-500 hover:text-white transition-all">
+                <button onClick={() => setSelectedUser(null)} className="p-3 hover:bg-muted rounded-2xl transition-all">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              {/* Modal Content */}
               <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-                <div className="flex-[2.5] bg-zinc-50/30 p-8 overflow-y-auto">
-                  {selectedUser.isSharing ? (
-                    <div className="h-full flex flex-col">
-                      <div className="flex-1 rounded-3xl overflow-hidden shadow-2xl bg-black border border-zinc-200">
-                        <LiveStreamViewer userId={selectedUser._id} userName={selectedUser.name} />
+                <div className="flex-[3] p-8 lg:p-12 bg-muted/10 overflow-y-auto">
+                  <div className="aspect-video bg-black rounded-[2rem] overflow-hidden shadow-2xl border border-border relative">
+                    <LiveStreamViewer userId={selectedUser._id} userName={selectedUser.userName} />
+                  </div>
+                  <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    {[
+                      { label: 'Uplink Delay', val: '12ms', icon: Zap },
+                      { label: 'Connection', val: 'Secure P2P', icon: Globe },
+                      { label: 'Oversight', val: 'Active', icon: Monitor },
+                    ].map((s, i) => (
+                      <div key={i} className="p-6 bg-card border border-border rounded-[1.5rem]">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                          <s.icon className="w-3 h-3" /> {s.label}
+                        </p>
+                        <p className="text-sm font-semibold">{s.val}</p>
                       </div>
-                      <div className="mt-8 grid grid-cols-3 gap-4">
-                        {[
-                          { label: 'Uplink Health', val: 'Excellent', icon: Activity },
-                          { label: 'Latency', val: '12ms', icon: Zap },
-                          { label: 'Signal', val: 'Secure', icon: Globe }
-                        ].map((stat, i) => (
-                          <div key={i} className="p-5 bg-white border border-zinc-100 rounded-2xl">
-                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                               <stat.icon className="h-3 w-3" /> {stat.label}
-                            </p>
-                            <p className="text-sm font-bold text-zinc-900 uppercase">{stat.val}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="h-full flex flex-col items-center justify-center text-zinc-300 gap-4">
-                      <Monitor className="w-16 h-16 opacity-20" />
-                      <p className="text-xl font-bold uppercase tracking-widest text-zinc-200 italic">No Feed Available</p>
-                    </div>
-                  )}
+                    ))}
+                  </div>
                 </div>
 
-                {/* Side Chat */}
-                <div className="flex-1 border-l border-zinc-100 flex flex-col bg-white">
-                  <div className="p-6 border-b border-zinc-100 flex items-center gap-3">
-                    <MessageSquare className="w-4 h-4 text-zinc-400" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-900">Command Center</span>
+                <div className="flex-1 border-l border-border bg-card flex flex-col">
+                  <div className="p-6 border-b border-border flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Protocol Chat</span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
                   </div>
-                  
-                  <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-zinc-50/20">
+                  <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
                     {(messages[selectedUser._id] || []).map((msg, i) => (
-                      <div key={i} className="p-4 bg-zinc-900 text-white rounded-2xl rounded-tr-none text-[10px] font-medium leading-relaxed">
+                      <div key={i} className={`p-4 rounded-2xl text-xs leading-relaxed ${msg.startsWith('You:') ? 'bg-primary text-primary-foreground ml-8 rounded-tr-none' : 'bg-muted mr-8 rounded-tl-none'}`}>
                         {msg}
                       </div>
                     ))}
-                    {(!messages[selectedUser._id] || messages[selectedUser._id].length === 0) && (
+                    {(!messages[selectedUser._id]?.length) && (
                       <div className="h-full flex items-center justify-center opacity-20">
-                        <p className="text-[9px] font-bold uppercase tracking-[0.2em]">Silence Observed</p>
+                        <p className="text-[9px] font-bold uppercase tracking-widest">No Transmissions</p>
                       </div>
                     )}
                   </div>
-
-                  <div className="p-6 border-t border-zinc-100 bg-white">
-                    <div className="flex gap-2 p-1.5 bg-zinc-50 rounded-2xl border border-zinc-100 focus-within:border-zinc-900 transition-all">
+                  <div className="p-6 border-t border-border">
+                    <div className="flex gap-2 p-2 bg-muted rounded-2xl border border-border focus-within:ring-1 focus-ring-primary transition-all">
                       <input 
                         type="text"
-                        placeholder="Type a message..."
+                        placeholder="Send command..."
                         value={inputMessage}
                         onChange={(e) => setInputMessage(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                        className="flex-1 bg-transparent px-4 py-2 text-[10px] font-semibold outline-none text-zinc-900"
+                        className="flex-1 bg-transparent px-3 py-1.5 text-xs outline-none"
                       />
-                      <button onClick={handleSendMessage} className="p-3 bg-zinc-950 text-white rounded-xl">
+                      <button onClick={handleSendMessage} className="p-2.5 bg-primary text-primary-foreground rounded-xl">
                         <Send className="w-4 h-4" />
                       </button>
                     </div>
