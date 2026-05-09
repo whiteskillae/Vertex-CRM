@@ -75,15 +75,36 @@ export default function MonitoringDashboard() {
   useEffect(() => {
     if (!socket) return;
 
+    console.log('[MONITOR] Attaching global stream listeners');
+
     const handleUpdate = ({ userId, status }: { userId: string, status: string }) => {
-      setMonitors(prev => prev.map(m => 
-        m._id === userId ? { ...m, isSharing: status === 'sharing' } : m
-      ));
+      console.log(`[MONITOR] Status Update for ${userId}: ${status}`);
+      setMonitors(prev => prev.map(m => {
+        const match = String(m._id || (m as any).id) === String(userId);
+        return match ? { ...m, isSharing: status === 'sharing' } : m;
+      }));
+    };
+
+    const handleFrameDiscovery = (data: { userId: string }) => {
+      // If we get a frame for a user not marked as sharing, fix it automatically
+      setMonitors(prev => {
+        const user = prev.find(m => String(m._id || (m as any).id) === String(data.userId));
+        if (user && !user.isSharing) {
+          console.log(`[MONITOR] Auto-discovered active stream for: ${user.userName || (user as any).name}`);
+          return prev.map(m => 
+            String(m._id || (m as any).id) === String(data.userId) ? { ...m, isSharing: true } : m
+          );
+        }
+        return prev;
+      });
     };
 
     socket.on('monitoring:update', handleUpdate);
+    socket.on('monitoring:frame', handleFrameDiscovery);
+    
     return () => {
       socket.off('monitoring:update', handleUpdate);
+      socket.off('monitoring:frame', handleFrameDiscovery);
     };
   }, [socket]);
 
