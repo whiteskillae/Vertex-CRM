@@ -30,17 +30,35 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
 
   useEffect(() => {
     setMounted(true);
+    console.log(`[STREAM] Initializing viewer for Node: ${userId} (${userName})`);
+    
     const timeout = setTimeout(() => {
-      if (status === 'connecting') setStatus('offline');
-    }, 10000);
+      setStatus(prev => {
+        if (prev === 'connecting') {
+          console.warn(`[STREAM] Connection timeout for ${userName}. Marking as offline.`);
+          return 'offline';
+        }
+        return prev;
+      });
+    }, 15000); // Increased to 15s for slower uplinks
     return () => clearTimeout(timeout);
-  }, []);
+  }, [userId, userName]);
 
   useEffect(() => {
-    if (!socket || !userId) return;
+    if (!socket || !userId) {
+      console.warn('[STREAM] Socket or UserId missing', { hasSocket: !!socket, userId });
+      return;
+    }
+
+    console.log(`[STREAM] Attaching listener for monitoring:frame on node ${userId}`);
 
     const handleFrame = (data: { userId: string, frame: string, timestamp: number }) => {
-      if (data.userId === userId) {
+      // Debug: Log first frame received
+      if (status !== 'streaming') {
+        console.log(`[STREAM] First frame received for ${userId}`);
+      }
+
+      if (String(data.userId) === String(userId)) {
         setFrame(data.frame);
         setStatus('streaming');
         setLatency(Date.now() - data.timestamp);
@@ -48,10 +66,12 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
     };
 
     socket.on('monitoring:frame', handleFrame);
+    
     return () => {
+      console.log(`[STREAM] Detaching listener for ${userId}`);
       socket.off('monitoring:frame', handleFrame);
     };
-  }, [socket, userId]);
+  }, [socket, userId, status]);
 
   const toggleFullScreen = () => {
     if (!containerRef.current) return;

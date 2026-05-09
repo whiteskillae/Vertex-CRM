@@ -38,7 +38,8 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     let token = localStorage.getItem('token');
     if (!token) {
-      token = document.cookie.split('; ').find(row => row.trim().startsWith('token='))?.split('=')[1];
+
+        token = document.cookie.split('; ').find(row => row.trim().startsWith('token='))?.split('=')[1];
     }
 
     console.log('[SOCKET] Initializing connection to:', socketUrl);
