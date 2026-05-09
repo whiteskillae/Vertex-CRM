@@ -52,7 +52,7 @@ export const ScreenShareManager = () => {
       localStorage.setItem(`screen_share_consent_${user?._id}`, 'accepted');
       setShowPrompt(false);
 
-      socket?.emit('screen:start', { userId: user?._id });
+      socket?.emit('screen:start', { userId: user?._id, userName: user?.name });
 
       // Handle stream end (user clicks "Stop sharing" in browser UI)
       stream.getVideoTracks()[0].onended = () => {

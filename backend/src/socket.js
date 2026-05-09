@@ -77,9 +77,9 @@ const initSocket = (server) => {
     // ── Screen Sharing & Monitoring ──
 
     // Employee starts sharing
-    socket.on('screen:start', async ({ userId }) => {
+    socket.on('screen:start', async ({ userId, userName }) => {
       activeStreamers.set(userId, socket.id);
-      socket.broadcast.emit('monitoring:update', { userId, status: 'sharing' });
+      socket.broadcast.emit('monitoring:update', { userId, userName, status: 'sharing' });
       
       try {
         const session = new MonitoringSession({ employeeId: userId });

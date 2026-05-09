@@ -6,13 +6,23 @@ import api from "@/lib/api";
 import { 
   Send, Mic, Volume2, VolumeX, ShieldCheck, 
   Loader2, Sparkles, Trash2, MessageSquare, 
-  Bot, User as UserIcon, History
+  Bot, User as UserIcon, Activity, Zap, Cpu
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ChatMessage {
   role: 'user' | 'model';
   content: string;
+}
+
+interface WebkitSpeechRecognitionEvent {
+  results: {
+    [key: number]: {
+      [key: number]: {
+        transcript: string;
+      };
+    };
+  };
 }
 
 export default function AIPage() {
@@ -27,13 +37,14 @@ export default function AIPage() {
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
-      const recognition = new (window as any).webkitSpeechRecognition();
+    if (typeof window !== 'undefined' && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = false;
       recognition.lang = 'en-US';
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: WebkitSpeechRecognitionEvent) => {
         const transcript = event.results[0][0].transcript;
         setInput(transcript);
         setIsRecording(false);
@@ -47,8 +58,10 @@ export default function AIPage() {
   }, []);
 
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, loading]);
 
   const speak = (text: string) => {
     if (!voiceEnabled || typeof window === 'undefined') return;
@@ -82,17 +95,11 @@ export default function AIPage() {
       speak(aiResponse);
     } catch (err: any) {
       console.error(err);
-      if (err.response?.status === 429) {
-        setMessages(prev => [...prev, { 
-          role: 'model', 
-          content: "DEPLOYMENT REJECTED: Daily operational quota exceeded (20/20). Neural link will reset in 24 hours. Contact administrator for priority access." 
-        }]);
-      } else {
-        setMessages(prev => [...prev, { 
-          role: 'model', 
-          content: "Protocol Failure: Unable to establish connection with neural core. Error: " + (err.response?.data?.message || "Internal Uplink Fault")
-        }]);
-      }
+      const errorMessage = err.response?.status === 429 
+        ? "DAILY QUOTA EXCEEDED: Operational limit reached (20/20). System reset in 24h."
+        : "UPLINK FAILURE: Unable to reach neural core. Please retry.";
+      
+      setMessages(prev => [...prev, { role: 'model', content: errorMessage }]);
     } finally {
       setLoading(false);
     }
@@ -102,127 +109,177 @@ export default function AIPage() {
     if (recognitionRef.current) {
       setIsRecording(true);
       recognitionRef.current.start();
-    } else {
-      alert("Voice protocol not supported in this environment.");
     }
   };
 
   const clearChat = () => setMessages([]);
 
   return (
-    <div className="h-[calc(100vh-160px)] flex flex-col gap-6 max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="p-6 bg-black text-white border-4 border-black flex items-center justify-between shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-white text-black flex items-center justify-center border-2 border-white">
-            <ShieldCheck className="h-7 w-7" />
+    <div className="flex flex-col h-[calc(100vh-180px)] max-w-6xl mx-auto">
+      {/* Dynamic Header Card */}
+      <div className="bg-white rounded-[2rem] border border-zinc-100 p-6 mb-6 shadow-sm flex items-center justify-between">
+        <div className="flex items-center gap-5">
+          <div className="relative">
+            <div className="w-14 h-14 bg-indigo-600 text-white flex items-center justify-center rounded-2xl shadow-xl shadow-indigo-500/20 relative z-10">
+              <Cpu className="h-7 w-7" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full z-20 animate-pulse" />
           </div>
           <div>
-            <h2 className="text-xl font-black uppercase italic tracking-tighter leading-none">Vertex AI Core</h2>
+            <h2 className="text-xl font-bold text-zinc-900 tracking-tight">Vertex AI <span className="text-indigo-600">Core</span></h2>
             <div className="flex items-center gap-3 mt-1">
-              <p className="text-[10px] text-zinc-500 uppercase tracking-widest">Operational Assistant — v1.0.4</p>
-              {usage && !usage.isAdmin && (
-                <span className="text-[10px] font-black bg-white text-black px-2 border border-white">
-                  QUOTA: {usage.count}/{usage.limit}
-                </span>
-              )}
-              {usage?.isAdmin && (
-                <span className="text-[10px] font-black bg-white text-black px-2 border border-white">
-                  ADMIN_UNLIMITED
+              <span className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                <Activity className="h-3 w-3" /> Neural Link Active
+              </span>
+              <div className="h-3 w-[1px] bg-zinc-200" />
+              {usage && (
+                <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">
+                  {usage.isAdmin ? "Admin Unlimited" : `Quota: ${usage.count}/${usage.limit}`}
                 </span>
               )}
             </div>
           </div>
         </div>
-        <div className="flex gap-3">
+
+        <div className="flex items-center gap-2">
           <button 
             onClick={() => setVoiceEnabled(!voiceEnabled)}
-            className={`p-3 border-2 border-white transition-all ${voiceEnabled ? 'bg-white text-black' : 'text-white hover:bg-white/10'}`}
+            className={`p-3 rounded-xl transition-all ${voiceEnabled ? 'bg-indigo-50 text-indigo-600' : 'bg-zinc-50 text-zinc-400 hover:text-zinc-600'}`}
+            title="Toggle Voice Output"
           >
             {voiceEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
           </button>
           <button 
             onClick={clearChat}
-            className="p-3 border-2 border-white text-white hover:bg-white hover:text-black transition-all"
+            className="p-3 bg-zinc-50 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+            title="Clear Chat History"
           >
             <Trash2 className="h-5 w-5" />
           </button>
         </div>
       </div>
 
-      {/* Chat Display */}
-      <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-zinc-50 border-4 border-black shadow-[15px_15px_0px_0px_rgba(0,0,0,0.05)] custom-scrollbar">
-        {messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center opacity-30">
-            <div className="w-24 h-24 border-4 border-black border-dashed flex items-center justify-center mb-6 animate-pulse">
-              <Sparkles className="h-12 w-12" />
-            </div>
-            <h3 className="text-2xl font-black uppercase italic italic tracking-tighter mb-2">Neural Link Standby</h3>
-            <p className="max-w-md text-xs font-bold uppercase tracking-widest leading-loose">
-              Initiate communication for CRM intelligence, workflow guidance, and project data analysis.
-            </p>
-          </div>
-        ) : (
-          messages.map((msg, i) => (
+      {/* Chat Space */}
+      <div className="flex-1 bg-white rounded-[2.5rem] border border-zinc-100 shadow-sm flex flex-col overflow-hidden relative">
+        <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar scroll-smooth">
+          <AnimatePresence initial={false}>
+            {messages.length === 0 ? (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="h-full flex flex-col items-center justify-center text-center p-10"
+              >
+                <div className="w-24 h-24 bg-indigo-50 text-indigo-400 flex items-center justify-center rounded-[2rem] mb-8 animate-bounce transition-all duration-[2000ms]">
+                  <Sparkles className="h-12 w-12" />
+                </div>
+                <h3 className="text-3xl font-bold text-zinc-900 tracking-tight mb-3">Operational Neural Core</h3>
+                <p className="max-w-md text-sm text-zinc-400 leading-relaxed font-medium">
+                  I am synchronized with your CRM data. Ask me about personnel, task logistics, or project metrics to initiate optimization protocols.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-12 w-full max-w-xl">
+                  {["Summarize recent reports", "List urgent tasks", "Check lead conversion stats", "Personnel availability"].map((suggestion, idx) => (
+                    <button 
+                      key={idx}
+                      onClick={() => setInput(suggestion)}
+                      className="p-4 bg-zinc-50 border border-zinc-100 rounded-2xl text-xs font-bold text-zinc-600 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all text-left group"
+                    >
+                      <span className="opacity-40 group-hover:opacity-100 mr-2">&rsaquo;</span>
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            ) : (
+              messages.map((msg, i) => (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  key={i} 
+                  className={`flex items-start gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
+                >
+                  <div className={`w-10 h-10 rounded-2xl flex-shrink-0 flex items-center justify-center shadow-lg ${msg.role === 'user' ? 'bg-zinc-900 text-white' : 'bg-indigo-600 text-white'}`}>
+                    {msg.role === 'user' ? <UserIcon className="h-5 w-5" /> : <Bot className="h-5 w-5" />}
+                  </div>
+                  <div className={`relative px-6 py-4 rounded-[2rem] max-w-[85%] sm:max-w-[70%] text-[13px] font-medium leading-relaxed shadow-sm ${
+                    msg.role === 'user' 
+                      ? 'bg-zinc-900 text-white rounded-tr-none' 
+                      : 'bg-indigo-50 text-indigo-900 rounded-tl-none border border-indigo-100'
+                  }`}>
+                    {msg.content}
+                    {msg.role === 'model' && i === messages.length - 1 && isSpeaking && (
+                      <div className="absolute -bottom-6 left-2 flex gap-1 items-center">
+                        {[1,2,3].map(j => (
+                          <div key={j} className="w-1 h-3 bg-indigo-400 rounded-full animate-wave" style={{ animationDelay: `${j*0.1}s` }} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </AnimatePresence>
+          
+          {loading && (
             <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              key={i} 
-              className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-start gap-4"
             >
-              <div className={`w-10 h-10 border-4 border-black flex-shrink-0 flex items-center justify-center ${msg.role === 'user' ? 'bg-white text-black' : 'bg-black text-white'}`}>
-                {msg.role === 'user' ? <UserIcon className="h-5 w-5" /> : <Bot className="h-5 w-5" />}
+              <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex-shrink-0 flex items-center justify-center shadow-lg">
+                <Bot className="h-5 w-5" />
               </div>
-              <div className={`p-6 border-4 border-black max-w-[80%] text-sm font-bold leading-relaxed shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] ${msg.role === 'user' ? 'bg-white text-black' : 'bg-zinc-900 text-white'}`}>
-                {msg.content}
+              <div className="px-8 py-5 bg-indigo-50 border border-indigo-100 rounded-[2rem] rounded-tl-none flex items-center gap-4 text-indigo-400 shadow-sm">
+                <div className="flex gap-1">
+                  <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+                  <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                  <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest">Neural core processing...</span>
               </div>
             </motion.div>
-          ))
-        )}
-        {loading && (
-          <div className="flex gap-4">
-            <div className="w-10 h-10 border-4 border-black flex-shrink-0 flex items-center justify-center bg-black text-white">
-              <Bot className="h-5 w-5" />
-            </div>
-            <div className="p-6 border-4 border-black bg-zinc-900 text-white flex items-center gap-3 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-[10px] font-black uppercase tracking-widest">Processing Query...</span>
-            </div>
-          </div>
-        )}
-        <div ref={scrollRef} />
-      </div>
+          )}
+          <div ref={scrollRef} className="h-4" />
+        </div>
 
-      {/* Input Area */}
-      <div className="p-6 bg-white border-4 border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
-        <form onSubmit={handleSend} className="flex gap-4">
-          <div className="flex-1 relative">
-            <input 
-              type="text" 
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              placeholder="QUERY NEURAL CORE..."
-              className="w-full bg-white border-4 border-black p-5 pr-14 text-sm font-black uppercase placeholder:opacity-30 focus:outline-none transition-all shadow-[inset_4px_4px_0px_0px_rgba(0,0,0,0.05)]"
-            />
+        {/* Input Dock */}
+        <div className="p-6 bg-white border-t border-zinc-100">
+          <form onSubmit={handleSend} className="flex gap-3 relative">
+            <div className="flex-1 relative group">
+              <div className="absolute inset-0 bg-indigo-600/5 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-all duration-500" />
+              <input 
+                type="text" 
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                placeholder="Synchronize query with neural link..."
+                className="w-full bg-zinc-50 border border-zinc-100 rounded-[1.5rem] p-5 pr-14 text-sm font-semibold text-zinc-900 placeholder:text-zinc-300 focus:bg-white focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600/20 outline-none transition-all relative z-10"
+              />
+              <button 
+                type="button"
+                onClick={isRecording ? () => {} : startRecording}
+                className={`absolute right-4 top-1/2 -translate-y-1/2 p-2 z-20 transition-all ${isRecording ? 'text-red-500 animate-pulse scale-125' : 'text-zinc-300 hover:text-indigo-600 hover:scale-110'}`}
+                title="Voice Input"
+              >
+                <Mic className="h-6 w-6" />
+              </button>
+            </div>
             <button 
-              type="button"
-              onClick={isRecording ? () => {} : startRecording}
-              className={`absolute right-4 top-1/2 -translate-y-1/2 p-2 transition-all ${isRecording ? 'text-red-600 animate-pulse' : 'text-black hover:scale-110'}`}
+              type="submit" 
+              disabled={!input.trim() || loading}
+              className="px-8 py-5 bg-indigo-600 text-white rounded-[1.5rem] font-bold hover:bg-indigo-700 hover:scale-[1.02] active:scale-95 disabled:opacity-40 disabled:hover:scale-100 transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center min-w-[80px]"
             >
-              <Mic className="h-6 w-6" />
+              {loading ? <Loader2 className="animate-spin h-6 w-6" /> : <Send className="h-6 w-6" />}
             </button>
+          </form>
+          <div className="flex items-center justify-center gap-4 mt-5">
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-300 flex items-center gap-1.5">
+              <Zap className="h-3 w-3" /> End-to-End Encryption
+            </p>
+            <div className="w-1 h-1 bg-zinc-200 rounded-full" />
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-300 flex items-center gap-1.5">
+              <ShieldCheck className="h-3 w-3" /> Secure Data Vault
+            </p>
           </div>
-          <button 
-            type="submit" 
-            disabled={!input.trim() || loading}
-            className="p-5 bg-black text-white border-4 border-black hover:bg-zinc-900 transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)] disabled:opacity-50"
-          >
-            {loading ? <Loader2 className="animate-spin h-6 w-6" /> : <Send className="h-6 w-6" />}
-          </button>
-        </form>
-        <p className="text-[8px] font-black uppercase tracking-widest mt-4 text-gray-400 text-center italic">
-          Vertex AI may occasionally provide inaccurate intelligence. Verify critical operational data.
-        </p>
+        </div>
       </div>
     </div>
   );

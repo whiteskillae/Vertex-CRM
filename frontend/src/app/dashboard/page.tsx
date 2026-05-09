@@ -120,6 +120,12 @@ export default function DashboardPage() {
 
       socket.on("task_submission", () => fetchData());
       socket.on("task_status_updated", () => fetchData());
+      
+      socket.on("monitoring:update", ({ userId, status }: any) => {
+        setEmployees(prev => prev.map(emp => 
+          emp._id === userId ? { ...emp, isSharing: status === 'sharing' } : emp
+        ));
+      });
     }
 
     return () => {
@@ -128,6 +134,7 @@ export default function DashboardPage() {
         socket.off("new_announcement");
         socket.off("task_submission");
         socket.off("task_status_updated");
+        socket.off("monitoring:update");
       }
     };
   }, [socket, user]);
@@ -176,65 +183,65 @@ export default function DashboardPage() {
   const isManagerOrAdmin = user?.role === 'manager' || user?.role === 'admin';
 
   return (
-    <div className="space-y-12 pb-24">
+    <div className="space-y-8 pb-10">
       {/* Load Error Warning */}
       {loadError && (
-        <div className="flex items-center gap-3 p-4 bg-yellow-50 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-          <AlertTriangle className="h-5 w-5 text-red-600" />
-          <p className="text-[10px] font-black uppercase tracking-widest">Partial Sync Failure. Integrity check required.</p>
-          <button onClick={() => fetchData()} className="ml-auto underline font-black text-[10px] uppercase">Re-Sync</button>
+        <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-100 rounded-2xl shadow-sm">
+          <AlertTriangle className="h-5 w-5 text-amber-600" />
+          <p className="text-xs font-semibold text-amber-900 uppercase tracking-wider">System Synchronization Warning: Integrity check required.</p>
+          <button onClick={() => fetchData()} className="ml-auto text-[10px] font-bold uppercase text-amber-600 hover:underline">Re-Sync</button>
         </div>
       )}
 
-      {/* Header & Global Search */}
-      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8">
+      {/* Header Section */}
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-1 bg-black"></div>
-            <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-400">Node Status: Active</span>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-1 bg-black rounded-full"></div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-400">Operations Control</span>
           </div>
           <motion.h1 
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter uppercase italic leading-none"
+            className="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900"
           >
-            {isEmployee ? "Worker" : "Control"} <span className="text-gray-300">Hub</span>
+            {isEmployee ? "Personnel" : "Control"} <span className="text-zinc-300 font-light">Hub</span>
           </motion.h1>
-          <div className="flex items-center gap-4 mt-4">
-            <div className="flex items-center gap-2 px-3 py-1 bg-black text-white text-[8px] font-black uppercase">
-              <Zap className="h-3 w-3 fill-yellow-400 text-yellow-400" /> System Online
+          <div className="flex items-center gap-4 mt-3">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase rounded-full border border-emerald-100">
+              <Zap className="h-3 w-3 fill-emerald-500 text-emerald-500" /> System Online
             </div>
-            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-              Authenticated Session: {user?.name}
+            <p className="text-xs font-medium text-zinc-500">
+              Welcome back, <span className="font-bold text-zinc-900">{user?.name}</span>
             </p>
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
           <div className="relative group flex-1 md:flex-initial">
             <input 
               type="text" 
-              placeholder="GLOBAL DATABASE SEARCH..." 
-              className="bg-white border-4 border-black px-6 py-4 text-xs font-black w-full md:w-80 focus:outline-none focus:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all uppercase placeholder:text-gray-300"
+              placeholder="Search data..." 
+              className="bg-white border border-zinc-200 rounded-2xl px-5 py-3 text-sm w-full md:w-72 focus:outline-none focus:ring-4 focus:ring-black/5 transition-all"
             />
-            <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-black" />
+            <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
           </div>
           <div className="flex gap-2">
             <button 
               onClick={() => setShowAnnouncements(!showAnnouncements)}
-              className={`flex-1 md:flex-none px-6 py-4 border-4 border-black transition-all relative ${showAnnouncements ? "bg-black text-white" : "bg-white text-black hover:bg-black hover:text-white"}`}
+              className={`flex-1 md:flex-none px-5 py-3 rounded-2xl border transition-all relative ${showAnnouncements ? "bg-black text-white border-black" : "bg-white text-zinc-600 border-zinc-200 hover:border-black hover:text-black"}`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <Bell className="h-5 w-5" />
-                <span className="text-[10px] font-black uppercase">Notices</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Notices</span>
               </div>
               {announcements.length > 0 && (
-                <span className="absolute -top-3 -right-3 w-6 h-6 bg-red-600 text-white text-[10px] font-black flex items-center justify-center border-4 border-white shadow-lg">
+                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white shadow-sm">
                   {announcements.length}
                 </span>
               )}
             </button>
-            <Link href="/dashboard/messages" className="px-6 py-4 border-4 border-black bg-white text-black hover:bg-black hover:text-white transition-all">
+            <Link href="/dashboard/messages" className="px-5 py-3 rounded-2xl border border-zinc-200 bg-white text-zinc-600 hover:border-black hover:text-black transition-all">
               <MessageSquare className="h-5 w-5" />
             </Link>
           </div>
@@ -248,94 +255,97 @@ export default function DashboardPage() {
             initial={{ height: 0, opacity: 0, y: -20 }}
             animate={{ height: "auto", opacity: 1, y: 0 }}
             exit={{ height: 0, opacity: 0, y: -20 }}
-            className="border-8 border-black bg-yellow-50 p-8 shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] relative z-50 overflow-hidden"
+            className="rounded-[2.5rem] border border-amber-100 bg-amber-50/50 p-8 shadow-sm relative z-50 overflow-hidden backdrop-blur-sm"
           >
-            <div className="flex items-center justify-between mb-8 border-b-4 border-black pb-4">
+            <div className="flex items-center justify-between mb-8 border-b border-amber-200 pb-6">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-black text-white">
+                <div className="p-3 bg-amber-500 text-white rounded-2xl shadow-lg shadow-amber-500/20">
                   <Activity className="h-6 w-6" />
                 </div>
                 <div>
-                  <h2 className="text-3xl font-black uppercase tracking-tighter italic">Global Protocols</h2>
-                  <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Priority Directives & Broadcasts</p>
+                  <h2 className="text-2xl font-bold text-amber-900">Global Protocols</h2>
+                  <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mt-1">Priority Directives & Broadcasts</p>
                 </div>
               </div>
-              <button onClick={() => setShowAnnouncements(false)} className="p-2 border-4 border-black hover:bg-black hover:text-white transition-all"><X className="h-6 w-6" /></button>
+              <button onClick={() => setShowAnnouncements(false)} className="p-2 hover:bg-amber-100 rounded-xl transition-all text-amber-900"><X className="h-6 w-6" /></button>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              <div className="space-y-6 max-h-[500px] overflow-y-auto pr-6 custom-scrollbar">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+              <div className="space-y-4 max-h-[450px] overflow-y-auto pr-4 custom-scrollbar">
                 {announcements.map((ann) => (
                   <motion.div 
                     layout
-                    initial={{ opacity: 0, x: -20 }}
+                    initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     key={ann._id} 
-                    className={`p-6 border-4 border-black relative ${ann.priority === 'urgent' ? 'bg-red-100 shadow-[6px_6px_0px_0px_rgba(220,38,38,1)]' : 'bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]'}`}
+                    className={`p-5 rounded-2xl border relative ${ann.priority === 'urgent' ? 'bg-white border-red-200 shadow-lg shadow-red-500/5' : 'bg-white border-zinc-100 shadow-sm'}`}
                   >
-                    <div className="flex items-center justify-between mb-4">
-                      <span className={`text-[10px] font-black uppercase px-3 py-1 border-2 ${ann.priority === 'urgent' ? 'border-red-600 bg-red-600 text-white' : 'border-black bg-black text-white'}`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${ann.priority === 'urgent' ? 'bg-red-500 text-white' : 'bg-zinc-100 text-zinc-600'}`}>
                         {ann.priority}
                       </span>
-                      <span className="text-[10px] text-gray-500 font-black uppercase">{new Date(ann.createdAt).toLocaleDateString()}</span>
+                      <span className="text-[10px] text-zinc-400 font-medium">{new Date(ann.createdAt).toLocaleDateString()}</span>
                     </div>
-                    <h3 className="text-xl font-black uppercase tracking-tight mb-2 leading-none">{ann.title}</h3>
-                    <p className="text-sm text-gray-600 font-bold leading-relaxed">{ann.content}</p>
-                    <div className="flex items-center gap-2 mt-6 pt-4 border-t-2 border-black/5">
-                      <div className="w-6 h-6 bg-black text-white flex items-center justify-center text-[10px] font-black uppercase">
+                    <h3 className="text-lg font-bold text-zinc-900 mb-1">{ann.title}</h3>
+                    <p className="text-sm text-zinc-600 leading-relaxed">{ann.content}</p>
+                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-zinc-50">
+                      <div className="w-6 h-6 bg-zinc-900 text-white flex items-center justify-center text-[10px] font-bold rounded-lg uppercase">
                         {ann.createdBy?.name?.[0]}
                       </div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase">Broadcast by {ann.createdBy?.name}</p>
+                      <p className="text-[10px] font-medium text-zinc-400 uppercase">Broadcast by {ann.createdBy?.name}</p>
                     </div>
                   </motion.div>
                 ))}
                 {announcements.length === 0 && (
-                  <div className="p-20 text-center border-4 border-dashed border-gray-200">
-                    <p className="text-sm font-black text-gray-300 uppercase italic">No active protocol updates</p>
+                  <div className="p-16 text-center border border-dashed border-amber-200 rounded-3xl bg-white/50">
+                    <p className="text-sm font-medium text-amber-800 opacity-40 uppercase tracking-widest">No active protocols</p>
                   </div>
                 )}
               </div>
 
               {isManagerOrAdmin && (
-                <div className="bg-white border-8 border-black p-8 space-y-6 relative">
-                  <div className="absolute -top-4 -left-4 bg-black text-white px-4 py-2 text-[10px] font-black uppercase italic">Protocol Uplink</div>
-                  <h3 className="text-xl font-black uppercase tracking-tighter">Broadcast Directives</h3>
-                  <form onSubmit={handleCreateAnnouncement} className="space-y-6">
-                    <div>
-                      <label className="block text-[10px] font-black uppercase tracking-widest mb-2">Subject Header</label>
+                <div className="bg-white rounded-3xl border border-amber-100 p-8 space-y-5 shadow-sm">
+                  <h3 className="text-lg font-bold text-zinc-900">New Broadcast</h3>
+                  <form onSubmit={handleCreateAnnouncement} className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider ml-1">Subject Header</label>
                       <input 
                         required
                         type="text" 
                         placeholder="PROTOCOL TITLE..." 
                         value={newAnnouncement.title}
                         onChange={(e) => setNewAnnouncement({...newAnnouncement, title: e.target.value})}
-                        className="w-full border-4 border-black p-4 text-xs font-black uppercase focus:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] outline-none"
+                        className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl p-4 text-xs font-bold uppercase focus:bg-white focus:ring-4 focus:ring-black/5 outline-none transition-all"
                       />
                     </div>
-                    <div>
-                      <label className="block text-[10px] font-black uppercase tracking-widest mb-2">Detailed Instructions</label>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider ml-1">Message Content</label>
                       <textarea 
                         required
-                        placeholder="SPECIFY OPERATIONAL PARAMETERS..." 
+                        placeholder="SPECIFY PARAMETERS..." 
                         value={newAnnouncement.content}
                         onChange={(e) => setNewAnnouncement({...newAnnouncement, content: e.target.value})}
-                        className="w-full border-4 border-black p-4 text-xs font-black h-32 focus:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] outline-none resize-none"
+                        className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl p-4 text-xs font-bold h-24 focus:bg-white focus:ring-4 focus:ring-black/5 outline-none resize-none transition-all"
                       />
                     </div>
-                    <div>
-                      <label className="block text-[10px] font-black uppercase tracking-widest mb-2">Urgency Level</label>
-                      <select 
-                        value={newAnnouncement.priority}
-                        onChange={(e) => setNewAnnouncement({...newAnnouncement, priority: e.target.value})}
-                        className="w-full border-4 border-black p-4 text-xs font-black uppercase focus:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] outline-none appearance-none"
-                      >
-                        <option value="normal">Standard Operation</option>
-                        <option value="urgent">Critical Alert</option>
-                      </select>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider ml-1">Urgency</label>
+                        <select 
+                          value={newAnnouncement.priority}
+                          onChange={(e) => setNewAnnouncement({...newAnnouncement, priority: e.target.value})}
+                          className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl p-4 text-xs font-bold uppercase focus:bg-white focus:ring-4 focus:ring-black/5 outline-none appearance-none cursor-pointer transition-all"
+                        >
+                          <option value="normal">Standard</option>
+                          <option value="urgent">Critical</option>
+                        </select>
+                      </div>
+                      <div className="flex items-end">
+                        <button className="w-full py-4 bg-black text-white text-[10px] font-bold uppercase tracking-widest rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-black/10">
+                          Broadcast
+                        </button>
+                      </div>
                     </div>
-                    <button className="w-full py-5 bg-black text-white text-xs font-black uppercase tracking-[0.3em] hover:bg-white hover:text-black border-4 border-black transition-all shadow-[10px_10px_0px_0px_rgba(0,0,0,0.1)]">
-                      Execute Broadcast
-                    </button>
                   </form>
                 </div>
               )}
@@ -344,221 +354,219 @@ export default function DashboardPage() {
         )}
       </AnimatePresence>
 
-      {/* Operations Overview Section */}
-      <section className="space-y-8">
-        <div className="flex items-center gap-6">
-          <h2 className="text-xs font-black uppercase tracking-[0.6em] text-gray-300 whitespace-nowrap">Operational Analytics</h2>
-          <div className="h-[4px] flex-1 bg-black/5 rounded-full"></div>
-          <div className="flex gap-2">
-            <div className="w-3 h-3 bg-black"></div>
-            <div className="w-3 h-3 bg-gray-200"></div>
-          </div>
+      {/* Analytics Section */}
+      <section className="space-y-6">
+        <div className="flex items-center gap-4">
+          <h2 className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-400 whitespace-nowrap">Performance Overview</h2>
+          <div className="h-[1px] flex-1 bg-zinc-100"></div>
         </div>
         <AdminStats />
       </section>
 
       {/* Main Grid: Mission Control */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-12">
-        <div className="xl:col-span-2 space-y-12">
-          {/* Mission Deployment: Personnel List */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div className="xl:col-span-2 space-y-10">
+          {/* Active Colleagues */}
           <section className="space-y-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-3 h-12 bg-black"></div>
-                <div>
-                  <h3 className="text-3xl font-black uppercase tracking-tight italic">Active Colleagues</h3>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Network Node Discovery</p>
-                </div>
+              <div>
+                <h3 className="text-xl font-bold text-zinc-900 tracking-tight">Active Nodes</h3>
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Satellite Network Discovery</p>
               </div>
               {isManagerOrAdmin && (
-                <Link href="/dashboard/personnel" className="flex items-center gap-2 px-6 py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black border-4 border-black transition-all">
+                <Link href="/dashboard/personnel" className="flex items-center gap-2 px-4 py-2 bg-black text-white text-[10px] font-bold uppercase tracking-widest hover:scale-105 transition-all rounded-xl shadow-lg shadow-black/10">
                   <Users className="h-4 w-4" /> Manage Sector
                 </Link>
               )}
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {employees.length > 0 ? (
-                employees.map((emp) => (
+                employees.slice(0, 10).map((emp) => (
                   <Link 
                     key={emp._id} 
                     href={`/dashboard/messages?recipient=${emp._id}`}
-                    className="group bg-white border-4 border-black p-4 hover:bg-black transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
+                    className="group bg-white border border-zinc-100 p-4 rounded-2xl hover:bg-black transition-all shadow-sm hover:shadow-xl hover:shadow-black/10 hover:-translate-y-1 duration-300 relative overflow-hidden"
                   >
+                    {emp.isSharing && (
+                      <div className="absolute top-2 right-2 flex items-center gap-1 px-1.5 py-0.5 bg-rose-500 text-white text-[8px] font-black uppercase rounded-full animate-pulse z-10">
+                        <Video className="w-2 h-2" /> Live
+                      </div>
+                    )}
                     <div className="flex flex-col items-center text-center gap-3">
-                      <div className="w-12 h-12 bg-zinc-100 border-2 border-black flex items-center justify-center font-black text-xl group-hover:bg-white group-hover:text-black">
+                      <div className="w-10 h-10 bg-zinc-50 border border-zinc-100 rounded-xl flex items-center justify-center font-bold text-lg group-hover:bg-white group-hover:text-black group-hover:border-transparent transition-colors">
                         {emp.name?.[0]?.toUpperCase()}
                       </div>
                       <div className="overflow-hidden w-full">
-                        <p className="text-[9px] sm:text-[10px] font-black uppercase line-clamp-1 group-hover:text-white">{emp.name}</p>
-                        <p className="text-[7px] sm:text-[8px] font-bold text-gray-400 uppercase tracking-widest group-hover:text-zinc-500">{emp.role}</p>
+                        <p className="text-[11px] font-bold text-zinc-900 truncate group-hover:text-white">{emp.name}</p>
+                        <p className="text-[9px] font-medium text-zinc-400 uppercase tracking-wide group-hover:text-zinc-500">{emp.role}</p>
                       </div>
                     </div>
                   </Link>
                 ))
               ) : (
-                <div className="col-span-full py-12 border-4 border-dashed border-gray-200 text-center">
-                  <p className="text-[10px] font-black text-gray-300 uppercase italic">Searching for satellite nodes...</p>
+                <div className="col-span-full py-12 bg-white border border-dashed border-zinc-200 rounded-3xl text-center">
+                  <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest italic">Searching for satellite nodes...</p>
                 </div>
               )}
             </div>
           </section>
 
+          {/* Calendar Section */}
           <section className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-3 h-12 bg-black"></div>
-                <div>
-                  <h3 className="text-3xl font-black uppercase tracking-tight italic">
-                    {isEmployee ? "Active Trajectory" : "Operations Calendar"}
-                  </h3>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Chronological Logistics</p>
-                </div>
-              </div>
+            <div className="flex items-center gap-4">
+              <h3 className="text-xl font-bold text-zinc-900 tracking-tight">Logistics Calendar</h3>
+              <div className="h-[1px] flex-1 bg-zinc-100"></div>
             </div>
             
-            <div className="bg-white border-8 border-black p-2 shadow-[20px_20px_0px_0px_rgba(0,0,0,0.05)]">
+            <div className="bg-white rounded-[2rem] border border-zinc-100 p-6 shadow-sm">
               <CalendarView />
             </div>
           </section>
         </div>
         
+        {/* Sidebar Widgets */}
         <div className="space-y-8">
-          {/* Mission Objectives: Todo */}
-          <div className="bg-white border-8 border-black shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] flex flex-col min-h-[600px] relative">
-            <div className="absolute -top-4 right-8 bg-white border-4 border-black px-4 py-2 flex items-center gap-2 z-20">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-              <span className="text-[10px] font-black uppercase italic">Live Synchronization</span>
-            </div>
-            <div className="p-6 border-b-4 border-black bg-black text-white">
-              <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-3">
-                <CheckSquare className="h-5 w-5" /> Mission Roadmap
+          <div className="bg-white rounded-[2.5rem] border border-zinc-100 shadow-sm flex flex-col h-full min-h-[600px] overflow-hidden">
+            <div className="p-6 border-b border-zinc-100 bg-zinc-50/50 flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-widest flex items-center gap-2 text-zinc-900">
+                <CheckSquare className="h-4 w-4 text-zinc-400" /> Mission Roadmap
               </h3>
+              <div className="flex items-center gap-2 px-2.5 py-1 bg-white border border-zinc-200 rounded-full">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span className="text-[9px] font-bold uppercase text-zinc-500">Live Sync</span>
+              </div>
             </div>
-            <div className="flex-1 p-2">
+            <div className="flex-1 p-4 bg-white">
               <TodoApp />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Intelligence Feed: Global Activity */}
-      <div className="bg-white border-8 border-black shadow-[25px_25px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-        <div className="p-8 border-b-8 border-black flex flex-col md:flex-row items-center justify-between bg-black text-white gap-6">
-          <div className="flex items-center gap-6">
-            <div className="p-4 bg-white text-black border-4 border-black shadow-[6px_6px_0px_0px_rgba(255,255,255,0.2)]">
-              <Activity className="h-8 w-8" />
+      {/* Activity Feed */}
+      <div className="bg-white rounded-[3rem] border border-zinc-100 shadow-sm overflow-hidden">
+        <div className="p-8 border-b border-zinc-100 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-5">
+            <div className="p-4 bg-zinc-900 text-white rounded-3xl shadow-xl shadow-black/10">
+              <Activity className="h-7 w-7" />
             </div>
             <div>
-              <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter italic leading-none">Intelligence Feed</h2>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] mt-2">Satellite Node Activity Log</p>
+              <h2 className="text-3xl font-bold text-zinc-900 tracking-tight">Intelligence Feed</h2>
+              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Satellite Node Activity Stream</p>
             </div>
           </div>
           <Link href="/dashboard/reports" className="group w-full md:w-auto">
-            <div className="flex items-center justify-center gap-3 px-8 py-4 border-4 border-white group-hover:bg-white group-hover:text-black transition-all">
-              <span className="text-[10px] font-black uppercase tracking-widest">Access Archives</span>
-              <ArrowUpRight className="h-5 w-5" />
+            <div className="flex items-center justify-center gap-2 px-6 py-3.5 bg-zinc-50 hover:bg-black text-zinc-600 hover:text-white rounded-2xl border border-zinc-100 hover:border-black transition-all duration-300">
+              <span className="text-xs font-bold uppercase tracking-widest">Access Archives</span>
+              <ArrowUpRight className="h-4 w-4 group-hover:rotate-45 transition-transform" />
             </div>
           </Link>
         </div>
-        <div className="divide-y-4 divide-black/5">
+        
+        <div className="divide-y divide-zinc-50 px-4">
           {recentReports.map((report, i) => (
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: i * 0.1 }}
-              key={i} 
-              className="p-8 flex flex-col md:flex-row items-center justify-between hover:bg-zinc-50 transition-colors gap-6 group"
+              key={report._id} 
+              className="p-6 flex flex-col md:flex-row items-center justify-between hover:bg-zinc-50/50 rounded-2xl transition-all gap-6 group"
             >
-              <div className="flex items-center gap-6 flex-1 w-full">
-                <div className="w-16 h-16 border-4 border-black flex items-center justify-center bg-white group-hover:bg-black group-hover:text-white transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,0.05)]">
-                  <FileText className="h-8 w-8" />
+              <div className="flex items-center gap-5 flex-1 w-full">
+                <div className="w-14 h-14 bg-zinc-50 border border-zinc-100 rounded-2xl flex items-center justify-center text-zinc-400 group-hover:bg-black group-hover:text-white group-hover:border-transparent transition-all duration-300">
+                  <FileText className="h-6 w-6" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-3 mb-1">
-                    <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight line-clamp-2">{report.title}</h3>
-                    {i === 0 && <span className="bg-red-600 text-white text-[8px] font-black px-2 py-1 uppercase">Live</span>}
+                  <div className="flex items-center gap-3 mb-1.5">
+                    <h3 className="text-lg font-bold text-zinc-900 tracking-tight line-clamp-1">{report.title}</h3>
+                    {i === 0 && <span className="bg-emerald-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-full uppercase shadow-lg shadow-emerald-500/20">Recent</span>}
                   </div>
-                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                    <p className="text-[10px] text-gray-500 font-black uppercase flex items-center gap-2">
-                      <Users className="h-3 w-3" /> Node: <span className="text-black">{report.employeeId?.name || "System"}</span>
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase flex items-center gap-1.5">
+                      <Users className="h-3 w-3" /> Node: <span className="text-zinc-900">{report.employeeId?.name || "System"}</span>
                     </p>
-                    <p className="text-[10px] text-gray-500 font-black uppercase flex items-center gap-2">
-                      <CalendarIcon className="h-3 w-3" /> Sync: <span className="text-black">{new Date(report.date).toLocaleString()}</span>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase flex items-center gap-1.5">
+                      <CalendarIcon className="h-3 w-3" /> Sync: <span className="text-zinc-900">{new Date(report.date).toLocaleDateString()}</span>
                     </p>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-4 w-full md:w-auto">
-                <button 
-                  onClick={() => setSelectedReport(report)}
-                  className="w-full md:w-auto px-10 py-5 bg-black text-white text-[10px] font-black uppercase tracking-widest border-4 border-black hover:bg-white hover:text-black transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] active:shadow-none"
-                >
-                  Inspect Packet
-                </button>
-              </div>
+              <button 
+                onClick={() => setSelectedReport(report)}
+                className="w-full md:w-auto px-8 py-3 bg-white border border-zinc-200 text-zinc-900 text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-black hover:text-white hover:border-black transition-all shadow-sm active:scale-95"
+              >
+                Inspect Packet
+              </button>
             </motion.div>
           ))}
           {recentReports.length === 0 && (
-            <div className="p-32 text-center">
-              <Loader2 className="h-12 w-12 animate-spin mx-auto text-gray-200 mb-6" />
-              <p className="text-xl font-black text-gray-300 uppercase tracking-[0.2em]">Waiting for Intelligence Dispatch...</p>
+            <div className="p-20 text-center">
+              <Loader2 className="h-10 w-10 animate-spin mx-auto text-zinc-200 mb-4" />
+              <p className="text-xs font-bold text-zinc-300 uppercase tracking-[0.2em]">Synchronizing Intelligence Stream...</p>
             </div>
           )}
         </div>
-        <Link href="/dashboard/reports" className="block w-full py-10 bg-zinc-900 text-white text-center text-[10px] font-black uppercase tracking-[0.6em] hover:bg-black transition-all group">
-          <span className="group-hover:translate-x-4 transition-transform inline-block italic">Initialize Full System Audit Sequence &gt;&gt;</span>
+        
+        <Link href="/dashboard/reports" className="block w-full py-8 bg-zinc-900 text-white text-center hover:bg-black transition-all group overflow-hidden">
+          <span className="text-xs font-bold uppercase tracking-[0.4em] inline-block group-hover:translate-x-2 transition-transform">
+            Execute Full System Audit Sequence &rarr;
+          </span>
         </Link>
       </div>
-      {/* Report Details Modal */}
+
+      {/* Report Modal */}
       <AnimatePresence>
         {selectedReport && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedReport(null)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/60 backdrop-blur-md"
             />
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-2xl bg-white border-8 border-black shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] overflow-hidden"
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="relative w-full max-w-3xl bg-white rounded-[2.5rem] border border-zinc-200 shadow-2xl overflow-hidden"
             >
-              <div className="p-8 border-b-4 border-black bg-black text-white flex justify-between items-center">
+              <div className="p-8 border-b border-zinc-100 bg-zinc-50 flex justify-between items-center">
                 <div className="flex items-center gap-4">
-                  <FileText className="h-6 w-6 text-yellow-400" />
+                  <div className="p-3 bg-black text-white rounded-2xl">
+                    <FileText className="h-6 w-6" />
+                  </div>
                   <div>
-                    <h2 className="text-2xl font-black uppercase tracking-tight italic">Intelligence Record</h2>
-                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">ID: {selectedReport._id}</p>
+                    <h2 className="text-2xl font-bold text-zinc-900 tracking-tight">Intelligence Record</h2>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Packet ID: {selectedReport._id}</p>
                   </div>
                 </div>
-                <button onClick={() => setSelectedReport(null)} className="p-2 border-2 border-white hover:bg-white hover:text-black transition-all">
-                  <X className="h-5 w-5" />
+                <button onClick={() => setSelectedReport(null)} className="p-2 hover:bg-zinc-200 rounded-xl transition-all">
+                  <X className="h-6 w-6" />
                 </button>
               </div>
               
-              <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+              <div className="p-8 space-y-8 max-h-[65vh] overflow-y-auto custom-scrollbar">
                 <div>
-                  <h3 className="text-3xl font-black uppercase tracking-tighter mb-2">{selectedReport.title}</h3>
-                  <div className="flex flex-wrap gap-4 text-[10px] font-black uppercase text-gray-500">
-                    <span className="flex items-center gap-2"><Users className="h-3 w-3" /> Agent: {selectedReport.employeeId?.name}</span>
-                    <span className="flex items-center gap-2"><CalendarIcon className="h-3 w-3" /> Timestamp: {new Date(selectedReport.date).toLocaleString()}</span>
+                  <h3 className="text-3xl font-bold text-zinc-900 tracking-tight mb-3">{selectedReport.title}</h3>
+                  <div className="flex flex-wrap gap-5">
+                    <span className="flex items-center gap-2 text-[10px] font-bold uppercase text-zinc-500 bg-zinc-50 px-3 py-1.5 rounded-full border border-zinc-100">
+                      <Users className="h-3 w-3" /> Agent: {selectedReport.employeeId?.name}
+                    </span>
+                    <span className="flex items-center gap-2 text-[10px] font-bold uppercase text-zinc-500 bg-zinc-50 px-3 py-1.5 rounded-full border border-zinc-100">
+                      <CalendarIcon className="h-3 w-3" /> Timestamp: {new Date(selectedReport.date).toLocaleString()}
+                    </span>
                   </div>
                 </div>
 
-                <div className="p-6 bg-gray-50 border-4 border-black border-dashed">
-                  <h4 className="text-[10px] font-black uppercase mb-4 text-black underline decoration-2">Transmitted Content</h4>
-                  <p className="text-sm font-bold leading-relaxed whitespace-pre-wrap">{selectedReport.content}</p>
+                <div className="p-8 bg-zinc-50 rounded-3xl border border-zinc-100 border-dashed">
+                  <p className="text-base text-zinc-700 leading-relaxed whitespace-pre-wrap">{selectedReport.content}</p>
                 </div>
 
                 {selectedReport.files && selectedReport.files.length > 0 && (
-                  <div>
-                    <h4 className="text-[10px] font-black uppercase mb-3 flex items-center gap-2">
-                      <Zap className="h-3 w-3 fill-yellow-400 text-yellow-400" /> Attached Data Packets
-                    </h4>
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 ml-1">Attached Data Packets</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {selectedReport.files.map((file: any, idx: number) => (
                         <a 
@@ -566,11 +574,13 @@ export default function DashboardPage() {
                           href={file.url} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-3 border-2 border-black hover:bg-black hover:text-white transition-all group"
+                          className="flex items-center justify-between p-4 bg-white border border-zinc-100 rounded-2xl hover:border-black hover:shadow-lg transition-all group"
                         >
-                          <FileText className="h-4 w-4" />
-                          <span className="text-[9px] font-black uppercase truncate flex-1">{file.name || `Packet_${idx+1}`}</span>
-                          <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <div className="flex items-center gap-3 overflow-hidden">
+                            <FileText className="h-5 w-5 text-zinc-400 group-hover:text-black transition-colors" />
+                            <span className="text-[10px] font-bold uppercase text-zinc-900 truncate">{file.name || `Packet_${idx+1}`}</span>
+                          </div>
+                          <ArrowUpRight className="h-4 w-4 text-zinc-300 group-hover:text-black transition-all" />
                         </a>
                       ))}
                     </div>
@@ -578,10 +588,10 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              <div className="p-4 bg-gray-100 border-t-4 border-black flex justify-end">
+              <div className="p-6 bg-white border-t border-zinc-100 flex justify-end">
                 <button 
                   onClick={() => setSelectedReport(null)}
-                  className="px-8 py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest border-2 border-black hover:bg-white hover:text-black transition-all"
+                  className="px-10 py-3.5 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-black/10"
                 >
                   Close Record
                 </button>
