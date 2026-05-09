@@ -2,11 +2,12 @@ import api from '@/lib/api';
 
 export interface MonitoringStatus {
   _id: string;
-  name: string;
-  email: string;
+  userName?: string;
+  userEmail?: string;
   role: string;
   isSharing: boolean;
   status: string;
+  lastActive?: string | Date;
 }
 
 export const getMonitoringStatus = async (): Promise<MonitoringStatus[]> => {

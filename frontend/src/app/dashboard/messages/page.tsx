@@ -250,7 +250,7 @@ export default function MessagesPage() {
             >
               <div className="relative shrink-0">
                 <div className="w-12 h-12 bg-muted rounded-xl flex items-center justify-center font-bold text-lg text-muted-foreground border border-border">
-                  {contact.name[0].toUpperCase()}
+                  {contact.name?.[0]?.toUpperCase() || <User className="w-6 h-6 opacity-30" />}
                 </div>
                 <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-card ${contact.status === 'online' ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`} />
               </div>
@@ -278,8 +278,8 @@ export default function MessagesPage() {
               {/* Chat Header */}
               <div className="h-20 px-8 flex items-center justify-between border-b border-border bg-background/50 backdrop-blur-md">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-muted rounded-xl flex items-center justify-center font-bold border border-border">
-                    {isTeamChat ? <Globe className="w-5 h-5 text-primary" /> : selectedContact?.name[0].toUpperCase()}
+                  <div className="w-10 h-10 bg-muted rounded-xl flex items-center justify-center font-bold border border-border text-sm">
+                    {isTeamChat ? <Globe className="w-5 h-5 text-primary" /> : selectedContact?.name?.[0]?.toUpperCase()}
                   </div>
                   <div>
                     <h3 className="font-bold text-sm">{isTeamChat ? "Team Matrix" : selectedContact?.name}</h3>

@@ -88,8 +88,8 @@ export default function MonitoringDashboard() {
   }, [socket]);
 
   const filteredMonitors = monitors.filter(m => 
-    m.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.userEmail?.toLowerCase().includes(searchTerm.toLowerCase())
+    (m.userName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+    (m.userEmail?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
 
   const handleSendMessage = () => {

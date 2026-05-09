@@ -15,7 +15,9 @@ import {
   Terminal,
   Brain,
   Zap,
-  Command
+  Command,
+  User,
+  Activity
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 

@@ -137,8 +137,8 @@ export default function PersonnelPage() {
   }
 
   const filteredNodes = nodes.filter(n => 
-    n.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    n.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    (n.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) || 
+    (n.email?.toLowerCase() || "").includes(searchTerm.toLowerCase())
   );
 
   return (
