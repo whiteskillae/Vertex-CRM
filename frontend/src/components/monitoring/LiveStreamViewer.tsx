@@ -33,24 +33,25 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
 
     const startWatching = async () => {
       const pc = new RTCPeerConnection({
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { urls: 'stun:stun2.l.google.com:19302' },
+          { urls: 'stun:stun3.l.google.com:19302' },
+          { urls: 'stun:stun4.l.google.com:19302' },
+        ]
       });
 
       pc.ontrack = (event) => {
         if (videoRef.current) {
           videoRef.current.srcObject = event.streams[0];
-          const playPromise = videoRef.current.play();
-          if (playPromise !== undefined) {
-            playPromise.catch(e => {
-              if (e.name !== 'AbortError') console.error('Video play failed:', e);
-            });
-          }
+          videoRef.current.play().catch(e => console.error('Play error:', e));
           setStatus('streaming');
           setSessionData({
             startTime: new Date().toISOString(),
             lastReload: new Date().toLocaleTimeString(),
-            resolution: '1920x1080',
-            bitrate: '2.5 Mbps'
+            resolution: '1280x720',
+            bitrate: '1.2 Mbps'
           });
         }
       };
@@ -82,7 +83,7 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
               if (cand) await pcRef.current.addIceCandidate(new RTCIceCandidate(cand));
             }
           } catch (e) {
-            console.error('Error handling offer:', e);
+            console.error('Offer error:', e);
           }
         }
       });
@@ -90,7 +91,7 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
       socket.on('screen:candidate', async (data) => {
         if (data.from === userId && data.viewerId === viewerId && pcRef.current) {
           if (pcRef.current.remoteDescription) {
-            await pcRef.current.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(e => console.error(e));
+            await pcRef.current.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(() => {});
           } else {
             candidateQueue.push(data.candidate);
           }
@@ -102,115 +103,69 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
 
     startWatching();
 
-    const handleStatusUpdate = (data: { userId: string, status: string }) => {
-      if (data.userId === userId && (data.status === 'online' || data.status === 'offline')) {
-        setStatus('offline');
-        pcRef.current?.close();
-      }
-    };
-
-    socket.on('monitoring:update', handleStatusUpdate);
-
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    if (typeof document !== 'undefined') {
-      document.addEventListener('fullscreenchange', handleFullscreenChange);
-    }
-
     return () => {
       pcRef.current?.close();
-      pcRef.current = null;
       socket.off('screen:offer');
       socket.off('screen:candidate');
-      socket.off('monitoring:update', handleStatusUpdate);
-      if (typeof document !== 'undefined') {
-        document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      }
     };
   }, [socket, userId]);
-
-  const toggleFullscreen = () => {
-    if (containerRef.current) {
-      if (!document.fullscreenElement) {
-        containerRef.current.requestFullscreen().catch(err => {
-          console.error(`Error attempting to enable full-screen mode: ${err.message}`);
-        });
-      } else {
-        document.exitFullscreen();
-      }
-    }
-  };
-
-  const getWorkingTime = () => {
-    if (!sessionData) return '00:00:00';
-    const start = new Date(sessionData.startTime).getTime();
-    const now = new Date().getTime();
-    const diff = Math.floor((now - start) / 1000);
-    const h = Math.floor(diff / 3600).toString().padStart(2, '0');
-    const m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
-    const s = (diff % 60).toString().padStart(2, '0');
-    return `${h}:${m}:${s}`;
-  };
 
   return (
     <div 
       ref={containerRef} 
-      className={`relative bg-black border-8 border-black overflow-hidden group flex flex-col transition-all duration-500 ${isFullscreen ? 'w-screen h-screen border-0' : 'aspect-video shadow-[20px_20px_0px_0px_rgba(0,0,0,1)]'}`}
+      className={`relative bg-zinc-950 rounded-3xl overflow-hidden border border-zinc-200 shadow-2xl transition-all duration-500 ${isFullscreen ? 'w-screen h-screen rounded-none' : 'aspect-video'}`}
     >
-      {/* Top Overlay Overlay */}
-      <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-start z-30 pointer-events-none">
-        <div className="flex items-center gap-4 bg-black/80 backdrop-blur-xl border-4 border-black p-3 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] pointer-events-auto">
+      {/* Stream Overlay */}
+      <div className="absolute top-6 left-6 right-6 flex justify-between items-start z-30 pointer-events-none">
+        <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-2xl pointer-events-auto">
           <div className="relative">
-            <div className="w-10 h-10 bg-white text-black flex items-center justify-center border-2 border-black font-black">
+            <div className="w-10 h-10 bg-white/10 text-white flex items-center justify-center rounded-xl font-bold border border-white/10">
               {userName[0].toUpperCase()}
             </div>
-            <div className={`absolute -bottom-1 -right-1 w-4 h-4 border-2 border-black rounded-full ${status === 'streaming' ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
+            <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 border-2 border-zinc-950 rounded-full ${status === 'streaming' ? 'bg-brand-emerald' : 'bg-brand-rose'} animate-pulse`} />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase text-white leading-none mb-1">{userName}</p>
+            <p className="text-xs font-bold text-white tracking-tight leading-none mb-1">{userName}</p>
             <div className="flex items-center gap-2">
-              <Activity className="w-3 h-3 text-green-500" />
-              <span className="text-[8px] font-black uppercase text-zinc-400 tracking-widest">Signal: Stable | 1080p</span>
+              <Activity className="w-3 h-3 text-brand-emerald" />
+              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Live Stream</span>
             </div>
           </div>
         </div>
 
-        <div className="flex gap-3 pointer-events-auto">
-          <div className="bg-black/80 backdrop-blur-xl border-4 border-black p-3 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex items-center gap-4 text-white">
-            <div className="flex flex-col items-end">
-              <span className="text-[7px] font-black uppercase text-zinc-500 tracking-[0.2em]">Session Duration</span>
-              <span className="text-xs font-black font-mono text-green-500">{getWorkingTime()}</span>
-            </div>
-            <Clock className="w-5 h-5 text-white/50" />
-          </div>
+        <div className="bg-white/10 backdrop-blur-md border border-white/20 px-4 py-3 rounded-2xl flex items-center gap-3 text-white pointer-events-auto">
+          <Clock className="w-4 h-4 text-zinc-400" />
+          <span className="text-xs font-bold font-mono text-brand-emerald">{getWorkingTime()}</span>
         </div>
       </div>
 
-      {/* Main Stream Area */}
-      <div className="relative flex-1 bg-zinc-950 flex items-center justify-center overflow-hidden">
+      {/* Main Stream */}
+      <div className="absolute inset-0 flex items-center justify-center bg-zinc-950">
         <AnimatePresence>
           {status === 'connecting' && (
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 flex flex-col items-center justify-center text-white z-20 bg-zinc-950/80"
+              className="flex flex-col items-center gap-4 text-white z-20"
             >
-              <div className="w-20 h-20 border-8 border-white border-t-transparent rounded-full animate-spin mb-6" />
-              <h3 className="text-xl font-black uppercase italic tracking-tighter">Establishing Secure Link</h3>
-              <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-[0.4em] mt-2">Bypassing Node Firewalls...</p>
+              <Loader2 className="w-10 h-10 animate-spin text-brand-indigo" />
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60">Establishing Peer Connection...</p>
             </motion.div>
           )}
           
           {status === 'offline' && (
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900 text-zinc-500 z-20"
+              className="flex flex-col items-center gap-4 text-white z-20"
             >
-              <ShieldAlert className="w-24 h-24 mb-6 opacity-20" />
-              <h3 className="text-2xl font-black uppercase italic tracking-tighter text-white">Signal Terminated</h3>
-              <p className="text-[10px] font-black uppercase tracking-[0.5em] mt-2">Remote Node Disconnected</p>
-              <button onClick={() => window.location.reload()} className="mt-8 px-6 py-3 border-4 border-white text-white text-[10px] font-black uppercase hover:bg-white hover:text-black transition-all">Re-sync Connection</button>
+              <ShieldAlert className="w-12 h-12 text-brand-rose mb-2" />
+              <h3 className="text-lg font-bold">Signal Terminated</h3>
+              <p className="text-xs text-zinc-400">Node disconnected or sharing stopped.</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="mt-4 px-6 py-2.5 bg-white text-black text-xs font-bold rounded-xl hover:bg-zinc-200 transition-all"
+              >
+                Re-sync Node
+              </button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -222,68 +177,43 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
           muted
           className={`w-full h-full object-contain transition-all duration-700 ${status === 'streaming' && !isPaused ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
         />
-
-        {/* Video Controls Hover */}
-        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-10 z-10">
-          <button onClick={() => setIsPaused(!isPaused)} className="w-20 h-20 bg-white text-black border-4 border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] hover:scale-110 active:scale-95 transition-all flex items-center justify-center">
-            {isPaused ? <Play className="w-10 h-10 fill-current" /> : <Pause className="w-10 h-10 fill-current" />}
+        
+        {/* Hover Controls */}
+        <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-10 z-10">
+          <button onClick={() => setIsPaused(!isPaused)} className="p-6 bg-white text-black rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all">
+            {isPaused ? <Play className="w-8 h-8 fill-current" /> : <Pause className="w-8 h-8 fill-current" />}
           </button>
         </div>
       </div>
 
-      {/* Bottom Control Bar */}
-      <div className="bg-black border-t-8 border-black p-6 flex items-center justify-between z-30">
-        <div className="flex gap-10">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-zinc-900 border-2 border-white/10 text-white">
-              <RefreshCcw className="w-4 h-4" />
-            </div>
+      {/* Bottom Bar */}
+      <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between z-30 pointer-events-none">
+        <div className="flex gap-4 pointer-events-auto">
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-2xl flex items-center gap-3">
+            <Activity className="w-4 h-4 text-brand-emerald" />
             <div className="flex flex-col">
-              <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Last Node Reload</span>
-              <span className="text-xs font-black text-white uppercase">{sessionData?.lastReload || '--:--:--'}</span>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Bandwidth</span>
+              <span className="text-[10px] font-bold text-white uppercase">{sessionData?.bitrate || '0.0 Mbps'}</span>
             </div>
           </div>
-
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-zinc-900 border-2 border-white/10 text-green-500">
-              <Activity className="w-4 h-4" />
-            </div>
+          <div className="hidden sm:flex bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-2xl items-center gap-3">
+            <Maximize2 className="w-4 h-4 text-brand-indigo" />
             <div className="flex flex-col">
-              <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Live Bandwidth</span>
-              <span className="text-xs font-black text-white uppercase">{sessionData?.bitrate || '0.0 Mbps'}</span>
-            </div>
-          </div>
-
-          <div className="hidden md:flex items-center gap-4">
-            <div className="p-3 bg-zinc-900 border-2 border-white/10 text-blue-500">
-              <HardDrive className="w-4 h-4" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Resolution</span>
-              <span className="text-xs font-black text-white uppercase">{sessionData?.resolution || 'Detecting...'}</span>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Resolution</span>
+              <span className="text-[10px] font-bold text-white uppercase">{sessionData?.resolution || '720p'}</span>
             </div>
           </div>
         </div>
 
-        <div className="flex gap-4">
-          <button className="flex items-center gap-3 px-6 py-3 bg-white text-black text-[10px] font-black uppercase hover:bg-zinc-200 transition-all border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)]">
-            <MessageSquare className="w-4 h-4" /> Personnel Comms
-          </button>
+        <div className="flex gap-3 pointer-events-auto">
           <button 
             onClick={toggleFullscreen}
-            className="p-4 bg-zinc-900 text-white border-2 border-white/20 hover:bg-white hover:text-black transition-all flex items-center justify-center"
+            className="p-3.5 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-2xl hover:bg-white hover:text-black transition-all"
           >
             {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
           </button>
         </div>
       </div>
-
-      {/* Fullscreen Overlay Banner */}
-      {isFullscreen && (
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-red-600 text-white px-8 py-2 border-x-4 border-b-4 border-black font-black uppercase text-[10px] tracking-[0.5em] z-50 animate-bounce">
-          Admin Overwatch Active
-        </div>
-      )}
     </div>
   );
-};
+}

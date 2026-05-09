@@ -215,7 +215,6 @@ export default function MessagesPage() {
 
       const { data } = await api.post("messages", msgData);
       
-      // Emit via socket for instant team sync if needed
       if (isTeamChat && socket) {
         socket.emit("team:message", data);
       }
@@ -272,80 +271,84 @@ export default function MessagesPage() {
 
   if (loading) return (
     <div className="h-full flex flex-col items-center justify-center gap-8 opacity-40">
-      <Loader2 className="animate-spin h-20 w-20 text-black" />
-      <span className="text-sm font-black uppercase tracking-[0.8em] animate-pulse">Establishing Secure Uplink...</span>
+      <Loader2 className="animate-spin h-16 w-16 text-black" />
+      <span className="text-[10px] font-black uppercase tracking-[0.8em]">Establishing Secure Uplink...</span>
     </div>
   );
 
   return (
-    <div className="h-[calc(100vh-140px)] flex flex-col md:flex-row gap-8 pb-4">
+    <div className="h-[calc(100vh-140px)] flex flex-col lg:flex-row gap-8 pb-4">
       {/* Sidebar - Contacts */}
-      <div className="w-full md:w-[400px] flex flex-col bg-white border-8 border-black shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-        <div className="p-8 border-b-8 border-black bg-zinc-50 space-y-6">
+      <div className="w-full lg:w-[420px] flex flex-col bg-white rounded-[3rem] border border-zinc-100 shadow-xl overflow-hidden">
+        <div className="p-10 border-b border-zinc-50 bg-[#fafafa]/50 space-y-8">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-4xl font-black uppercase italic tracking-tighter leading-none">Comms Hub</h2>
-              <p className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.4em] mt-2 italic">Secure Operational Grid</p>
+              <h2 className="text-4xl font-black uppercase tracking-tight text-zinc-900 leading-none">Comms Hub</h2>
+              <p className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.4em] mt-4 italic flex items-center gap-2">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" /> Secure Grid Active
+              </p>
             </div>
-            <div className="w-5 h-5 bg-green-500 border-4 border-black rounded-none animate-pulse shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]" />
+            <div className="p-4 bg-white rounded-2xl shadow-sm border border-zinc-100">
+               <Zap className="h-6 w-6 text-zinc-900" />
+            </div>
           </div>
           
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-300" />
+          <div className="relative group">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-300 group-focus-within:text-zinc-900 transition-colors" />
             <input 
               type="text" 
-              placeholder="FILTER_NODES..." 
+              placeholder="SEARCH PERSONNEL..." 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 border-4 border-black text-[11px] font-black uppercase focus:outline-none focus:bg-white bg-zinc-100 placeholder:text-zinc-300"
+              className="w-full bg-white border border-zinc-100 rounded-2xl p-5 pl-14 text-[10px] font-black uppercase tracking-[0.2em] outline-none focus:border-zinc-900 transition-all shadow-sm"
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#fafafa]">
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
           {/* Team Chat Tab */}
           <button 
             onClick={() => { setIsTeamChat(true); setSelectedContact(null); }}
-            className={`w-full p-8 border-b-8 flex items-center justify-between transition-all group relative overflow-hidden ${isTeamChat ? 'bg-black text-white border-black' : 'bg-white border-black hover:bg-zinc-100 shadow-[inset_0px_-8px_0px_0px_rgba(0,0,0,0.05)]'}`}
+            className={`w-full p-10 border-b border-zinc-50 flex items-center justify-between transition-all group relative overflow-hidden ${isTeamChat ? 'bg-zinc-950 text-white' : 'bg-white hover:bg-zinc-50'}`}
           >
-            <div className="flex items-center gap-6 z-10">
-              <div className={`w-16 h-16 border-4 border-current flex items-center justify-center ${isTeamChat ? 'bg-white text-black' : 'bg-black text-white'}`}>
+            <div className="flex items-center gap-6 relative z-10">
+              <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center shadow-lg transition-all duration-500 ${isTeamChat ? 'bg-white text-zinc-950 rotate-6' : 'bg-zinc-950 text-white group-hover:rotate-6'}`}>
                 <Globe className="h-8 w-8" />
               </div>
               <div className="text-left">
-                <p className="text-lg font-black uppercase tracking-tighter leading-none">Enterprise Matrix</p>
-                <p className={`text-[9px] font-black uppercase tracking-widest mt-2 ${isTeamChat ? 'text-zinc-400' : 'text-zinc-500'}`}>Global Team Broadcast</p>
+                <p className="text-xl font-black uppercase tracking-tight leading-none">Enterprise Matrix</p>
+                <p className={`text-[9px] font-black uppercase tracking-widest mt-2 ${isTeamChat ? 'text-zinc-500' : 'text-zinc-400'}`}>Global Team Broadcast</p>
               </div>
             </div>
             {teamUnreadCount > 0 && (
-              <span className="bg-red-600 text-white px-3 py-1 border-2 border-current text-[10px] font-black animate-bounce shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]">
+              <span className="bg-brand-rose text-white px-4 py-1.5 rounded-full text-[10px] font-black shadow-xl animate-bounce">
                 {teamUnreadCount}
               </span>
             )}
           </button>
 
-          <div className="p-4 bg-zinc-200 text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 text-center">Personnel Nodes</div>
+          <div className="px-10 py-6 bg-zinc-50 text-[9px] font-black uppercase tracking-[0.4em] text-zinc-400">Personnel Nodes</div>
 
           {contacts.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase())).map(contact => (
             <button
               key={contact._id}
               onClick={() => { setSelectedContact(contact); setIsTeamChat(false); }}
-              className={`w-full p-8 border-b-4 border-black/10 flex items-center justify-between transition-all group ${selectedContact?._id === contact._id ? 'bg-white border-l-[16px] border-l-black translate-x-2' : 'hover:bg-zinc-50'}`}
+              className={`w-full p-10 border-b border-zinc-50 flex items-center justify-between transition-all group ${selectedContact?._id === contact._id ? 'bg-zinc-50 border-l-[6px] border-l-zinc-950' : 'bg-white hover:bg-zinc-50'}`}
             >
               <div className="flex items-center gap-6">
                 <div className="relative">
-                  <div className={`w-16 h-16 border-4 border-black flex items-center justify-center font-black text-2xl transition-transform group-hover:scale-110 ${selectedContact?._id === contact._id ? 'bg-black text-white' : 'bg-zinc-100 text-black'}`}>
+                  <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center font-black text-2xl transition-all duration-500 shadow-sm ${selectedContact?._id === contact._id ? 'bg-zinc-950 text-white' : 'bg-white border border-zinc-100 text-zinc-900 group-hover:bg-zinc-950 group-hover:text-white'}`}>
                     {contact.name[0]}
                   </div>
-                  <div className={`absolute -bottom-1 -right-1 w-5 h-5 border-4 border-black ${contact.status === 'online' ? 'bg-green-500' : 'bg-zinc-400'}`} />
+                  <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-white ${contact.status === 'online' ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-zinc-300'} shadow-xl`} />
                 </div>
                 <div className="text-left">
-                  <p className="text-lg font-black uppercase tracking-tighter leading-none">{contact.name}</p>
-                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-2">{contact.role}</p>
+                  <p className="text-xl font-black uppercase tracking-tight text-zinc-900 leading-none">{contact.name}</p>
+                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-2 italic">{contact.role}</p>
                 </div>
               </div>
               {contact.unreadCount ? contact.unreadCount > 0 && (
-                <span className="bg-black text-white px-3 py-1 border-2 border-black text-[10px] font-black">
+                <span className="bg-zinc-950 text-white px-4 py-1.5 rounded-full text-[10px] font-black shadow-xl">
                   {contact.unreadCount}
                 </span>
               ) : null}
@@ -355,92 +358,96 @@ export default function MessagesPage() {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col bg-white border-8 border-black shadow-[25px_25px_0px_0px_rgba(0,0,0,1)] overflow-hidden relative">
+      <div className="flex-1 flex flex-col bg-white rounded-[3.5rem] border border-zinc-100 shadow-2xl overflow-hidden relative">
         <AnimatePresence mode="wait">
           {selectedContact || isTeamChat ? (
             <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              key={selectedContact?._id || 'team'}
+              initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}
               className="flex-1 flex flex-col h-full"
             >
               {/* Chat Header */}
-              <div className="p-8 border-b-8 border-black bg-zinc-50 flex items-center justify-between shadow-[0px_8px_0px_0px_rgba(0,0,0,0.05)] z-20">
+              <div className="p-10 border-b border-zinc-50 bg-white flex items-center justify-between z-20 shadow-sm">
                 <div className="flex items-center gap-6">
-                  <div className={`w-16 h-16 border-4 border-black flex items-center justify-center ${isTeamChat ? 'bg-black text-white' : 'bg-white text-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]'}`}>
+                  <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center shadow-xl transition-all duration-500 ${isTeamChat ? 'bg-zinc-950 text-white' : 'bg-white border border-zinc-100 text-zinc-900 shadow-zinc-100/50'}`}>
                     {isTeamChat ? <Globe className="h-8 w-8" /> : <span className="font-black text-2xl">{selectedContact?.name[0]}</span>}
                   </div>
                   <div>
-                    <h3 className="text-3xl font-black uppercase italic tracking-tighter leading-none">
+                    <h3 className="text-3xl font-black uppercase tracking-tight text-zinc-900 leading-none">
                       {isTeamChat ? "Enterprise Matrix" : selectedContact?.name}
                     </h3>
-                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] mt-2 italic flex items-center gap-2">
-                      {isTeamChat ? (
-                        <>GLOBAL_TEAM_UPLINK <Zap className="h-3 w-3 text-yellow-500" /></>
-                      ) : (
-                        <>SECURE_NODE_SESSION <Shield className="h-3 w-3 text-blue-500" /></>
-                      )}
-                    </p>
+                    <div className="flex items-center gap-3 mt-3">
+                      <div className={`px-2.5 py-1 rounded-md text-[8px] font-black uppercase tracking-widest ${isTeamChat ? 'bg-zinc-950 text-white' : 'bg-indigo-50 text-indigo-600'}`}>
+                        {isTeamChat ? 'GLOBAL_UPLINK' : 'SECURE_NODE'}
+                      </div>
+                      <span className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest italic flex items-center gap-2">
+                        {isTeamChat ? 'Syncing with all active personnel' : (selectedContact?.status === 'online' ? 'Synchronization Stable' : 'Node Offline')}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   {!isTeamChat && (
                     <button 
                       onClick={() => handleWhatsAppCall()}
-                      className="p-5 border-4 border-black bg-[#25D366] text-white hover:bg-white hover:text-[#25D366] transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:shadow-none translate-y-0 active:translate-y-2 group"
+                      className="p-5 bg-emerald-50 text-emerald-600 rounded-3xl hover:bg-emerald-500 hover:text-white transition-all shadow-sm hover:scale-105 active:scale-95"
                     >
-                      <Phone className="h-6 w-6 group-hover:scale-110 transition-transform" />
+                      <Phone className="h-6 w-6" />
                     </button>
                   )}
-                  <button className="p-5 border-4 border-black bg-white hover:bg-black hover:text-white transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:shadow-none translate-y-0 active:translate-y-2">
+                  <button className="p-5 bg-zinc-50 text-zinc-400 rounded-3xl hover:bg-zinc-950 hover:text-white transition-all shadow-sm hover:scale-105 active:scale-95">
                     <Video className="h-6 w-6" />
                   </button>
-                  <button className="p-5 border-4 border-black bg-white hover:bg-black hover:text-white transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:shadow-none translate-y-0 active:translate-y-2">
+                  <button className="p-5 bg-zinc-50 text-zinc-400 rounded-3xl hover:bg-zinc-950 hover:text-white transition-all shadow-sm hover:scale-105 active:scale-95">
                     <MoreVertical className="h-6 w-6" />
                   </button>
                 </div>
               </div>
 
               {/* Messages Grid */}
-              <div className="flex-1 overflow-y-auto p-10 space-y-8 bg-[#fdfdfd] custom-scrollbar pattern-dots">
+              <div className="flex-1 overflow-y-auto p-12 space-y-10 bg-[#fdfdfd] custom-scrollbar">
                 {messages.map((msg, i) => {
                   const isOwn = (typeof msg.senderId === 'string' ? msg.senderId : msg.senderId?._id) === user?._id;
                   const senderName = typeof msg.senderId === 'object' ? msg.senderId?.name : (isOwn ? user?.name : 'Personnel');
 
                   return (
                     <div key={msg._id} className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
-                      {isTeamChat && !isOwn && <span className="text-[10px] font-black uppercase text-zinc-400 mb-2 ml-4">{senderName}</span>}
-                      <div className={`max-w-[75%] p-6 border-4 border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] relative group ${isOwn ? 'bg-black text-white' : 'bg-white text-black'}`}>
-                        {/* File Support */}
+                      {isTeamChat && !isOwn && <span className="text-[9px] font-black uppercase text-zinc-300 mb-3 ml-4 tracking-widest">{senderName}</span>}
+                      <div className={`max-w-[70%] p-8 rounded-[2.5rem] relative group transition-all duration-300 shadow-sm ${isOwn ? 'bg-zinc-950 text-white rounded-tr-none' : 'bg-white border border-zinc-100 text-zinc-900 rounded-tl-none hover:border-zinc-200'}`}>
                         {msg.fileUrl && (
-                          <div className="mb-4 border-4 border-current p-2 bg-zinc-50/10">
+                          <div className="mb-6 rounded-2xl overflow-hidden bg-white/5 border border-white/10 p-1 shadow-inner">
                             {msg.fileType === 'image' ? (
                               <img 
                                 src={msg.fileUrl} 
                                 alt="Asset" 
-                                className="w-full h-auto border-4 border-black cursor-pointer hover:opacity-80 transition-opacity" 
+                                className="w-full h-auto rounded-xl cursor-pointer hover:opacity-90 transition-all" 
                                 onClick={() => window.open(msg.fileUrl, '_blank')}
                               />
                             ) : (
-                              <div className="flex items-center justify-between gap-6 p-4 bg-black/5">
-                                <div className="flex items-center gap-4">
-                                  <FileText className="h-8 w-8" />
-                                  <span className="text-[10px] font-black uppercase tracking-tighter truncate max-w-[200px]">Asset_Secure_Payload.doc</span>
+                              <div className="flex items-center justify-between gap-6 p-6">
+                                <div className="flex items-center gap-5">
+                                  <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
+                                    <FileText className="h-6 w-6" />
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest">Asset_Secure_Payload</p>
+                                    <p className="text-[8px] font-bold text-zinc-500 uppercase mt-1 tracking-wider">Cloudinary Archive</p>
+                                  </div>
                                 </div>
-                                <button onClick={() => window.open(msg.fileUrl, '_blank')} className="p-3 bg-black text-white border-2 border-white hover:bg-white hover:text-black transition-all">
-                                  <Download className="h-4 w-4" />
+                                <button onClick={() => window.open(msg.fileUrl, '_blank')} className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all">
+                                  <Download className="h-5 w-5" />
                                 </button>
                               </div>
                             )}
                           </div>
                         )}
 
-                        <p className="text-sm font-bold uppercase leading-relaxed tracking-tight break-words">{msg.message}</p>
+                        <p className="text-sm font-semibold leading-relaxed tracking-tight break-words">{msg.message}</p>
                         
-                        <div className={`flex items-center gap-3 mt-4 text-[9px] font-black uppercase italic ${isOwn ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                        <div className={`flex items-center gap-3 mt-6 text-[8px] font-black uppercase tracking-widest ${isOwn ? 'text-zinc-500' : 'text-zinc-300'}`}>
                           <span>{format(new Date(msg.timestamp), 'HH:mm:ss')}</span>
                           {isOwn && (
-                            msg.isSeen ? <CheckCheck className="h-4 w-4 text-blue-500" /> : <Check className="h-4 w-4" />
+                            msg.isSeen ? <CheckCheck className="h-3.5 w-3.5 text-indigo-400" /> : <Check className="h-3.5 w-3.5" />
                           )}
                         </div>
                       </div>
@@ -450,62 +457,65 @@ export default function MessagesPage() {
                 
                 {/* Typing Indicators */}
                 {(isTeamChat ? teamTypingUsers : typingUsers).length > 0 && (
-                  <div className="flex items-center gap-3 bg-zinc-100 p-4 border-4 border-black w-fit animate-pulse">
-                    <div className="flex gap-1">
-                      <div className="w-2 h-2 bg-black animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <div className="w-2 h-2 bg-black animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <div className="w-2 h-2 bg-black animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <motion.div initial={{opacity:0, y: 10}} animate={{opacity:1, y: 0}} className="flex items-center gap-4 bg-white border border-zinc-100 p-5 rounded-[1.5rem] w-fit shadow-sm">
+                    <div className="flex gap-1.5">
+                      <div className="w-1.5 h-1.5 bg-zinc-950 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-1.5 h-1.5 bg-zinc-950 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-1.5 h-1.5 bg-zinc-950 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
-                    <span className="text-[9px] font-black uppercase italic">
+                    <span className="text-[8px] font-black uppercase tracking-[0.3em] text-zinc-400 italic">
                       {isTeamChat ? `${teamTypingUsers[0].userName} IS TRANSMITTING...` : 'NODE IS TRANSMITTING...'}
                     </span>
-                  </div>
+                  </motion.div>
                 )}
                 <div ref={messagesEndRef} />
               </div>
 
               {/* Input Area */}
-              <div className="p-8 border-t-8 border-black bg-white">
+              <div className="p-10 border-t border-zinc-50 bg-white">
                 <AnimatePresence>
                   {previewUrl && (
                     <motion.div 
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="mb-6 p-4 bg-zinc-50 border-4 border-black relative group"
+                      initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                      className="mb-8 p-6 bg-zinc-50 rounded-[2.5rem] border border-zinc-100 relative group"
                     >
-                      <img src={previewUrl} className="max-h-48 w-auto border-4 border-black mx-auto" />
-                      <button onClick={() => { setPendingFile(null); setPreviewUrl(null); }} className="absolute -top-4 -right-4 bg-black text-white p-2 border-4 border-black hover:bg-white hover:text-black transition-all">
+                      <img src={previewUrl} className="max-h-56 w-auto rounded-3xl shadow-2xl mx-auto border border-zinc-200" />
+                      <button onClick={() => { setPendingFile(null); setPreviewUrl(null); }} className="absolute -top-4 -right-4 bg-zinc-950 text-white p-4 rounded-2xl shadow-xl hover:scale-110 transition-all">
                         <X className="h-6 w-6" />
                       </button>
                     </motion.div>
                   )}
                   {pendingFile && !previewUrl && (
                     <motion.div 
-                      initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                      className="mb-6 p-6 bg-zinc-100 border-4 border-black flex items-center justify-between"
+                      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                      className="mb-8 p-8 bg-zinc-950 rounded-[2.5rem] flex items-center justify-between shadow-2xl"
                     >
-                      <div className="flex items-center gap-4">
-                        <FileText className="h-10 w-10" />
-                        <span className="text-[12px] font-black uppercase">{pendingFile.name}</span>
+                      <div className="flex items-center gap-6">
+                        <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-white">
+                           <FileText className="h-8 w-8" />
+                        </div>
+                        <div>
+                          <p className="text-[12px] font-black text-white uppercase tracking-widest">{pendingFile.name}</p>
+                          <p className="text-[10px] font-bold text-zinc-500 uppercase mt-1">Pending Transmission</p>
+                        </div>
                       </div>
-                      <button onClick={() => setPendingFile(null)} className="p-2 border-2 border-black hover:bg-red-600 hover:text-white transition-all"><X className="h-4 w-4" /></button>
+                      <button onClick={() => setPendingFile(null)} className="p-4 bg-white/10 text-white rounded-2xl hover:bg-brand-rose transition-all"><X className="h-5 w-5" /></button>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
                 <form onSubmit={handleSend} className="flex gap-6 items-end">
-                  <div className="flex gap-4">
-                    <label className="p-6 border-4 border-black bg-zinc-50 hover:bg-black hover:text-white transition-all cursor-pointer shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:shadow-none translate-y-0 active:translate-y-2">
+                  <div className="flex gap-4 mb-2">
+                    <label className="p-6 bg-zinc-50 text-zinc-400 rounded-3xl hover:bg-zinc-950 hover:text-white transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95">
                       <input type="file" className="hidden" onChange={handleFileChange} />
                       <Paperclip className="h-8 w-8" />
                     </label>
-                    <button type="button" className="p-6 border-4 border-black bg-zinc-50 hover:bg-black hover:text-white transition-all shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:shadow-none translate-y-0 active:translate-y-2">
+                    <button type="button" className="p-6 bg-zinc-50 text-zinc-400 rounded-3xl hover:bg-zinc-950 hover:text-white transition-all shadow-sm hover:scale-105 active:scale-95">
                       <Smile className="h-8 w-8" />
                     </button>
                   </div>
                   
-                  <div className="flex-1 relative">
+                  <div className="flex-1 relative group">
                     <textarea
                       value={newMessage}
                       onChange={(e) => { setNewMessage(e.target.value); handleTyping(); }}
@@ -515,40 +525,50 @@ export default function MessagesPage() {
                           handleSend(e);
                         }
                       }}
-                      placeholder="ENTER_TRANSMISSION..."
-                      className="w-full p-8 border-8 border-black text-lg font-black uppercase outline-none focus:bg-zinc-50 resize-none min-h-[100px] shadow-[inset_6px_6px_0px_0px_rgba(0,0,0,0.05)] placeholder:text-zinc-200"
+                      placeholder="ENTER TRANSMISSION PROTOCOL..."
+                      className="w-full p-8 bg-zinc-50 border border-zinc-100 rounded-[2.5rem] text-[15px] font-semibold text-zinc-900 outline-none focus:bg-white focus:border-zinc-950 transition-all resize-none min-h-[110px] max-h-[300px] shadow-sm scrollbar-hide"
                     />
+                    <div className="absolute right-6 bottom-6 flex items-center gap-3">
+                       <Zap className={`h-4 w-4 transition-all duration-700 ${newMessage.length > 0 ? 'text-indigo-500 animate-pulse scale-125' : 'text-zinc-200'}`} />
+                    </div>
                   </div>
 
                   <button 
                     type="submit" 
                     disabled={(!newMessage.trim() && !pendingFile) || processing}
-                    className="p-8 bg-black text-white border-4 border-black hover:bg-white hover:text-black transition-all shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] active:shadow-none translate-y-0 active:translate-y-2 disabled:opacity-50 h-full flex items-center justify-center min-w-[120px] group"
+                    className="p-8 bg-zinc-950 text-white rounded-[2.5rem] hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-black/20 disabled:opacity-50 h-full flex items-center justify-center min-w-[130px] group mb-2"
                   >
-                    {processing ? <Loader2 className="h-10 w-10 animate-spin" /> : <Send className="h-10 w-10 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />}
+                    {processing ? <Loader2 className="h-10 w-10 animate-spin" /> : <Send className="h-10 w-10 group-hover:translate-x-2 group-hover:-translate-y-2 transition-all duration-500" />}
                   </button>
                 </form>
               </div>
             </motion.div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-20 text-center opacity-30 bg-zinc-50/50">
-              <div className="p-12 border-8 border-black border-dashed mb-10 group">
-                <MessageSquare className="h-32 w-32 group-hover:scale-110 transition-transform duration-500" />
-              </div>
-              <h3 className="text-5xl font-black uppercase italic tracking-tighter mb-4">Awaiting Uplink</h3>
-              <p className="text-sm font-black uppercase tracking-[0.5em] text-zinc-400">Select a node from the grid to initiate synchronization</p>
-              
-              <div className="grid grid-cols-3 gap-8 mt-16 w-full max-w-2xl">
-                {[
-                  { icon: Shield, label: "ENCRYPTED" },
-                  { icon: Zap, label: "REAL-TIME" },
-                  { icon: Globe, label: "BROADCAST" }
-                ].map((item, i) => (
-                  <div key={i} className="p-6 border-4 border-black flex flex-col items-center gap-4">
-                    <item.icon className="h-8 w-8" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
-                  </div>
-                ))}
+            <div className="flex-1 flex flex-col items-center justify-center p-20 text-center relative overflow-hidden">
+              <div className="absolute inset-0 pattern-dots opacity-[0.03] scale-150 rotate-12" />
+              <div className="relative z-10 space-y-12 max-w-lg">
+                <div className="w-48 h-48 bg-zinc-50 rounded-[4rem] border border-zinc-100 flex items-center justify-center mx-auto shadow-2xl shadow-black/[0.02] group">
+                  <MessageSquare className="h-20 w-20 text-zinc-100 group-hover:text-zinc-950 group-hover:scale-110 transition-all duration-700" />
+                </div>
+                <div className="space-y-6">
+                  <h3 className="text-5xl font-black uppercase tracking-tight text-zinc-900 italic">Awaiting Uplink</h3>
+                  <p className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-400 leading-relaxed">
+                    Personnel Node Selection Required. Initiate Encrypted Synchronization Protocol to Begin Communication.
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-6">
+                  {[
+                    { icon: Shield, label: "ENCRYPTED" },
+                    { icon: Zap, label: "REAL-TIME" },
+                    { icon: Globe, label: "BROADCAST" }
+                  ].map((item, i) => (
+                    <div key={i} className="p-6 bg-white border border-zinc-100 rounded-3xl flex flex-col items-center gap-4 shadow-sm">
+                      <item.icon className="h-6 w-6 text-zinc-300" />
+                      <span className="text-[8px] font-black uppercase tracking-widest text-zinc-400">{item.label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}

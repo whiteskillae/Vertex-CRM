@@ -50,7 +50,7 @@ export default function MonitoringDashboard() {
     });
 
     socket.on('monitoring:activity', ({ userId, status }: { userId: string, status: string }) => {
-      // Handle activity updates if needed (e.g., small badge update)
+      // Handle activity updates if needed
     });
 
     return () => {
@@ -76,45 +76,51 @@ export default function MonitoringDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <RefreshCw className="w-10 h-10 animate-spin text-black" />
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6 opacity-40">
+        <Loader2 className="w-16 h-16 animate-spin text-zinc-900" />
+        <span className="text-[10px] font-black uppercase tracking-[0.8em]">Synchronizing Intelligence Nodes...</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12 pb-24">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b-8 border-black pb-8">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 border-b border-zinc-100 pb-12">
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <Monitor className="w-8 h-8" />
-            <h1 className="text-4xl font-black uppercase tracking-tighter italic">Intelligence Hub</h1>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-3.5 bg-zinc-950 text-white rounded-2xl shadow-xl shadow-black/10">
+              <Monitor className="w-7 h-7" />
+            </div>
+            <div className="h-0.5 w-12 bg-zinc-900 rounded-full" />
           </div>
-          <p className="text-xs font-black text-zinc-500 uppercase tracking-[0.4em]">Real-Time Personnel Monitoring</p>
+          <h1 className="text-5xl font-black uppercase tracking-tight text-zinc-900 leading-none">Intelligence Hub</h1>
+          <p className="text-[10px] uppercase tracking-[0.5em] font-black text-zinc-400 mt-4 italic flex items-center gap-3">
+             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" /> Personnel Network Active
+          </p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+        <div className="flex flex-col sm:flex-row items-center gap-6">
+          <div className="relative group">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-300 group-focus-within:text-zinc-900 transition-colors" />
             <input 
               type="text"
               placeholder="SEARCH NODE..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 pr-6 py-3 border-4 border-black text-xs font-black uppercase outline-none focus:bg-zinc-50 transition-colors w-64"
+              className="pl-14 pr-8 py-5 bg-white border border-zinc-100 rounded-[2rem] text-[10px] font-black uppercase tracking-widest outline-none focus:border-zinc-950 transition-all w-full sm:w-80 shadow-sm"
             />
           </div>
-          <div className="flex border-4 border-black">
+          <div className="flex bg-white p-1.5 rounded-[1.8rem] border border-zinc-100 shadow-sm">
             <button 
               onClick={() => setViewMode('grid')}
-              className={`p-2 ${viewMode === 'grid' ? 'bg-black text-white' : 'hover:bg-zinc-100'}`}
+              className={`p-4 rounded-2xl transition-all ${viewMode === 'grid' ? 'bg-zinc-950 text-white shadow-xl' : 'text-zinc-400 hover:text-zinc-950 hover:bg-zinc-50'}`}
             >
               <LayoutGrid className="w-5 h-5" />
             </button>
             <button 
               onClick={() => setViewMode('list')}
-              className={`p-2 border-l-4 border-black ${viewMode === 'list' ? 'bg-black text-white' : 'hover:bg-zinc-100'}`}
+              className={`p-4 rounded-2xl transition-all ${viewMode === 'list' ? 'bg-zinc-950 text-white shadow-xl' : 'text-zinc-400 hover:text-zinc-950 hover:bg-zinc-50'}`}
             >
               <List className="w-5 h-5" />
             </button>
@@ -123,52 +129,67 @@ export default function MonitoringDashboard() {
       </div>
 
       {/* Grid of Employees */}
-      <div className={`grid gap-8 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
+      <div className={`grid gap-10 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
         {filteredEmployees.map((emp) => (
           <motion.div
             key={emp._id}
             layout
-            className="group relative bg-white border-4 border-black p-6 hover:shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] transition-all"
+            className="group relative bg-white rounded-[3.5rem] border border-zinc-100 p-10 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden"
           >
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-black text-white flex items-center justify-center font-black text-xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
+            <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-100 transition-opacity">
+               <div className="p-3 bg-zinc-50 rounded-2xl">
+                  <Activity className="h-5 w-5 text-zinc-300" />
+               </div>
+            </div>
+
+            <div className="flex items-start justify-between mb-10">
+              <div className="flex items-center gap-6">
+                <div className="w-16 h-16 bg-zinc-950 text-white rounded-[1.5rem] flex items-center justify-center font-black text-2xl shadow-xl shadow-black/10 group-hover:rotate-6 transition-transform duration-500">
                   {emp.name[0].toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-sm font-black uppercase tracking-tight">{emp.name}</h3>
-                  <div className="flex items-center gap-2">
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{emp.email}</p>
-                    <span className="text-[8px] bg-zinc-100 px-1 font-black uppercase border border-black/10">{emp.role}</span>
+                  <h3 className="text-xl font-black uppercase tracking-tight text-zinc-900 leading-none">{emp.name}</h3>
+                  <div className="flex flex-col gap-1 mt-2">
+                    <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-[0.2em]">{emp.email}</p>
+                    <span className="text-[8px] text-indigo-600 font-black uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded w-fit">{emp.role}</span>
                   </div>
                 </div>
               </div>
-              <div className={`px-2 py-1 border-2 border-black text-[8px] font-black uppercase ${emp.isSharing ? 'bg-green-500 text-white animate-pulse' : 'bg-zinc-100 text-zinc-400'}`}>
-                {emp.isSharing ? 'SHARING' : 'IDLE'}
+              <div className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest border shadow-sm ${emp.isSharing ? 'bg-emerald-500 text-white border-emerald-400 animate-pulse' : 'bg-zinc-50 text-zinc-400 border-zinc-100'}`}>
+                {emp.isSharing ? 'LIVE_STREAMING' : 'SIGNAL_IDLE'}
               </div>
             </div>
 
             {emp.isSharing ? (
-              <div className="mb-6 cursor-pointer" onClick={() => setSelectedUser(emp)}>
-                <LiveStreamViewer userId={emp._id} userName={emp.name} />
+              <div className="mb-10 cursor-pointer group/stream relative" onClick={() => setSelectedUser(emp)}>
+                <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white">
+                  <LiveStreamViewer userId={emp._id} userName={emp.name} />
+                </div>
+                <div className="absolute inset-0 bg-zinc-950/40 rounded-[2.5rem] flex items-center justify-center opacity-0 group-hover/stream:opacity-100 transition-all backdrop-blur-[2px]">
+                   <div className="p-5 bg-white text-zinc-950 rounded-3xl shadow-2xl scale-75 group-hover/stream:scale-100 transition-transform duration-500">
+                      <LayoutGrid className="h-8 w-8" />
+                   </div>
+                </div>
               </div>
             ) : (
-              <div className="aspect-video bg-zinc-50 border-4 border-black border-dashed flex flex-col items-center justify-center text-zinc-300 mb-6">
-                <AlertCircle className="w-8 h-8 mb-2" />
-                <p className="text-[10px] font-black uppercase tracking-widest">No Active Stream</p>
+              <div className="aspect-video bg-[#fafafa] rounded-[2.5rem] border border-zinc-100 border-dashed flex flex-col items-center justify-center text-zinc-300 mb-10 space-y-4">
+                <div className="p-4 bg-white rounded-3xl shadow-sm">
+                   <AlertCircle className="w-6 h-6 text-zinc-200" />
+                </div>
+                <p className="text-[9px] font-black uppercase tracking-[0.3em]">No Active Transmission</p>
               </div>
             )}
 
-            <div className="flex items-center justify-between border-t-4 border-black pt-4">
-              <div className="flex items-center gap-2">
-                <Clock className="w-3 h-3 text-zinc-400" />
-                <span className="text-[9px] font-black uppercase text-zinc-500">Last Seen: Just Now</span>
+            <div className="flex items-center justify-between pt-8 border-t border-zinc-50">
+              <div className="flex items-center gap-3">
+                <Clock className="w-4 h-4 text-zinc-300" />
+                <span className="text-[9px] font-black uppercase text-zinc-400 tracking-widest">Latency: 14ms <span className="text-emerald-500 mx-2">●</span> Optimized</span>
               </div>
               <button 
                 onClick={() => setSelectedUser(emp)}
-                className="p-2 border-2 border-black hover:bg-black hover:text-white transition-all"
+                className="p-5 bg-zinc-50 text-zinc-900 rounded-[1.8rem] hover:bg-zinc-950 hover:text-white transition-all shadow-sm hover:scale-110 active:scale-95 group/btn"
               >
-                <MessageSquare className="w-4 h-4" />
+                <MessageSquare className="w-5 h-5 group-hover/btn:rotate-12 transition-transform" />
               </button>
             </div>
           </motion.div>
@@ -178,99 +199,116 @@ export default function MonitoringDashboard() {
       {/* Expanded Monitoring & Chat Modal */}
       <AnimatePresence>
         {selectedUser && (
-          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-10">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/90 backdrop-blur-md"
+              className="absolute inset-0 bg-white/40 backdrop-blur-3xl"
               onClick={() => setSelectedUser(null)}
             />
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="relative bg-white border-8 border-black w-full max-w-6xl h-[85vh] flex flex-col shadow-[40px_40px_0px_0px_rgba(0,0,0,0.3)]"
+              initial={{ scale: 0.95, opacity: 0, y: 40 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 40 }}
+              className="relative bg-white border border-zinc-100 w-full max-w-7xl h-[90vh] flex flex-col shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] rounded-[4rem] overflow-hidden"
             >
               {/* Modal Header */}
-              <div className="p-6 border-b-8 border-black flex items-center justify-between bg-black text-white">
-                <div className="flex items-center gap-4">
-                  <Monitor className="w-6 h-6" />
+              <div className="p-10 border-b border-zinc-50 flex items-center justify-between bg-white z-20">
+                <div className="flex items-center gap-6">
+                  <div className="w-16 h-16 bg-zinc-950 text-white rounded-[1.8rem] flex items-center justify-center shadow-2xl shadow-black/20">
+                    <Monitor className="w-7 h-7" />
+                  </div>
                   <div>
-                    <h2 className="text-xl font-black uppercase tracking-tighter italic leading-none">{selectedUser.name}</h2>
-                    <p className="text-[9px] text-zinc-400 uppercase tracking-[0.3em] font-bold mt-1">Direct Monitoring Link</p>
+                    <h2 className="text-3xl font-black uppercase tracking-tight text-zinc-900 leading-none">{selectedUser.name}</h2>
+                    <p className="text-[10px] text-zinc-400 uppercase tracking-[0.4em] font-black mt-3 italic flex items-center gap-3">
+                       <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" /> Direct Intelligence Uplink Established
+                    </p>
                   </div>
                 </div>
-                <button onClick={() => setSelectedUser(null)} className="p-2 border-2 border-white hover:bg-white hover:text-black transition-all">
-                  <AlertCircle className="w-5 h-5 rotate-45" />
+                <button onClick={() => setSelectedUser(null)} className="p-5 bg-zinc-50 text-zinc-400 rounded-3xl hover:bg-rose-500 hover:text-white transition-all shadow-sm group">
+                  <X className="w-6 h-6 group-hover:rotate-90 transition-transform" />
                 </button>
               </div>
 
               {/* Modal Content */}
-              <div className="flex-1 flex overflow-hidden">
+              <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
                 {/* Main View */}
-                <div className="flex-[2] bg-zinc-50 p-8 overflow-y-auto">
+                <div className="flex-[2] bg-[#fdfdfd] p-10 overflow-y-auto">
                   {selectedUser.isSharing ? (
                     <div className="h-full flex flex-col">
-                      <div className="flex-1">
+                      <div className="flex-1 rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white bg-black ring-1 ring-zinc-100">
                         <LiveStreamViewer userId={selectedUser._id} userName={selectedUser.name} />
                       </div>
-                      <div className="mt-8 grid grid-cols-3 gap-4">
-                        <div className="p-4 bg-white border-4 border-black">
-                          <p className="text-[9px] font-black text-zinc-400 uppercase mb-1">Active Time</p>
-                          <p className="text-lg font-black uppercase">04:22:15</p>
-                        </div>
-                        <div className="p-4 bg-white border-4 border-black">
-                          <p className="text-[9px] font-black text-zinc-400 uppercase mb-1">Idle Time</p>
-                          <p className="text-lg font-black uppercase">00:12:05</p>
-                        </div>
-                        <div className="p-4 bg-white border-4 border-black">
-                          <p className="text-[9px] font-black text-zinc-400 uppercase mb-1">Efficiency</p>
-                          <p className="text-lg font-black uppercase text-green-600">92%</p>
-                        </div>
+                      <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        {[
+                          { label: 'Active Sessions', val: '04:22:15', icon: Clock },
+                          { label: 'Node Status', val: 'Optimized', icon: Zap },
+                          { label: 'Network Integrity', val: '98.4%', icon: Globe }
+                        ].map((stat, i) => (
+                          <div key={i} className="p-8 bg-white border border-zinc-100 rounded-[2.5rem] shadow-sm">
+                            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                               <stat.icon className="h-3 w-3" /> {stat.label}
+                            </p>
+                            <p className="text-2xl font-black uppercase tracking-tight text-zinc-900">{stat.val}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ) : (
-                    <div className="h-full flex flex-col items-center justify-center text-zinc-300">
-                      <Monitor className="w-20 h-20 mb-4 opacity-10" />
-                      <p className="text-2xl font-black uppercase tracking-widest italic">Signal Offline</p>
+                    <div className="h-full flex flex-col items-center justify-center text-zinc-200 gap-8">
+                      <div className="p-16 bg-zinc-50 rounded-[5rem] border border-zinc-100 border-dashed">
+                        <Monitor className="w-24 h-24 opacity-20" />
+                      </div>
+                      <p className="text-3xl font-black uppercase tracking-[0.3em] italic text-zinc-300">Uplink Offline</p>
                     </div>
                   )}
                 </div>
 
                 {/* Side Chat */}
-                <div className="flex-1 border-l-8 border-black flex flex-col bg-white">
-                  <div className="p-4 border-b-4 border-black bg-zinc-50 flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Admin Comms</span>
+                <div className="flex-1 border-l border-zinc-50 flex flex-col bg-white">
+                  <div className="p-8 border-b border-zinc-50 bg-[#fafafa]/50 flex items-center gap-4">
+                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                       <MessageSquare className="w-5 h-5 text-zinc-950" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-900">Admin Command Center</span>
+                      <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Direct Node Messaging</p>
+                    </div>
                   </div>
                   
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                  <div className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar bg-[#fdfdfd]">
                     {(messages[selectedUser._id] || []).map((msg, i) => (
-                      <div key={i} className="p-3 bg-black text-white border-2 border-black text-[10px] font-bold uppercase tracking-tight">
+                      <div key={i} className="p-6 bg-zinc-950 text-white rounded-[1.8rem] rounded-tr-none text-[11px] font-semibold tracking-tight shadow-xl shadow-black/10">
                         {msg}
+                        <div className="mt-3 text-[8px] font-black text-zinc-500 uppercase tracking-widest">TRANSMITTED :: SUCCESS</div>
                       </div>
                     ))}
-                    {messages[selectedUser._id]?.length === 0 && (
-                      <p className="text-[9px] font-bold text-zinc-400 uppercase text-center mt-10">No messages sent in this session.</p>
+                    {(!messages[selectedUser._id] || messages[selectedUser._id].length === 0) && (
+                      <div className="flex flex-col items-center justify-center h-full opacity-20 gap-4">
+                         <div className="p-6 border-4 border-dashed border-zinc-200 rounded-[3rem]">
+                            <MessageSquare className="h-10 w-10 text-zinc-300" />
+                         </div>
+                         <p className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-400">No active comms</p>
+                      </div>
                     )}
                   </div>
 
-                  <div className="p-4 border-t-8 border-black bg-zinc-50">
-                    <div className="flex gap-2">
+                  <div className="p-8 border-t border-zinc-50 bg-white">
+                    <div className="flex gap-4 p-2 bg-zinc-50 rounded-[2.5rem] border border-zinc-100 shadow-inner group-focus-within:border-zinc-950 transition-all">
                       <input 
                         type="text"
-                        placeholder="SEND COMMAND..."
+                        placeholder="ENTER COMMAND..."
                         value={inputMessage}
                         onChange={(e) => setInputMessage(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                        className="flex-1 p-3 border-4 border-black text-[10px] font-black uppercase outline-none focus:bg-white"
+                        className="flex-1 bg-transparent px-6 py-4 text-[11px] font-black uppercase tracking-widest outline-none text-zinc-900 placeholder:text-zinc-300"
                       />
                       <button 
                         onClick={handleSendMessage}
-                        className="px-4 bg-black text-white border-4 border-black hover:bg-white hover:text-black transition-all"
+                        className="p-5 bg-zinc-950 text-white rounded-[1.8rem] hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/20"
                       >
-                        <RefreshCw className="w-4 h-4 rotate-90" />
+                        <Send className="w-5 h-5" />
                       </button>
                     </div>
                   </div>

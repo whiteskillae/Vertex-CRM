@@ -46,27 +46,36 @@ exports.chatWithAI = async (req, res) => {
     if (!message) return res.status(400).json({ message: 'Message is required' });
 
     // ── Check Daily Limit ──────────────────────────────────────────────────
-    const user = await User.findById(userId);
+    let user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
+    // Initialize aiUsage if missing
+    if (!user.aiUsage) {
+      user.aiUsage = { count: 0, lastReset: new Date() };
+    }
+
     const now = new Date();
-    const lastReset = new Date(user.aiUsage?.lastReset || 0);
+    const lastReset = user.aiUsage.lastReset ? new Date(user.aiUsage.lastReset) : new Date(0);
     const isNewDay = now.toDateString() !== lastReset.toDateString();
 
     if (isNewDay) {
-      user.aiUsage = { count: 0, lastReset: now };
+      user.aiUsage.count = 0;
+      user.aiUsage.lastReset = now;
+      await user.save();
     }
 
     if (user.role !== 'admin' && user.aiUsage.count >= 20) {
       return res.status(429).json({ 
-        message: 'Daily AI limit reached (20/20). Please wait until tomorrow or contact an administrator.',
+        message: 'DAILY QUOTA EXCEEDED: Operational limit reached (20/20). System reset in 24h.',
         limitReached: true
       });
     }
 
     // ── Call Gemini API ────────────────────────────────────────────────────
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ message: 'AI configuration error: GEMINI_API_KEY missing.' });
+    const currentApiKey = process.env.GEMINI_API_KEY;
+    if (!currentApiKey) {
+      console.error('❌ AI ERROR: GEMINI_API_KEY is missing');
+      return res.status(500).json({ message: 'NEURAL LINK OFFLINE: AI configuration error. Contact Admin.' });
     }
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });

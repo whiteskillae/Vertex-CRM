@@ -42,95 +42,134 @@ export default function LogsPage() {
 
   const getActionColor = (action: string) => {
     switch(action) {
-      case 'delete': return 'text-red-600 bg-red-50 border-red-200';
-      case 'create': return 'text-green-600 bg-green-50 border-green-200';
-      case 'update': return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'import': return 'text-purple-600 bg-purple-50 border-purple-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+      case 'delete': return 'text-rose-500 bg-rose-50/50 border-rose-100';
+      case 'create': return 'text-emerald-500 bg-emerald-50/50 border-emerald-100';
+      case 'update': return 'text-indigo-500 bg-indigo-50/50 border-indigo-100';
+      case 'import': return 'text-amber-500 bg-amber-50/50 border-amber-100';
+      default: return 'text-zinc-500 bg-zinc-50/50 border-zinc-100';
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-10 pb-24 max-w-[1400px] mx-auto">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-zinc-100 pb-12">
         <div>
-          <h1 className="text-3xl font-black uppercase tracking-tighter italic">System Activity Logs</h1>
-          <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-gray-400">Immutable Audit Trail</p>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-3.5 bg-zinc-950 text-white rounded-2xl shadow-xl shadow-black/10">
+              <ScrollText className="h-7 w-7" />
+            </div>
+            <div className="h-0.5 w-12 bg-zinc-900 rounded-full" />
+          </div>
+          <h1 className="text-5xl font-black uppercase tracking-tight text-zinc-900 leading-none">Audit Trail</h1>
+          <p className="text-[10px] uppercase tracking-[0.5em] font-black text-zinc-400 mt-4 italic flex items-center gap-3">
+             System Activity / Immutable Records
+          </p>
         </div>
+
         <button 
           onClick={fetchLogs}
-          className="p-2 border-2 border-black hover:bg-black hover:text-white transition-all"
+          className="p-5 bg-white border border-zinc-100 rounded-3xl hover:bg-zinc-950 hover:text-white transition-all shadow-sm hover:scale-105 active:scale-95 group"
         >
-          <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCcw className={`h-6 w-6 text-zinc-400 group-hover:text-white ${loading ? 'animate-spin' : ''}`} />
         </button>
       </div>
 
-      <div className="bg-black text-green-500 p-6 border-4 border-zinc-800 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] font-mono text-xs overflow-x-auto">
-        <div className="flex items-center gap-2 mb-4 border-b border-zinc-800 pb-2">
-          <Terminal className="h-4 w-4" />
-          <span className="uppercase tracking-widest font-black text-[10px]">Security Event Stream</span>
+      <div className="bg-zinc-950 rounded-[3rem] p-10 shadow-2xl relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+           <Terminal className="h-40 w-40 text-white" />
         </div>
         
-        <div className="space-y-3">
+        <div className="flex items-center gap-4 mb-8 border-b border-white/5 pb-8 relative z-10">
+          <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-zinc-500">
+             <Terminal className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Security Event Stream</p>
+            <p className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest mt-1 italic font-mono">NODE_LINK_ESTABLISHED :: FETCHING_LOGS_CHUNK_{page}</p>
+          </div>
+        </div>
+        
+        <div className="space-y-4 font-mono text-[11px] relative z-10">
           {loading && logs.length === 0 ? (
-            <div className="flex items-center gap-2 animate-pulse">
-              <span className="text-zinc-600">[QUERYING]</span> Establishing secure link to audit node...
+            <div className="flex items-center gap-4 py-20 justify-center flex-col opacity-40">
+               <Loader2 className="h-8 w-8 animate-spin text-white" />
+               <p className="uppercase tracking-[0.4em] text-zinc-400 text-[10px] font-black">Decrypting audit node data...</p>
             </div>
           ) : logs.length === 0 ? (
-            <div className="text-zinc-600 italic">No security events recorded in this cycle.</div>
+            <div className="py-20 text-center opacity-30 italic">
+               <p className="uppercase tracking-widest text-zinc-400">No security events recorded in this cycle.</p>
+            </div>
           ) : (
-            logs.map((log: any) => (
-              <motion.div 
-                initial={{ x: -10, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                key={log._id} 
-                className="flex flex-col md:flex-row md:items-center gap-2 border-b border-zinc-900 pb-2 hover:bg-zinc-900 transition-colors"
-              >
-                <span className="text-zinc-600 whitespace-nowrap">[{new Date(log.createdAt).toLocaleString()}]</span>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${getActionColor(log.action)}`}>
-                  {log.action}
-                </span>
-                <span className="text-zinc-400 uppercase font-bold">[{log.entity}]</span>
-                <span className="text-white">
-                  {log.user?.name || 'Unknown User'} 
-                  <span className="text-zinc-500 mx-2">ID: {log.user?._id?.substring(0,8)}</span>
-                </span>
-                <span className="text-zinc-500 truncate italic">
-                  - {JSON.stringify(log.details?.url || log.details || "")}
-                </span>
-              </motion.div>
-            ))
+            <div className="space-y-4">
+              {logs.map((log: any, i) => (
+                <motion.div 
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.02 }}
+                  key={log._id} 
+                  className="flex flex-col xl:flex-row xl:items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all group border border-transparent hover:border-white/5"
+                >
+                  <span className="text-zinc-600 font-bold whitespace-nowrap opacity-60">[{format(new Date(log.createdAt), "HH:mm:ss")}]</span>
+                  
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase border whitespace-nowrap ${getActionColor(log.action)}`}>
+                      {log.action}
+                    </span>
+                    <span className="text-zinc-400 uppercase font-black tracking-widest text-[9px] min-w-[80px]">[{log.entity}]</span>
+                    
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-zinc-100 font-bold truncate">
+                        {log.user?.name || 'ROOT'} 
+                      </span>
+                      <span className="text-zinc-700 text-[9px] font-bold">UID_{log.user?._id?.substring(0,6)}</span>
+                    </div>
+
+                    <div className="h-1 w-1 bg-zinc-800 rounded-full hidden xl:block" />
+                    
+                    <span className="text-zinc-500 truncate italic opacity-60 group-hover:opacity-100 transition-opacity">
+                      {JSON.stringify(log.details?.url || log.details || "SYSTEM_OPERATIONAL").substring(0, 100)}
+                    </span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           )}
         </div>
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between pt-4">
-        <p className="text-[10px] font-bold uppercase text-gray-400">Sequence {page} of {totalPages}</p>
-        <div className="flex gap-2">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-4">
+        <p className="text-[10px] font-black uppercase text-zinc-400 tracking-[0.3em]">
+          Displaying Fragment {page} <span className="mx-2 text-zinc-200">/</span> {totalPages} Chunks Available
+        </p>
+        <div className="flex gap-4">
           <button 
             disabled={page === 1}
             onClick={() => setPage(page - 1)}
-            className="p-2 border-2 border-black hover:bg-black hover:text-white disabled:opacity-30 transition-all"
+            className="flex items-center gap-2 px-8 py-4 bg-white border border-zinc-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-950 hover:text-white disabled:opacity-20 transition-all shadow-sm"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" /> Previous
           </button>
           <button 
             disabled={page === totalPages}
             onClick={() => setPage(page + 1)}
-            className="p-2 border-2 border-black hover:bg-black hover:text-white disabled:opacity-30 transition-all"
+            className="flex items-center gap-2 px-8 py-4 bg-white border border-zinc-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-950 hover:text-white disabled:opacity-20 transition-all shadow-sm"
           >
-            <ChevronRight className="h-4 w-4" />
+            Next <ChevronRight className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      <div className="p-4 bg-red-50 border-2 border-red-200 flex gap-4 items-start">
-        <Shield className="h-5 w-5 text-red-600 mt-1" />
-        <div>
-          <p className="text-xs font-black uppercase text-red-700">Administrative Notice</p>
-          <p className="text-[10px] font-medium text-red-600 uppercase tracking-wider mt-1">
-            Activity logs are immutable and cannot be deleted or modified by any user role. This ensures a transparent audit trail for all system modifications.
+      <div className="p-10 bg-zinc-50 rounded-[2.5rem] border border-zinc-100 flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
+        <div className="p-4 bg-white rounded-2xl shadow-sm">
+           <Shield className="h-6 w-6 text-zinc-950" />
+        </div>
+        <div className="space-y-2">
+          <p className="text-xs font-black uppercase text-zinc-900 tracking-wider">Administrative Integrity Notice</p>
+          <p className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest leading-relaxed max-w-2xl">
+            Activity logs are immutable and cryptographically linked to prevent modification. 
+            Vertex system protocols mandate a 100% transparent audit trail for all administrative actions.
           </p>
         </div>
       </div>

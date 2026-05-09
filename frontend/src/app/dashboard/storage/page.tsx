@@ -78,51 +78,67 @@ export default function StoragePage() {
 
   if (user?.role !== 'admin') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black p-6">
-        <div className="text-center space-y-6">
-          <AlertCircle className="h-24 w-24 text-red-600 mx-auto animate-pulse" />
-          <h1 className="text-6xl font-black text-white uppercase italic tracking-tighter">Access Denied</h1>
-          <p className="text-zinc-500 font-bold uppercase tracking-[0.5em]">Storage Vault Restricted to Admin Nodes</p>
+      <div className="min-h-[80vh] flex flex-col items-center justify-center p-8">
+        <div className="w-full max-w-md p-12 bg-white rounded-[3.5rem] border border-zinc-100 shadow-2xl text-center space-y-8">
+          <div className="w-24 h-24 bg-rose-50 rounded-[2.5rem] flex items-center justify-center mx-auto">
+            <AlertCircle className="h-10 w-10 text-rose-500 animate-pulse" />
+          </div>
+          <div className="space-y-4">
+            <h1 className="text-4xl font-black uppercase tracking-tight text-zinc-900 leading-none">Security Alert</h1>
+            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] leading-relaxed">
+              Storage Vault Access Restricted. Admin Node Synchronization Required.
+            </p>
+          </div>
+          <div className="h-1 w-12 bg-rose-500 rounded-full mx-auto" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-10 pb-20 max-w-[1400px] mx-auto px-4 sm:px-0">
+    <div className="space-y-12 pb-24 max-w-[1400px] mx-auto">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-zinc-100 pb-12">
         <div>
-          <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter italic text-black leading-none">Storage Vault</h1>
-          <p className="text-[10px] uppercase tracking-[0.4em] font-black text-gray-400 mt-3">Centralized Asset Intelligence — Cloudinary Sync Active</p>
-        </div>
-        <div className="flex items-center gap-4 p-4 bg-zinc-100 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-          <HardDrive className="h-8 w-8 text-black" />
-          <div>
-            <p className="text-[10px] font-black uppercase text-gray-500">Total Assets Tracked</p>
-            <p className="text-2xl font-black">{files.length}</p>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-3.5 bg-zinc-950 text-white rounded-2xl shadow-xl shadow-black/10">
+              <HardDrive className="h-7 w-7" />
+            </div>
+            <div className="h-0.5 w-12 bg-indigo-500 rounded-full" />
           </div>
+          <h1 className="text-5xl font-black uppercase tracking-tight text-zinc-900 leading-none">Storage Vault</h1>
+          <p className="text-[10px] uppercase tracking-[0.5em] font-black text-zinc-400 mt-4 italic flex items-center gap-3">
+             Asset Intelligence / Cloudinary Sync
+          </p>
+        </div>
+
+        <div className="flex items-center gap-6 px-10 py-6 bg-zinc-50 rounded-[2.5rem] border border-zinc-100/50 shadow-sm">
+           <Activity className="h-6 w-6 text-zinc-400" />
+           <div>
+              <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Total Monitored Assets</p>
+              <p className="text-xl font-black text-zinc-950">{files.length}</p>
+           </div>
         </div>
       </div>
 
       {/* Control Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 relative">
-          <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        <div className="lg:col-span-8 relative group">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-300 group-focus-within:text-zinc-900 transition-colors" />
           <input 
             type="text" 
             placeholder="LOCATE ASSET BY TITLE OR OWNER..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-16 pr-6 py-6 border-8 border-black text-lg font-black uppercase outline-none focus:bg-zinc-50 transition-all placeholder:text-gray-300"
+            className="w-full bg-white border border-zinc-100 rounded-[2rem] p-6 pl-16 text-[10px] font-black uppercase tracking-[0.2em] outline-none focus:border-zinc-900 transition-all shadow-xl shadow-black/[0.02]"
           />
         </div>
-        <div className="relative">
-          <Filter className="absolute left-6 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400" />
+        <div className="lg:col-span-4 relative group">
+          <Filter className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-300 group-focus-within:text-zinc-900 transition-colors" />
           <select 
             value={filterSource}
             onChange={(e) => setFilterSource(e.target.value)}
-            className="w-full pl-16 pr-6 py-6 border-8 border-black text-lg font-black uppercase outline-none appearance-none bg-white focus:bg-zinc-50 transition-all"
+            className="w-full bg-white border border-zinc-100 rounded-[2rem] p-6 pl-16 text-[10px] font-black uppercase tracking-[0.2em] outline-none focus:border-zinc-900 transition-all shadow-xl shadow-black/[0.02] appearance-none cursor-pointer"
           >
             <option value="all">ALL SOURCES</option>
             <option value="Task">TASKS</option>
@@ -134,63 +150,69 @@ export default function StoragePage() {
 
       {/* Files Grid */}
       {loading ? (
-        <div className="p-40 flex flex-col items-center justify-center border-8 border-black bg-white shadow-[20px_20px_0px_0px_rgba(0,0,0,0.05)]">
-          <Loader2 className="animate-spin h-16 w-16 text-black mb-6" />
-          <p className="text-xs font-black uppercase tracking-[0.5em]">Establishing Vault Connection...</p>
+        <div className="py-40 flex flex-col items-center justify-center opacity-40">
+          <Loader2 className="animate-spin h-12 w-12 text-black mb-6" />
+          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-400">Establishing Vault Linkage...</p>
         </div>
       ) : filteredFiles.length === 0 ? (
-        <div className="p-32 text-center border-8 border-black bg-white opacity-40 italic">
-          <p className="text-2xl font-black uppercase tracking-widest">No assets detected in this sector</p>
+        <div className="py-40 flex flex-col items-center justify-center bg-white rounded-[3.5rem] border border-dashed border-zinc-200">
+          <div className="w-20 h-20 bg-zinc-50 rounded-full flex items-center justify-center mb-6">
+            <Search className="h-8 w-8 text-zinc-200" />
+          </div>
+          <p className="text-[11px] font-black text-zinc-300 uppercase tracking-[0.3em]">No assets detected in this sector</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-          <AnimatePresence>
+          <AnimatePresence mode="popLayout">
             {filteredFiles.map((file, idx) => (
               <motion.div 
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ delay: idx * 0.05 }}
-                className="bg-white border-8 border-black p-8 hover:shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] transition-all group relative flex flex-col justify-between"
+                key={file.id || idx}
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3, delay: idx * 0.05 }}
+                className="bg-white rounded-[3rem] border border-zinc-100 p-10 hover:shadow-2xl transition-all duration-500 group relative flex flex-col h-full"
               >
-                <div>
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="p-4 bg-zinc-100 border-4 border-black group-hover:bg-black group-hover:text-white transition-all">
+                <div className="flex-1">
+                  <div className="flex items-start justify-between mb-8">
+                    <div className="w-16 h-16 bg-zinc-50 rounded-[1.5rem] flex items-center justify-center text-zinc-400 group-hover:bg-zinc-950 group-hover:text-white transition-all duration-500 shadow-sm">
                       {getFileIcon(file.url)}
                     </div>
-                    <span className="text-[9px] font-black uppercase px-3 py-1 bg-black text-white italic">
+                    <span className="text-[9px] font-black uppercase tracking-widest px-4 py-1.5 bg-zinc-950 text-white rounded-full">
                       {file.source}
                     </span>
                   </div>
 
-                  <h3 className="text-xl font-black uppercase italic tracking-tighter mb-2 line-clamp-2 leading-none">
+                  <h3 className="text-xl font-black uppercase tracking-tight text-zinc-900 mb-4 line-clamp-2 leading-[1.1]">
                     {file.sourceTitle}
                   </h3>
                   
-                  <div className="space-y-2 mb-8">
-                    <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase">
-                      <span className="font-black text-black">Owner:</span> {file.owner}
+                  <div className="space-y-3 mb-10">
+                    <div className="flex items-center gap-3 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                      <div className="w-1 h-1 bg-indigo-500 rounded-full" />
+                      <span className="text-zinc-300">Owner:</span> <span className="text-zinc-600 font-black">{file.owner}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase">
-                      <span className="font-black text-black">Stored:</span> {format(new Date(file.createdAt), "dd MMM yyyy HH:mm")}
+                    <div className="flex items-center gap-3 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                      <div className="w-1 h-1 bg-zinc-200 rounded-full" />
+                      <span className="text-zinc-300">Stored:</span> <span className="text-zinc-600 font-black">{format(new Date(file.createdAt), "dd MMM yyyy")}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex gap-4">
+                <div className="flex gap-4 mt-auto">
                   <a 
                     href={file.url} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex-1 flex items-center justify-center gap-3 py-4 bg-black text-white text-[10px] font-black uppercase tracking-widest border-4 border-black hover:bg-zinc-800 transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,0.1)] active:shadow-none"
+                    className="flex-1 flex items-center justify-center gap-4 py-5 bg-zinc-50 text-zinc-900 text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-zinc-950 hover:text-white transition-all shadow-sm"
                   >
-                    View <ExternalLink className="h-4 w-4" />
+                    View Asset <ExternalLink className="h-4 w-4" />
                   </a>
                   <button 
                     onClick={() => handleDelete(file)}
                     disabled={deletingId === file.url}
-                    className="p-4 border-4 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all shadow-[6px_6px_0px_0px_rgba(220,38,38,0.1)] active:shadow-none disabled:opacity-50"
+                    className="p-5 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-500 hover:text-white transition-all shadow-sm disabled:opacity-50"
                   >
                     {deletingId === file.url ? <Loader2 className="animate-spin h-5 w-5" /> : <Trash2 className="h-5 w-5" />}
                   </button>

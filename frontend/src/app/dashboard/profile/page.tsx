@@ -65,67 +65,66 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-full bg-[#fafafa]">
+    <div className="min-h-full bg-zinc-50/50">
       {/* Premium Hero Header */}
-      <div className="bg-white border-b border-zinc-100 mb-8">
-        <div className="max-w-[1400px] mx-auto px-8 py-10">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div className="flex items-center gap-8">
+      <div className="bg-white border-b border-zinc-100 mb-12">
+        <div className="max-w-[1600px] mx-auto px-10 py-16">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-12">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-12">
               <div className="relative group">
-                <div className="w-32 h-32 bg-indigo-600 rounded-[2.5rem] flex items-center justify-center text-white text-4xl font-bold shadow-2xl shadow-indigo-500/20 relative overflow-hidden">
-                  {user?.name?.[0]?.toUpperCase() || <User className="w-12 h-12" />}
-                  {/* Subtle glass effect */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent" />
+                <div className="w-44 h-44 bg-zinc-950 rounded-[3.5rem] flex items-center justify-center text-white text-6xl font-black shadow-2xl shadow-black/20 relative overflow-hidden group-hover:scale-[1.02] transition-transform duration-700">
+                  {user?.name?.[0]?.toUpperCase() || <User className="w-20 h-20" />}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-black/40 to-transparent" />
                 </div>
-                <button className="absolute -bottom-2 -right-2 p-3 bg-white border border-zinc-100 rounded-2xl text-zinc-600 hover:text-indigo-600 shadow-xl transition-all hover:scale-110">
-                  <Camera className="w-5 h-5" />
+                <button className="absolute -bottom-2 -right-2 p-5 bg-white border border-zinc-100 rounded-[2rem] text-zinc-400 hover:text-zinc-950 shadow-2xl transition-all hover:scale-110">
+                  <Camera className="w-6 h-6" />
                 </button>
               </div>
               
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">{user?.name || "Member Name"}</h1>
-                  <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-indigo-100/50">
+              <div className="space-y-4 text-center md:text-left">
+                <div className="flex flex-col md:flex-row items-center gap-5">
+                  <h1 className="text-5xl font-black text-zinc-950 tracking-tight uppercase leading-none">{user?.name || "Member Name"}</h1>
+                  <span className="px-5 py-1.5 bg-zinc-950 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full shadow-lg shadow-black/10">
                     {user?.role || "Member"}
                   </span>
                 </div>
-                <p className="text-zinc-400 text-sm font-medium flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-zinc-300" /> {user?.email}
+                <p className="text-zinc-400 text-[13px] font-black uppercase tracking-widest flex items-center justify-center md:justify-start gap-3 italic">
+                  <Mail className="w-4 h-4 text-brand-indigo" /> {user?.email}
                 </p>
-                <div className="flex items-center gap-4 pt-2">
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-1 rounded-md">
-                    <CheckCircle2 className="w-3 h-3" /> System Verified
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 pt-4">
+                  <div className="flex items-center gap-2.5 text-[10px] font-black text-brand-emerald uppercase tracking-[0.2em] bg-brand-emerald/5 px-4 py-1.5 rounded-full border border-brand-emerald/10 shadow-sm">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> System Verified
                   </div>
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                    <Clock className="w-3 h-3" /> Active Since 2023
+                  <div className="flex items-center gap-2.5 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">
+                    <Clock className="w-3.5 h-3.5" /> Active Node Since 2023
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-4 w-full lg:w-auto">
               {!isEditing ? (
                 <button 
                   onClick={() => setIsEditing(true)}
-                  className="px-8 py-4 bg-zinc-900 text-white rounded-2xl text-xs font-bold uppercase tracking-wider hover:bg-black transition-all shadow-lg shadow-black/10 flex items-center gap-3"
+                  className="flex-1 lg:flex-none px-12 py-5 bg-zinc-950 text-white rounded-[2rem] text-[11px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-black/20 flex items-center justify-center gap-4 border border-white/10"
                 >
-                  <Cpu className="w-4 h-4" /> Edit Profile
+                  <Cpu className="w-4 h-4" /> Edit Profile Node
                 </button>
               ) : (
                 <>
                   <button 
                     onClick={() => setIsEditing(false)}
-                    className="px-8 py-4 bg-white border border-zinc-200 text-zinc-500 rounded-2xl text-xs font-bold uppercase tracking-wider hover:bg-zinc-50 transition-all"
+                    className="flex-1 lg:flex-none px-10 py-5 bg-white border border-zinc-200 text-zinc-500 rounded-[2rem] text-[11px] font-black uppercase tracking-widest hover:bg-zinc-50 transition-all shadow-sm"
                   >
                     Cancel
                   </button>
                   <button 
                     onClick={handleSave}
                     disabled={loading}
-                    className="px-8 py-4 bg-indigo-600 text-white rounded-2xl text-xs font-bold uppercase tracking-wider hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-3"
+                    className="flex-1 lg:flex-none px-10 py-5 bg-zinc-950 text-white rounded-[2rem] text-[11px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-black/20 flex items-center justify-center gap-4 border border-white/10"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    Save Changes
+                    Sync Changes
                   </button>
                 </>
               )}
@@ -134,50 +133,55 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="max-w-[1400px] mx-auto px-8 pb-20">
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+      <div className="max-w-[1600px] mx-auto px-10 pb-32">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-12">
           
           {/* Sidebar Metrics */}
-          <div className="xl:col-span-4 space-y-8">
+          <div className="xl:col-span-4 space-y-12">
             {/* Honor Score Premium Card */}
-            <div className="bg-zinc-900 rounded-[2.5rem] p-8 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-500/10 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-indigo-500/20 transition-all duration-700" />
+            <div className="bg-zinc-950 rounded-[3.5rem] p-10 relative overflow-hidden group shadow-2xl shadow-black/30 border border-white/5">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-[100px] group-hover:bg-white/10 transition-all duration-1000" />
               
               <div className="relative z-10">
-                <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Performance Index</h3>
-                  <Award className="w-5 h-5 text-indigo-400" />
+                <div className="flex items-center justify-between mb-12">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500">Performance Index</h3>
+                  <Award className="w-6 h-6 text-brand-amber" />
                 </div>
                 
-                <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-6xl font-bold text-white tracking-tighter">{user?.honorScore?.score || 0}</span>
-                  <span className="text-xl font-bold text-zinc-700">/100</span>
+                <div className="flex items-baseline gap-4 mb-3">
+                  <span className="text-8xl font-black text-white tracking-tighter italic">{user?.honorScore?.score || 0}</span>
+                  <span className="text-3xl font-black text-zinc-700">/100</span>
                 </div>
-                <p className="text-xs font-medium text-zinc-500 mb-8 uppercase tracking-widest">Efficiency Grade: A+</p>
+                <div className="flex items-center gap-3 mb-12">
+                  <div className="w-6 h-1 bg-brand-emerald rounded-full" />
+                  <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] italic">Efficiency Grade: A+</p>
+                </div>
                 
-                <div className="space-y-6">
+                <div className="space-y-8">
                   <div>
-                    <div className="flex justify-between text-[10px] font-bold text-zinc-400 uppercase mb-2">
-                      <span>Network Reliability</span>
-                      <span className="text-indigo-400">98%</span>
+                    <div className="flex justify-between text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3 px-1">
+                      <span>Neural Reliability</span>
+                      <span className="text-white">98%</span>
                     </div>
-                    <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="h-2 bg-zinc-900 rounded-full overflow-hidden border border-white/5">
                       <motion.div 
                         initial={{ width: 0 }}
-                        animate={{ width: '98%' }}
-                        className="h-full bg-gradient-to-r from-indigo-600 to-violet-600"
+                        whileInView={{ width: '98%' }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                        className="h-full bg-white shadow-[0_0_20px_rgba(255,255,255,0.3)]"
                       />
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-zinc-800/50 rounded-2xl border border-white/5">
-                      <p className="text-[9px] font-bold text-zinc-500 uppercase mb-1">Tasks Done</p>
-                      <p className="text-lg font-bold text-white">248</p>
+                  <div className="grid grid-cols-2 gap-5">
+                    <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10 group-hover:bg-white/10 transition-all duration-500">
+                      <p className="text-[9px] font-black text-zinc-500 uppercase mb-2 tracking-widest">Tasks Done</p>
+                      <p className="text-2xl font-black text-white italic">248</p>
                     </div>
-                    <div className="p-4 bg-zinc-800/50 rounded-2xl border border-white/5">
-                      <p className="text-[9px] font-bold text-zinc-500 uppercase mb-1">Uptime</p>
-                      <p className="text-lg font-bold text-white">99.9%</p>
+                    <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10 group-hover:bg-white/10 transition-all duration-500">
+                      <p className="text-[9px] font-black text-zinc-500 uppercase mb-2 tracking-widest">Node Uptime</p>
+                      <p className="text-2xl font-black text-white italic">99.9%</p>
                     </div>
                   </div>
                 </div>
@@ -185,22 +189,23 @@ export default function ProfilePage() {
             </div>
 
             {/* Quick System Info */}
-            <div className="bg-white rounded-[2.5rem] border border-zinc-100 p-8 shadow-sm">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-900 mb-6 flex items-center gap-3">
-                <Shield className="w-4 h-4 text-indigo-600" /> Security Manifest
+            <div className="bg-white rounded-[3.5rem] border border-zinc-100 p-10 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-1.5 bg-brand-indigo/30" />
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-950 mb-10 flex items-center gap-4">
+                <Shield className="w-5 h-5 text-zinc-400" /> Security Manifest
               </h3>
-              <div className="space-y-5">
+              <div className="space-y-6">
                 {[
                   { label: "IP Address", value: "192.168.1.1", status: "Protected" },
                   { label: "Access Level", value: user?.role || "Staff", status: "Verified" },
-                  { label: "Device Sync", value: "MacBook Pro", status: "Active" }
+                  { label: "Device Sync", value: "Enterprise Terminal", status: "Active" }
                 ].map((item, i) => (
-                  <div key={i} className="flex justify-between items-center py-3 border-b border-zinc-50 last:border-0">
+                  <div key={i} className="flex justify-between items-center py-4 border-b border-zinc-50 last:border-0 group cursor-pointer hover:translate-x-2 transition-transform duration-500">
                     <div>
-                      <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider mb-0.5">{item.label}</p>
-                      <p className="text-xs font-bold text-zinc-900">{item.value}</p>
+                      <p className="text-[9px] font-black text-zinc-300 uppercase tracking-[0.2em] mb-1.5">{item.label}</p>
+                      <p className="text-sm font-black text-zinc-950 uppercase italic tracking-tight">{item.value}</p>
                     </div>
-                    <span className="px-2 py-1 bg-zinc-50 text-[9px] font-bold text-zinc-500 rounded-md uppercase border border-zinc-100">
+                    <span className="px-4 py-1.5 bg-zinc-50 text-[9px] font-black text-zinc-400 rounded-full uppercase border border-zinc-100 tracking-widest group-hover:bg-zinc-950 group-hover:text-white group-hover:border-black transition-all">
                       {item.status}
                     </span>
                   </div>
@@ -211,9 +216,9 @@ export default function ProfilePage() {
 
           {/* Main Configuration Panel */}
           <div className="xl:col-span-8">
-            <div className="bg-white rounded-[2.5rem] border border-zinc-100 shadow-sm overflow-hidden min-h-[600px] flex flex-col">
+            <div className="bg-white rounded-[4rem] border border-zinc-100 shadow-2xl overflow-hidden min-h-[700px] flex flex-col">
               {/* Navigation Tabs */}
-              <div className="flex px-4 pt-4 border-b border-zinc-50 bg-[#fafafa]/50">
+              <div className="flex px-4 pt-4 border-b border-zinc-100 bg-zinc-50/50 gap-2">
                 {[
                   { id: 'core', label: 'Identity', icon: User },
                   { id: 'contact', label: 'Connectivity', icon: Globe },
@@ -224,13 +229,13 @@ export default function ProfilePage() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`
-                      flex items-center gap-2.5 px-8 py-5 text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all rounded-t-3xl
+                      flex items-center gap-3 px-10 py-5 text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap transition-all rounded-t-[2.5rem]
                       ${activeTab === tab.id 
-                        ? "bg-white text-indigo-600 border-x border-t border-zinc-100 -mb-[1px]" 
-                        : "text-zinc-400 hover:text-zinc-600 hover:bg-white/50"}
+                        ? "bg-white text-zinc-950 border-x border-t border-zinc-100 shadow-sm -mb-[1px]" 
+                        : "text-zinc-400 hover:text-zinc-950 hover:bg-white/50"}
                     `}
                   >
-                    <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? "text-indigo-600" : "text-zinc-300"}`} /> 
+                    <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? "text-zinc-950" : "text-zinc-300"}`} /> 
                     {tab.label}
                   </button>
                 ))}
@@ -243,30 +248,30 @@ export default function ProfilePage() {
                       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
                       className="space-y-10"
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest ml-1">Preferred Display Name</label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-black uppercase text-zinc-400 tracking-[0.3em] ml-2">Preferred Display Name</label>
                           <div className="relative group">
-                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-indigo-600 transition-colors" />
+                            <User className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-300 group-focus-within:text-zinc-950 transition-colors" />
                             <input 
                               disabled={!isEditing}
                               value={formData.name}
                               onChange={(e) => setFormData({...formData, name: e.target.value})}
                               placeholder="Your full name"
-                              className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl p-4 pl-12 text-sm font-semibold text-zinc-900 focus:bg-white focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600/20 outline-none transition-all"
+                              className="w-full bg-zinc-50 border border-zinc-100 rounded-[1.5rem] p-5 pl-16 text-sm font-black uppercase tracking-tight text-zinc-950 focus:bg-white focus:ring-8 focus:ring-black/5 focus:border-zinc-950 outline-none transition-all"
                             />
                           </div>
                         </div>
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest ml-1">Department Unit</label>
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-black uppercase text-zinc-400 tracking-[0.3em] ml-2">Department Unit</label>
                           <div className="relative group">
-                            <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 group-focus-within:text-indigo-600 transition-colors" />
+                            <Briefcase className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-300 group-focus-within:text-zinc-950 transition-colors" />
                             <input 
                               disabled={!isEditing}
                               placeholder="e.g. Product Design"
                               value={formData.department}
                               onChange={(e) => setFormData({...formData, department: e.target.value})}
-                              className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl p-4 pl-12 text-sm font-semibold text-zinc-900 focus:bg-white focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600/20 outline-none transition-all"
+                              className="w-full bg-zinc-50 border border-zinc-100 rounded-[1.5rem] p-5 pl-16 text-sm font-black uppercase tracking-tight text-zinc-950 focus:bg-white focus:ring-8 focus:ring-black/5 focus:border-zinc-950 outline-none transition-all"
                             />
                           </div>
                         </div>

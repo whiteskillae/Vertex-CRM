@@ -1,37 +1,57 @@
 @import "tailwindcss";
 
 :root {
+  /* Core Palette - Ultra Clean Enterprise */
   --background: #ffffff;
-  --foreground: #000000;
-  --primary: #000000;
-  --primary-foreground: #ffffff;
+  --foreground: #09090b;
+  
+  --primary: #18181b;
+  --primary-foreground: #fafafa;
+  
   --secondary: #f4f4f5;
   --secondary-foreground: #18181b;
+  
   --muted: #f4f4f5;
   --muted-foreground: #71717a;
+  
   --accent: #f4f4f5;
   --accent-foreground: #18181b;
-  --destructive: #000000;
-  --destructive-foreground: #ffffff;
+  
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+  
   --border: #e4e4e7;
   --input: #e4e4e7;
-  --ring: #000000;
-  --radius: 0.5rem;
+  --ring: #18181b;
+  
+  --radius: 1rem;
+  
+  /* Brand Accents */
+  --brand-indigo: #4f46e5;
+  --brand-emerald: #10b981;
+  --brand-rose: #f43f5e;
+  --brand-amber: #f59e0b;
 }
 
 .dark {
-  --background: #000000;
-  --foreground: #ffffff;
-  --primary: #ffffff;
-  --primary-foreground: #000000;
+  --background: #09090b;
+  --foreground: #fafafa;
+  
+  --primary: #fafafa;
+  --primary-foreground: #18181b;
+  
   --secondary: #27272a;
   --secondary-foreground: #fafafa;
+  
   --muted: #27272a;
   --muted-foreground: #a1a1aa;
+  
   --accent: #27272a;
   --accent-foreground: #fafafa;
-  --destructive: #ffffff;
-  --destructive-foreground: #000000;
+  
+  --destructive: #7f1d1d;
+  --destructive-foreground: #fafafa;
+  
   --border: #27272a;
   --input: #27272a;
   --ring: #d4d4d8;
@@ -53,12 +73,63 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --font-sans: var(--font-inter);
+  
+  --color-brand-indigo: var(--brand-indigo);
+  --color-brand-emerald: var(--brand-emerald);
+  --color-brand-rose: var(--brand-rose);
+  --color-brand-amber: var(--brand-amber);
+  
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight font-semibold;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl shadow-black/5;
+  }
+  
+  .premium-shadow {
+    @apply shadow-[0_8px_30px_rgb(0,0,0,0.04)];
+  }
+  
+  .premium-shadow-lg {
+    @apply shadow-[0_20px_50px_rgba(0,0,0,0.08)];
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-zinc-200 rounded-full hover:bg-zinc-300 transition-colors;
+  }
+}
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.5); }
+  50% { transform: scaleY(1.5); }
+}
+
+.animate-wave {
+  animation: wave 1s ease-in-out infinite;
 }

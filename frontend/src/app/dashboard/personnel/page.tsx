@@ -58,7 +58,6 @@ export default function PersonnelPage() {
       else if (tab === 'trash') endpoint = "auth/trash";
 
       const { data } = await api.get(endpoint);
-      // Backend returns either an array directly or an object with a users array
       const rawList = Array.isArray(data) ? data : (data?.users || []);
       setNodes(rawList);
     } catch (err: any) {
@@ -83,11 +82,11 @@ export default function PersonnelPage() {
       else if (action === 'unblock') await api.put(`auth/${id}/unblock`);
       else if (action === 'restore') await api.put(`auth/${id}/restore`);
       else if (action === 'soft-delete') {
-        if (!confirm("DECOMMISSION NODE: This will restrict access and move the node to the decommissioned sector. Proceed?")) return;
+        if (!confirm("Confirm Decommission: This node will be moved to inactive storage. Proceed?")) return;
         await api.delete(`auth/${id}`);
       }
       else if (action === 'hard-delete') {
-        if (!confirm("PERMANENT DATA PURGE: This action is irreversible. Proceed?")) return;
+        if (!confirm("Permanent Deletion: All data associated with this node will be purged. Proceed?")) return;
         await api.delete(`auth/${id}/permanent`);
       }
       fetchData();
@@ -115,7 +114,6 @@ export default function PersonnelPage() {
       const doneReports = reports.filter((r: any) => r.status === 'done').length;
       const totalReports = reports.length;
       
-      // Tactical Score: (Task completion % * 0.6) + (Report volume factor * 0.4)
       const score = Math.min(100, Math.round((taskRate * 0.6) + (totalReports * 2)));
 
       setAnalysisData({
@@ -144,180 +142,211 @@ export default function PersonnelPage() {
 
   if (!isAdminOrManager) {
     return (
-      <div className="h-[60vh] flex items-center justify-center">
-        <div className="bg-white border-8 border-black p-12 shadow-[20px_20px_0px_0px_rgba(0,0,0,1)] text-center">
-          <ShieldAlert className="h-16 w-16 text-red-600 mx-auto mb-6" />
-          <h2 className="text-4xl font-black uppercase italic mb-4 text-black">Access Prohibited</h2>
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-[0.3em]">Administrative Credentials Required for Personnel Sector Access</p>
+      <div className="h-[70vh] flex items-center justify-center">
+        <div className="bg-white rounded-3xl p-12 shadow-2xl text-center max-w-lg border border-zinc-100">
+          <div className="w-20 h-20 bg-brand-rose/10 text-brand-rose flex items-center justify-center rounded-3xl mx-auto mb-8">
+            <ShieldAlert className="h-10 w-10" />
+          </div>
+          <h2 className="text-3xl font-black text-zinc-900 tracking-tight mb-4 uppercase">Security Alert</h2>
+          <p className="text-sm font-bold text-zinc-400 uppercase tracking-[0.2em]">Administrative Credentials Required for Personnel Access</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-12 pb-20 max-w-[1400px] mx-auto">
-      {/* Sector Header */}
-      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8">
-        <div>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-16 h-2 bg-black"></div>
-            <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-400 italic">Central Intelligence</span>
+    <div className="space-y-12 pb-24">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-1.5 bg-zinc-950 rounded-full"></div>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">Governance Protocol</span>
           </div>
-          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter uppercase italic leading-none text-black">
-            Personnel <span className="text-gray-300">Sector</span>
-          </h1>
-          <p className="text-xs font-black text-gray-500 uppercase tracking-[0.4em] mt-4 flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-green-600" /> Active Governance Protocol: v2.0.4
-          </p>
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-black transition-colors" />
-            <input 
-              type="text"
-              placeholder="LOCATE NODE BY IDENTITY..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-white border-8 border-black px-12 py-5 text-sm font-black uppercase w-full md:w-[400px] focus:outline-none focus:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] transition-all placeholder:text-gray-200"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Operations Navigation */}
-      <div className="flex bg-black p-2 shadow-[15px_15px_0px_0px_rgba(0,0,0,0.1)] overflow-x-auto no-scrollbar">
-        {[
-          { id: 'active', label: 'Authorized Nodes', icon: Users },
-          { id: 'pending', label: 'Pending Access', icon: Clock },
-          { id: 'blocked', label: 'Restricted Nodes', icon: UserX },
-          { id: 'trash', label: 'Decommissioned', icon: Trash2 },
-        ].map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id as Tab)}
-            className={`flex items-center gap-3 px-8 py-4 text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-              tab === t.id 
-                ? 'bg-white text-black shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)]' 
-                : 'text-gray-500 hover:text-white'
-            }`}
+          <motion.h1 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="text-4xl md:text-5xl font-black tracking-tighter text-zinc-950 uppercase italic"
           >
-            <t.icon className="h-4 w-4" /> {t.label}
-          </button>
-        ))}
+            Personnel <span className="text-zinc-200 not-italic font-light">Inventory</span>
+          </motion.h1>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-widest rounded-full border border-emerald-100 shadow-sm shadow-emerald-500/5">
+              <Activity className="h-3 w-3 fill-emerald-500" /> Matrix Online
+            </div>
+            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+              Authorized Authority: <span className="text-zinc-950">{user?.role}</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="relative group w-full lg:w-[500px]">
+          <input 
+            type="text"
+            placeholder="FILTER NODE IDENTITY..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="bg-white border border-zinc-100 rounded-[2.5rem] px-10 py-6 text-xs font-bold uppercase tracking-widest w-full focus:outline-none focus:ring-8 focus:ring-black/[0.02] focus:border-zinc-950 transition-all shadow-sm"
+          />
+          <Search className="absolute right-8 top-1/2 -translate-y-1/2 h-6 w-6 text-zinc-300 group-focus-within:text-zinc-950 transition-colors" />
+        </div>
       </div>
 
-      {/* Main Terminal Display */}
+      {/* Navigation Controls */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-8 bg-zinc-50/50 p-3 rounded-[3rem] border border-zinc-100 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          {[
+            { id: 'active', label: 'Authorized', icon: ShieldCheck, color: 'emerald' },
+            { id: 'pending', label: 'In-Queue', icon: Clock, color: 'amber' },
+            { id: 'blocked', label: 'Blacklisted', icon: ShieldAlert, color: 'rose' },
+            { id: 'trash', label: 'Purged', icon: Trash2, color: 'zinc' },
+          ].map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id as Tab)}
+              className={`flex items-center gap-4 px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all rounded-[2rem] relative overflow-hidden group ${
+                tab === t.id 
+                  ? 'bg-zinc-950 text-white shadow-2xl shadow-black/20' 
+                  : 'text-zinc-400 hover:text-zinc-950 hover:bg-white'
+              }`}
+            >
+              <t.icon className={`h-4 w-4 transition-transform group-hover:rotate-12 ${tab === t.id ? 'text-white' : 'text-zinc-300'}`} />
+              {t.label}
+              {tab === t.id && (
+                <motion.div layoutId="tab-active" className="absolute bottom-0 left-0 right-0 h-1 bg-white opacity-20" />
+              )}
+            </button>
+          ))}
+        </div>
+        <div className="px-8 py-3 bg-white rounded-full border border-zinc-100 shadow-sm">
+          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Node_Count: <span className="text-zinc-950">{nodes.length}</span></span>
+        </div>
+      </div>
+
+      {/* Grid Display */}
       <div className="min-h-[500px] relative">
         <AnimatePresence mode="wait">
           {loading ? (
             <motion.div 
               key="loader"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 z-10"
+              className="absolute inset-0 flex flex-col items-center justify-center p-32 text-center"
             >
-              <Loader2 className="h-16 w-16 animate-spin text-black mb-4" />
-              <p className="text-[10px] font-black uppercase tracking-[0.5em] animate-pulse text-black">Synchronizing Intelligence Feed...</p>
+              <div className="relative">
+                <Loader2 className="h-16 w-16 animate-spin text-zinc-950 mb-8" />
+                <div className="absolute inset-0 blur-2xl bg-zinc-950/5 animate-pulse" />
+              </div>
+              <p className="text-[11px] font-black uppercase tracking-[0.6em] text-zinc-300 italic">Re-aligning Neural Nodes...</p>
             </motion.div>
           ) : (
             <motion.div
               key={tab}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="space-y-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10"
             >
               {filteredNodes.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredNodes.map((node) => (
-                    <div 
-                      key={node._id} 
-                      className="group bg-white border-8 border-black p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:shadow-none transition-all hover:translate-x-2 hover:translate-y-2 relative overflow-hidden"
-                    >
-                      {/* Node Indicator */}
-                      <div className={`absolute top-0 right-0 w-24 h-2 ${
-                        tab === 'active' ? 'bg-green-500' :
-                        tab === 'pending' ? 'bg-yellow-500' :
-                        tab === 'blocked' ? 'bg-orange-500' : 'bg-red-600'
-                      }`} />
+                filteredNodes.map((node, i) => (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    key={node._id} 
+                    className="group bg-white rounded-[3rem] border border-zinc-100 p-10 shadow-sm hover:shadow-2xl hover:shadow-black/[0.05] hover:-translate-y-2 transition-all duration-500 relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 right-0 p-10 opacity-[0.02] group-hover:opacity-[0.08] transition-opacity duration-700 pointer-events-none">
+                      <Shield className="w-40 h-40" />
+                    </div>
 
-                      <div className="flex items-start justify-between mb-8">
-                        <div className="w-16 h-16 bg-black text-white flex items-center justify-center text-3xl font-black italic border-4 border-black">
-                          {node.name?.[0]?.toUpperCase() || '?'}
-                        </div>
-                        <div className="text-right">
-                          <span className="text-[8px] font-black uppercase text-gray-400 block mb-1 tracking-widest">ID Hash</span>
-                          <span className="text-[10px] font-mono text-black font-bold uppercase">{node._id?.slice(-8)}</span>
-                        </div>
+                    <div className="flex items-start justify-between mb-10 relative z-10">
+                      <div className="w-20 h-20 bg-zinc-50 border border-zinc-100 text-zinc-950 flex items-center justify-center text-4xl font-black rounded-[2rem] shadow-sm group-hover:bg-zinc-950 group-hover:text-white group-hover:rotate-6 transition-all duration-500">
+                        {node.name?.[0]?.toUpperCase()}
                       </div>
-
-                      <div className="space-y-4 mb-10">
-                        <div>
-                          <h3 className="text-xl font-black uppercase italic leading-none mb-1">{node.name}</h3>
-                          <p className="text-[10px] font-bold text-gray-500 flex items-center gap-2"><Mail className="h-3 w-3" /> {node.email}</p>
+                      <div className="flex flex-col items-end gap-3">
+                        <span className={`px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border ${
+                          tab === 'active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                          tab === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                          'bg-rose-50 text-rose-600 border-rose-100'
+                        }`}>
+                          {tab}
+                        </span>
+                        <div className="flex gap-1.5">
+                          <div className={`w-2 h-2 rounded-full ${tab === 'active' ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-200'}`} />
+                          <div className={`w-2 h-2 rounded-full ${tab === 'pending' ? 'bg-amber-500 animate-pulse' : 'bg-zinc-200'}`} />
                         </div>
-                        <div className="flex gap-2 flex-wrap">
-                          <span className="px-3 py-1 bg-zinc-100 border-2 border-black text-[9px] font-black uppercase tracking-widest">{node.role}</span>
-                          <span className="px-3 py-1 bg-zinc-100 border-2 border-black text-[9px] font-black uppercase tracking-widest">{node.jobType || 'Office'}</span>
-                        </div>
-                      </div>
-
-                      {/* Action Interface */}
-                      <div className="grid grid-cols-2 gap-3 border-t-8 border-black pt-6">
-                        {tab === 'active' && (
-                          <>
-                            <button onClick={() => handleAnalyse(node)} className="col-span-2 flex items-center justify-center gap-2 py-3 border-4 border-black bg-black text-white font-black text-[9px] uppercase hover:bg-white hover:text-black transition-all">
-                              <Activity className="h-4 w-4" /> Analyse Intelligence
-                            </button>
-                            <Link href={`/dashboard/messages?recipient=${node._id}`} className="flex items-center justify-center gap-2 py-3 border-4 border-black font-black text-[9px] uppercase hover:bg-zinc-100 transition-all">
-                              <MessageSquare className="h-4 w-4" /> Message
-                            </Link>
-                            <button onClick={() => handleAction(node._id, 'soft-delete')} className="flex items-center justify-center gap-2 py-3 border-4 border-black font-black text-[9px] uppercase hover:bg-red-600 hover:text-white transition-all">
-                              <Trash2 className="h-4 w-4" /> Decommission
-                            </button>
-                          </>
-                        )}
-
-                        {tab === 'pending' && (
-                          <>
-                            <button onClick={() => handleAction(node._id, 'approve')} className="flex items-center justify-center gap-2 py-3 border-4 border-black bg-black text-white font-black text-[9px] uppercase hover:bg-white hover:text-black transition-all">
-                              <Check className="h-4 w-4" /> Approve
-                            </button>
-                            <button onClick={() => handleAction(node._id, 'reject')} className="flex items-center justify-center gap-2 py-3 border-4 border-black font-black text-[9px] uppercase hover:bg-red-600 hover:text-white transition-all">
-                              <X className="h-4 w-4" /> Reject
-                            </button>
-                          </>
-                        )}
-
-                        {tab === 'blocked' && (
-                          <>
-                            <button onClick={() => handleAction(node._id, 'unblock')} className="col-span-2 flex items-center justify-center gap-2 py-3 border-4 border-black font-black text-[9px] uppercase hover:bg-green-600 hover:text-white transition-all">
-                              <ShieldCheck className="h-4 w-4" /> Reinstate Authorization
-                            </button>
-                          </>
-                        )}
-
-                        {tab === 'trash' && (
-                          <>
-                            <button onClick={() => handleAction(node._id, 'restore')} className="flex items-center justify-center gap-2 py-3 border-4 border-black font-black text-[9px] uppercase hover:bg-green-600 hover:text-white transition-all">
-                              <RotateCcw className="h-4 w-4" /> Restore
-                            </button>
-                            <button onClick={() => handleAction(node._id, 'hard-delete')} className="flex items-center justify-center gap-2 py-3 border-4 border-black font-black text-[9px] uppercase hover:bg-red-600 hover:text-white transition-all text-red-600">
-                              <AlertTriangle className="h-4 w-4" /> Purge
-                            </button>
-                          </>
-                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
+
+                    <div className="space-y-2 mb-10 relative z-10">
+                      <h3 className="text-2xl font-black text-zinc-950 tracking-tighter uppercase italic group-hover:text-zinc-950 transition-colors">{node.name}</h3>
+                      <div className="flex items-center gap-3 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                        <Mail className="h-3.5 w-3.5" /> {node.email}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 flex-wrap mb-10 relative z-10">
+                      <span className="px-5 py-2 bg-zinc-50 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 border border-zinc-100 shadow-sm transition-all group-hover:bg-white group-hover:border-zinc-200">{node.role}</span>
+                      <span className="px-5 py-2 bg-zinc-50 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 border border-zinc-100 shadow-sm transition-all group-hover:bg-white group-hover:border-zinc-200">{node.jobType || 'Remote_Node'}</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 relative z-10">
+                      {tab === 'active' && (
+                        <>
+                          <button onClick={() => handleAnalyse(node)} className="col-span-2 flex items-center justify-center gap-4 py-6 bg-zinc-950 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.3em] hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-black/20 overflow-hidden relative group/btn">
+                            <div className="absolute inset-0 bg-white/10 translate-y-full group-hover/btn:translate-y-0 transition-transform" />
+                            <Activity className="h-5 w-5 animate-pulse relative z-10" /> 
+                            <span className="relative z-10">Neural Analysis</span>
+                          </button>
+                          <Link href={`/dashboard/messages?recipient=${node._id}`} className="flex items-center justify-center gap-3 py-5 bg-white text-zinc-950 rounded-[1.5rem] text-[9px] font-black uppercase tracking-widest hover:bg-zinc-50 transition-all border border-zinc-100 shadow-sm">
+                            <MessageSquare className="h-4 w-4 text-zinc-300" /> Uplink
+                          </Link>
+                          <button onClick={() => handleAction(node._id, 'soft-delete')} className="flex items-center justify-center gap-3 py-5 bg-white text-rose-600 rounded-[1.5rem] text-[9px] font-black uppercase tracking-widest hover:bg-rose-50 transition-all border border-zinc-100 shadow-sm">
+                            <Trash2 className="h-4 w-4 text-rose-300" /> Purge
+                          </button>
+                        </>
+                      )}
+
+                      {tab === 'pending' && (
+                        <>
+                          <button onClick={() => handleAction(node._id, 'approve')} className="flex items-center justify-center gap-3 py-6 bg-zinc-950 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all shadow-2xl shadow-black/20">
+                            <Check className="h-5 w-5" /> Authorize
+                          </button>
+                          <button onClick={() => handleAction(node._id, 'reject')} className="flex items-center justify-center gap-3 py-6 bg-white text-rose-600 rounded-[2rem] text-[10px] font-black uppercase tracking-widest border border-zinc-100 hover:bg-rose-50 transition-all shadow-sm">
+                            <X className="h-5 w-5" /> Expunge
+                          </button>
+                        </>
+                      )}
+
+                      {tab === 'blocked' && (
+                        <button onClick={() => handleAction(node._id, 'unblock')} className="col-span-2 flex items-center justify-center gap-4 py-6 bg-zinc-950 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all shadow-2xl shadow-black/20">
+                          <ShieldCheck className="h-5 w-5" /> Restore Perimeter
+                        </button>
+                      )}
+
+                      {tab === 'trash' && (
+                        <>
+                          <button onClick={() => handleAction(node._id, 'restore')} className="flex items-center justify-center gap-3 py-6 bg-white text-zinc-950 rounded-[2rem] text-[10px] font-black uppercase tracking-widest border border-zinc-100 hover:bg-zinc-50 transition-all shadow-sm">
+                            <RotateCcw className="h-5 w-5" /> Re-Active
+                          </button>
+                          <button onClick={() => handleAction(node._id, 'hard-delete')} className="flex items-center justify-center gap-3 py-6 bg-rose-600 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest hover:bg-rose-700 transition-all shadow-xl shadow-rose-900/20">
+                            <AlertTriangle className="h-5 w-5" /> Total Purge
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </motion.div>
+                ))
               ) : (
-                <div className="flex flex-col items-center justify-center p-32 border-8 border-dashed border-gray-200">
-                  <div className="p-8 bg-gray-50 border-4 border-black mb-6">
-                    <UserX className="h-16 w-16 text-gray-300" />
+                <div className="col-span-full flex flex-col items-center justify-center py-48 text-center bg-zinc-50/50 rounded-[4rem] border-2 border-dashed border-zinc-100 relative group overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-transparent to-zinc-100/50 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
+                  <div className="w-32 h-32 bg-white text-zinc-100 flex items-center justify-center rounded-[3rem] mb-10 shadow-2xl relative z-10 group-hover:scale-110 transition-transform duration-700">
+                    <UserX className="h-16 w-16" />
                   </div>
-                  <h3 className="text-2xl font-black uppercase italic text-gray-300 mb-2">No Node Activity Detected</h3>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Database Query returned 0 results for sector: {tab}</p>
+                  <div className="space-y-4 relative z-10">
+                    <h3 className="text-3xl font-black text-zinc-300 uppercase tracking-tighter italic">Sector Empty</h3>
+                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.5em] italic">Scanning perimeter frequency... 0 records detected</p>
+                  </div>
                 </div>
               )}
             </motion.div>
@@ -325,107 +354,125 @@ export default function PersonnelPage() {
         </AnimatePresence>
       </div>
 
-      {/* Node Analysis Modal */}
+      {/* Analysis Modal */}
       <AnimatePresence>
         {analysisNode && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6 sm:p-10">
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setAnalysisNode(null)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm" 
+              className="absolute inset-0 bg-zinc-950/80 backdrop-blur-2xl" 
             />
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              initial={{ scale: 0.9, opacity: 0, y: 40 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-4xl bg-white border-8 border-black shadow-[15px_15px_0px_0px_rgba(0,0,0,1)] sm:shadow-[30px_30px_0px_0px_rgba(0,0,0,1)] p-6 sm:p-12 overflow-y-auto max-h-[90vh] custom-scrollbar"
+              exit={{ scale: 0.9, opacity: 0, y: 40 }}
+              className="relative w-full max-w-5xl bg-white rounded-[4rem] border border-white/20 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col xl:flex-row"
             >
-              <button onClick={() => setAnalysisNode(null)} className="absolute top-6 right-6 p-2 hover:bg-zinc-100 border-4 border-black transition-all">
-                <X className="h-6 w-6" />
+              <button onClick={() => setAnalysisNode(null)} className="absolute top-10 right-10 p-4 hover:bg-zinc-100 rounded-[2rem] transition-all text-zinc-400 hover:text-black z-50">
+                <X className="h-8 w-8" />
               </button>
 
-              <div className="flex flex-col md:flex-row gap-12">
-                {/* Profile Header */}
-                <div className="md:w-1/3">
-                  <div className="w-32 h-32 bg-black text-white flex items-center justify-center text-5xl font-black italic border-8 border-black mb-6 shadow-[10px_10px_0px_0px_rgba(0,0,0,0.1)]">
-                    {analysisNode.name?.[0]?.toUpperCase()}
-                  </div>
-                  <h2 className="text-3xl font-black uppercase italic leading-none mb-2">{analysisNode.name}</h2>
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">{analysisNode.role} — {analysisNode.jobType || 'Standard'}</p>
-                  
-                  <div className="space-y-4 border-t-8 border-black pt-6">
-                    <div>
-                      <span className="text-[8px] font-black uppercase text-gray-400 block mb-1">Electronic Mail</span>
-                      <span className="text-xs font-bold uppercase">{analysisNode.email}</span>
-                    </div>
-                    <div>
-                      <span className="text-[8px] font-black uppercase text-gray-400 block mb-1">Phone Frequency</span>
-                      <span className="text-xs font-bold uppercase">{analysisNode.phone || 'NOT REGISTERED'}</span>
-                    </div>
+              <div className="xl:w-2/5 p-16 bg-zinc-50 border-r border-zinc-100 flex flex-col items-center text-center relative overflow-hidden">
+                <div className="absolute inset-0 pattern-dots opacity-[0.03] pointer-events-none" />
+                <div className="w-48 h-48 bg-zinc-950 text-white flex items-center justify-center text-7xl font-black rounded-[3.5rem] mb-12 shadow-2xl relative z-10 group hover:rotate-12 transition-transform duration-700">
+                  {analysisNode.name?.[0]?.toUpperCase()}
+                </div>
+                <div className="space-y-4 relative z-10">
+                  <h2 className="text-4xl font-black text-zinc-950 tracking-tighter uppercase italic">{analysisNode.name}</h2>
+                  <div className="flex flex-col items-center gap-2">
+                    <p className="text-[11px] font-black text-zinc-400 uppercase tracking-[0.4em]">{analysisNode.role} Node</p>
+                    <div className="h-1 w-12 bg-zinc-950 rounded-full" />
+                    <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest">{analysisNode.jobType || 'Remote_Deployment'}</p>
                   </div>
                 </div>
+                
+                <div className="mt-16 w-full space-y-6 relative z-10 pt-16 border-t border-zinc-100">
+                  <div className="flex items-center gap-6 p-6 bg-white rounded-3xl border border-zinc-100 shadow-sm group hover:border-zinc-950 transition-all">
+                    <div className="w-12 h-12 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-400 group-hover:bg-zinc-950 group-hover:text-white transition-all"><Mail className="w-6 h-6" /></div>
+                    <span className="text-[11px] font-black text-zinc-600 truncate uppercase tracking-widest">{analysisNode.email}</span>
+                  </div>
+                </div>
+              </div>
 
-                {/* Analysis Metrics */}
-                <div className="flex-1">
-                  {analyzing ? (
-                    <div className="h-full flex flex-col items-center justify-center p-20">
-                      <Loader2 className="h-12 w-12 animate-spin text-black mb-4" />
-                      <p className="text-[10px] font-black uppercase tracking-[0.5em] animate-pulse">Scanning Mission History...</p>
+              <div className="flex-1 p-16 bg-white relative overflow-y-auto max-h-[85vh] custom-scrollbar">
+                <div className="absolute inset-0 pattern-dots opacity-[0.01] pointer-events-none" />
+                {analyzing ? (
+                  <div className="h-full flex flex-col items-center justify-center py-20 text-center">
+                    <Loader2 className="h-20 w-20 animate-spin text-zinc-950 mb-10" />
+                    <p className="text-[12px] font-black uppercase tracking-[0.5em] text-zinc-300 italic">Intercepting Node History Feed...</p>
+                  </div>
+                ) : analysisData ? (
+                  <div className="space-y-16 relative z-10">
+                    <div className="bg-zinc-950 rounded-[3rem] p-12 text-white flex flex-col sm:flex-row items-center justify-between gap-10 shadow-2xl shadow-black/30 relative overflow-hidden group">
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div>
+                        <p className="text-[11px] font-black uppercase tracking-[0.4em] mb-6 text-zinc-500">Node Performance Index</p>
+                        <div className="flex items-baseline gap-4">
+                          <h4 className="text-9xl font-black italic tracking-tighter">{analysisData.stats.score}</h4>
+                          <span className="text-2xl font-black text-zinc-700 italic">/100</span>
+                        </div>
+                      </div>
+                      <div className="w-32 h-32 bg-white/5 border border-white/10 rounded-[2.5rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-700">
+                        <Activity className="h-16 w-16 text-emerald-500 animate-pulse" />
+                      </div>
                     </div>
-                  ) : analysisData ? (
-                    <div className="space-y-8">
-                      {/* Score Card */}
-                      <div className="bg-black text-white p-8 flex items-center justify-between border-4 border-black">
-                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-[0.5em] mb-2 text-zinc-500">Tactical Performance Score</p>
-                          <h4 className="text-6xl font-black italic">{analysisData.stats.score}<span className="text-xl text-zinc-600">/100</span></h4>
-                        </div>
-                        <div className="w-20 h-20 border-4 border-white flex items-center justify-center rotate-12">
-                          <ShieldCheck className="h-10 w-10" />
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                      <div className="p-10 bg-zinc-50 rounded-[2.5rem] border border-zinc-100 shadow-sm group hover:bg-white hover:shadow-xl transition-all duration-500">
+                        <p className="text-[10px] font-black uppercase text-zinc-400 mb-6 tracking-[0.4em]">Operational Efficiency</p>
+                        <div className="flex items-baseline gap-4">
+                          <span className="text-5xl font-black text-zinc-950 italic">{analysisData.stats.taskRate}%</span>
+                          <span className="text-[11px] font-black text-zinc-400 uppercase tracking-widest">({analysisData.stats.doneTasks}/{analysisData.stats.totalTasks} Pkts)</span>
                         </div>
                       </div>
-
-                      {/* Stats Grid */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="p-6 border-4 border-black">
-                          <p className="text-[8px] font-black uppercase text-gray-400 mb-2">Task Efficiency</p>
-                          <div className="flex items-end gap-2">
-                            <span className="text-2xl font-black">{analysisData.stats.taskRate}%</span>
-                            <span className="text-[10px] font-bold text-gray-400 mb-1">({analysisData.stats.doneTasks}/{analysisData.stats.totalTasks})</span>
-                          </div>
-                        </div>
-                        <div className="p-6 border-4 border-black">
-                          <p className="text-[8px] font-black uppercase text-gray-400 mb-2">Intelligence Reports</p>
-                          <div className="flex items-end gap-2">
-                            <span className="text-2xl font-black">{analysisData.stats.totalReports}</span>
-                            <span className="text-[10px] font-bold text-gray-400 mb-1">SUBMITTED</span>
-                          </div>
+                      <div className="p-10 bg-zinc-50 rounded-[2.5rem] border border-zinc-100 shadow-sm group hover:bg-white hover:shadow-xl transition-all duration-500">
+                        <p className="text-[10px] font-black uppercase text-zinc-400 mb-6 tracking-[0.4em]">Intelligence Output</p>
+                        <div className="flex items-baseline gap-4">
+                          <span className="text-5xl font-black text-zinc-950 italic">{analysisData.stats.totalReports}</span>
+                          <span className="text-[11px] font-black text-zinc-400 uppercase tracking-widest">Broadcasts</span>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Recent Activity */}
-                      <div className="space-y-4 pt-4 border-t-4 border-black">
-                        <h5 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                          <Activity className="h-4 w-4" /> Recent Mission Logs
+                    <div className="space-y-10">
+                      <div className="flex items-center gap-6">
+                        <h5 className="text-[12px] font-black uppercase tracking-[0.5em] text-zinc-950 italic flex items-center gap-4">
+                          <Clock className="h-6 w-6 text-zinc-300" /> Recent Log Stream
                         </h5>
-                        <div className="space-y-2">
-                          {analysisData.reports.slice(0, 5).map((r: { _id: string; missionType?: string; status: string }) => (
-                            <div key={r._id} className="p-4 border-2 border-black flex justify-between items-center text-[10px] font-bold uppercase italic">
-                              <span>Mission: {r.missionType || 'INTEL'}</span>
-                              <span className={r.status === 'done' ? 'text-green-600' : 'text-orange-500'}>{r.status}</span>
+                        <div className="h-[1px] flex-1 bg-zinc-100" />
+                      </div>
+                      <div className="space-y-4">
+                        {analysisData.reports.slice(0, 5).map((r: { _id: string; title?: string; status: string; date: string }) => (
+                          <div key={r._id} className="p-8 bg-white border border-zinc-100 rounded-3xl flex flex-col sm:flex-row justify-between items-center gap-6 group/item hover:border-zinc-950 transition-all shadow-sm">
+                            <div className="flex items-center gap-6">
+                              <div className="w-12 h-12 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-300 group-hover/item:bg-zinc-950 group-hover/item:text-white transition-all"><FileText className="h-6 w-6" /></div>
+                              <div>
+                                <p className="text-sm font-black text-zinc-950 uppercase italic tracking-tight">{r.title || 'Standard Operation'}</p>
+                                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">{new Date(r.date).toLocaleDateString()} // SYNC_OK</p>
+                              </div>
                             </div>
-                          ))}
-                          {analysisData.reports.length === 0 && <p className="text-[10px] italic text-gray-400">No mission logs found on current frequency.</p>}
-                        </div>
+                            <span className={`px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border ${
+                              r.status === 'done' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'
+                            }`}>
+                              {r.status}
+                            </span>
+                          </div>
+                        ))}
+                        {analysisData.reports.length === 0 && (
+                          <div className="py-20 text-center bg-zinc-50/50 rounded-[3rem] border border-zinc-100 border-dashed">
+                            <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.5em] italic">No active data packets in stream</p>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  ) : (
-                    <div className="p-20 text-center text-gray-300">
-                      <AlertTriangle className="h-12 w-12 mx-auto mb-4" />
-                      <p className="text-xs font-black uppercase">Analysis Failed to Initialize</p>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center py-32 text-center">
+                    <AlertTriangle className="h-24 w-24 text-rose-100 mx-auto mb-10" />
+                    <p className="text-[12px] font-black uppercase tracking-[0.6em] text-zinc-300 italic">Neural Uplink Interrupted: Data Fragment Missing</p>
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>

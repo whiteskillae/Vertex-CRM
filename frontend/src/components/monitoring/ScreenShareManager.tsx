@@ -119,7 +119,13 @@ export const ScreenShareManager = () => {
 
     const createPeerConnection = (adminId: string, viewerId: string) => {
       const pc = new RTCPeerConnection({
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { urls: 'stun:stun2.l.google.com:19302' },
+          { urls: 'stun:stun3.l.google.com:19302' },
+          { urls: 'stun:stun4.l.google.com:19302' },
+        ]
       });
 
       const candidateQueue: RTCIceCandidateInit[] = [];
@@ -220,27 +226,27 @@ export const ScreenShareManager = () => {
         onDecline={handleDecline} 
       />
       
-      {/* Persistent Tracking Banner (Prominent "SRM App" style) */}
+      {/* Persistent Tracking Banner */}
       <AnimatePresence>
         {isSharing && (
           <motion.div
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -100, opacity: 0 }}
-            className="fixed top-0 left-0 right-0 z-[2000] bg-red-600 text-white flex items-center justify-center gap-6 py-2 border-b-4 border-black shadow-[0px_4px_10px_rgba(0,0,0,0.3)]"
+            className="fixed top-0 left-0 right-0 z-[2000] bg-brand-rose text-white flex items-center justify-center gap-8 py-3 shadow-2xl"
           >
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-white rounded-full animate-ping" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Live Monitoring Active</span>
+            <div className="flex items-center gap-3">
+              <div className="w-2.5 h-2.5 bg-white rounded-full animate-pulse shadow-sm" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Monitoring Protocol Active</span>
             </div>
-            <div className="h-4 w-px bg-white/30" />
-            <p className="text-[9px] font-bold uppercase tracking-widest italic opacity-90">
-              Your screen is being shared with Mission Control for quality & compliance
+            <div className="h-5 w-px bg-white/20" />
+            <p className="text-[10px] font-bold opacity-90 tracking-tight">
+              Screen stream synchronized with Mission Control
             </p>
-            <div className="h-4 w-px bg-white/30" />
+            <div className="h-5 w-px bg-white/20" />
             <div className="flex items-center gap-2">
-              <Monitor className="w-3 h-3" />
-              <span className="text-[9px] font-black uppercase">Secure Protocol v2.0</span>
+              <ShieldCheck className="w-4 h-4" />
+              <span className="text-[10px] font-black uppercase tracking-widest">Secure Link 2.4</span>
             </div>
           </motion.div>
         )}
@@ -253,20 +259,22 @@ export const ScreenShareManager = () => {
             initial={{ x: 300, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 300, opacity: 0 }}
-            className="fixed top-24 right-6 z-[600] w-80 bg-black border-4 border-white p-6 shadow-[20px_20px_0px_0px_rgba(0,0,0,0.5)]"
+            className="fixed top-24 right-8 z-[600] w-96 bg-white border border-zinc-100 rounded-3xl p-8 shadow-2xl"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <AlertCircle className="w-5 h-5 text-red-500" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-white">Admin Command</span>
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-10 h-10 bg-brand-rose/10 text-brand-rose flex items-center justify-center rounded-xl">
+                <AlertCircle className="w-6 h-6" />
+              </div>
+              <span className="text-xs font-black uppercase tracking-widest text-zinc-900">Admin Dispatch</span>
             </div>
-            <p className="text-xs font-bold text-white uppercase tracking-tight leading-relaxed mb-6">
+            <p className="text-sm font-bold text-zinc-600 leading-relaxed mb-8">
               {adminMessage}
             </p>
             <button 
               onClick={() => setAdminMessage(null)}
-              className="w-full py-2 bg-white text-black font-black uppercase text-[10px] border-2 border-black hover:bg-zinc-200 transition-all"
+              className="w-full py-4 bg-black text-white font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-black/10"
             >
-              Acknowledge
+              Acknowledge Dispatch
             </button>
           </motion.div>
         )}
@@ -278,11 +286,11 @@ export const ScreenShareManager = () => {
           <motion.div
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="fixed bottom-6 right-6 z-[500] flex items-center gap-3 bg-red-600 text-white px-5 py-3 border-4 border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,0.5)] cursor-pointer"
+            className="fixed bottom-10 right-10 z-[500] flex items-center gap-4 bg-brand-rose text-white px-8 py-4 rounded-3xl shadow-2xl cursor-pointer hover:scale-105 active:scale-95 transition-all"
             onClick={startSharing}
           >
-            <Monitor className="w-5 h-5 animate-bounce" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Resume Session Monitoring</span>
+            <Monitor className="w-6 h-6 animate-bounce" />
+            <span className="text-xs font-black uppercase tracking-[0.1em]">Resume Monitoring</span>
           </motion.div>
         )}
         {isSharing && (
@@ -290,24 +298,24 @@ export const ScreenShareManager = () => {
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 50, opacity: 0 }}
-            className="fixed bottom-6 right-6 z-[500] flex items-center gap-3 bg-black text-white px-5 py-3 border-4 border-white shadow-[10px_10px_0px_0px_rgba(0,0,0,0.5)]"
+            className="fixed bottom-10 right-10 z-[500] flex items-center gap-4 bg-black text-white px-8 py-4 rounded-3xl shadow-2xl"
           >
             <div className="relative">
-              <Monitor className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-600 rounded-full animate-pulse border border-white"></span>
+              <Monitor className="w-6 h-6" />
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-brand-emerald rounded-full animate-pulse border-2 border-black shadow-sm"></span>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest">Tracking Active</span>
+            <span className="text-xs font-black uppercase tracking-[0.1em]">Session Encrypted</span>
           </motion.div>
         )}
         {error && (
           <motion.div
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="fixed bottom-6 right-6 z-[500] flex items-center gap-3 bg-red-600 text-white px-5 py-3 border-4 border-black"
+            className="fixed bottom-10 right-10 z-[500] flex items-center gap-4 bg-white border border-brand-rose/20 text-brand-rose px-8 py-4 rounded-3xl shadow-2xl"
           >
-            <AlertCircle className="w-5 h-5" />
-            <span className="text-[10px] font-black uppercase tracking-widest">{error}</span>
-            <button onClick={startSharing} className="underline text-[10px] font-black uppercase ml-2">Retry</button>
+            <AlertCircle className="w-6 h-6" />
+            <span className="text-xs font-black uppercase tracking-widest">{error}</span>
+            <button onClick={startSharing} className="underline text-xs font-bold ml-4">Retry Link</button>
           </motion.div>
         )}
       </AnimatePresence>
