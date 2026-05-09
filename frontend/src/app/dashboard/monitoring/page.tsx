@@ -21,8 +21,30 @@ import {
   Globe,
   Send,
   ChevronRight,
-  Maximize2
+  Maximize2,
+  Zap,
+  Calendar
 } from 'lucide-react';
+
+const LiveTimer = ({ startTime }: { startTime: string | Date }) => {
+  const [duration, setDuration] = useState("");
+
+  useEffect(() => {
+    const update = () => {
+      const start = new Date(startTime).getTime();
+      const diff = Math.floor((Date.now() - start) / 1000);
+      const h = Math.floor(diff / 3600);
+      const m = Math.floor((diff % 3600) / 60);
+      const s = diff % 60;
+      setDuration(`${h > 0 ? h + 'h ' : ''}${m}m ${s}s`);
+    };
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [startTime]);
+
+  return <span>{duration}</span>;
+};
 
 export default function MonitoringDashboard() {
   const { socket } = useSocket();
@@ -33,6 +55,11 @@ export default function MonitoringDashboard() {
   const [selectedUser, setSelectedUser] = useState<MonitoringStatus | null>(null);
   const [messages, setMessages] = useState<Record<string, string[]>>({});
   const [inputMessage, setInputMessage] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const fetchStatus = async () => {
     try {
@@ -124,12 +151,12 @@ export default function MonitoringDashboard() {
       </div>
 
       {/* Grid of Employees */}
-      <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
+      <div className={`grid gap-12 ${viewMode === 'grid' ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1'}`}>
         {filteredEmployees.map((emp) => (
           <motion.div
             key={emp._id}
             layout
-            className="group relative bg-white rounded-[2rem] border border-zinc-100 p-8 hover:border-zinc-300 transition-all duration-300 shadow-sm hover:shadow-xl"
+            className="group relative bg-white rounded-[3rem] border border-zinc-100 p-10 hover:border-zinc-300 transition-all duration-500 shadow-sm hover:shadow-2xl"
           >
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-4">
@@ -164,17 +191,41 @@ export default function MonitoringDashboard() {
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-6 border-t border-zinc-50">
-              <div className="flex items-center gap-2">
-                <Activity className="w-3.5 h-3.5 text-zinc-300" />
-                <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest">{emp.isSharing ? 'Transmitting' : 'Sleeping'}</span>
+            <div className="flex flex-col sm:flex-row items-center justify-between pt-8 border-t border-zinc-50 gap-6">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${emp.isSharing ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-200'}`} />
+                  <span className="text-[11px] font-bold text-zinc-950 uppercase tracking-widest">{emp.isSharing ? 'Live Transmission' : 'Signal Idle'}</span>
+                </div>
+                {emp.isSharing && (
+                  <div className="flex items-center gap-3 bg-zinc-50 px-4 py-2 rounded-xl border border-zinc-100">
+                    <Clock className="w-4 h-4 text-emerald-500" />
+                    <div className="flex flex-col">
+                      <span className="text-[8px] font-semibold text-zinc-400 uppercase tracking-widest leading-none mb-1">Session Duration</span>
+                      <span className="text-[10px] font-bold text-zinc-950 uppercase">
+                        {mounted ? <LiveTimer startTime={emp.lastActive || Date.now()} /> : '--:--'}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
-              <button 
-                onClick={() => setSelectedUser(emp)}
-                className="flex items-center gap-2 px-4 py-2 bg-zinc-50 text-zinc-600 rounded-xl hover:bg-zinc-950 hover:text-white transition-all text-[10px] font-bold uppercase"
-              >
-                Inspect <ChevronRight className="w-3 h-3" />
-              </button>
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                {emp.isSharing && (
+                  <button 
+                    onClick={() => setSelectedUser(emp)}
+                    className="flex-1 sm:flex-initial flex items-center justify-center gap-3 px-8 py-4 bg-zinc-950 text-white rounded-2xl hover:bg-zinc-800 transition-all shadow-xl shadow-black/10 group/btn"
+                  >
+                    <Maximize2 className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Full Screen</span>
+                  </button>
+                )}
+                <button 
+                  onClick={() => router.push(`/dashboard/messages?recipient=${emp._id}`)}
+                  className="p-4 bg-white border border-zinc-100 text-zinc-400 rounded-2xl hover:text-zinc-950 hover:border-zinc-950 transition-all"
+                >
+                  <MessageSquare className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           </motion.div>
         ))}
@@ -191,7 +242,7 @@ export default function MonitoringDashboard() {
             />
             <motion.div
               initial={{ scale: 0.98, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.98, opacity: 0, y: 20 }}
-              className="relative bg-white border border-zinc-200 w-full max-w-6xl h-[85vh] flex flex-col shadow-2xl rounded-[2.5rem] overflow-hidden"
+              className="relative bg-white border border-zinc-200 w-full max-w-6xl h-[85vh] flex flex-col shadow-2xl rounded-3xl overflow-hidden"
             >
               {/* Modal Header */}
               <div className="px-8 py-6 border-b border-zinc-100 flex items-center justify-between bg-white">

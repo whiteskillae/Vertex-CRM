@@ -24,6 +24,11 @@ export default function VaultPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [visibleEntries, setVisibleEntries] = useState<Set<string>>(new Set());
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const fetchVault = async () => {
     try {
@@ -64,10 +69,12 @@ export default function VaultPage() {
     setVisibleEntries(next);
   };
 
+  if (!mounted) return null;
+
   if (loading) return (
     <div className="h-full flex flex-col items-center justify-center p-32 opacity-40">
       <Loader2 className="animate-spin h-12 w-12 text-black mb-4" />
-      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">accessing encrypted sector...</p>
+      <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-400">accessing encrypted sector...</p>
     </div>
   );
 
@@ -82,15 +89,15 @@ export default function VaultPage() {
             </div>
             <div className="h-0.5 w-12 bg-rose-500 rounded-full" />
           </div>
-          <h1 className="text-5xl font-black uppercase tracking-tight text-zinc-900 leading-none">The Vault</h1>
-          <p className="text-[10px] uppercase tracking-[0.5em] font-black text-zinc-400 mt-4 italic flex items-center gap-3">
+          <h1 className="text-5xl font-bold uppercase tracking-tight text-zinc-900 leading-none">The Vault</h1>
+          <p className="text-[10px] uppercase tracking-[0.5em] font-bold text-zinc-400 mt-4 italic flex items-center gap-3">
              Secure Repository / Level 5 Clearance
           </p>
         </div>
 
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-4 px-10 py-5 bg-zinc-950 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-[2rem] hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-black/20"
+          className="flex items-center gap-4 px-10 py-5 bg-zinc-950 text-white text-[10px] font-bold uppercase tracking-[0.2em] rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-black/20"
         >
           <Plus className="h-5 w-5" /> <span>Secure New Record</span>
         </button>
@@ -99,7 +106,7 @@ export default function VaultPage() {
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-zinc-950 rounded-[2.5rem] p-8 flex items-center gap-6 shadow-2xl shadow-black/10 relative overflow-hidden"
+        className="bg-zinc-950 rounded-3xl p-8 flex items-center gap-6 shadow-2xl shadow-black/10 relative overflow-hidden"
       >
         <div className="absolute top-0 right-0 p-8 opacity-5">
            <ShieldCheck className="h-32 w-32 text-white" />
@@ -108,7 +115,7 @@ export default function VaultPage() {
           <AlertTriangle className="h-8 w-8 text-rose-500" />
         </div>
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white">System Security Advisory</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white">System Security Advisory</p>
           <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">
             Data encrypted via AES-256 Protocol. All administrative access patterns are logged and audited in real-time.
           </p>
@@ -122,7 +129,7 @@ export default function VaultPage() {
           placeholder="SEARCH ENCRYPTED ARCHIVES..." 
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
-          className="w-full bg-white border border-zinc-100 rounded-[2rem] p-6 pl-16 text-[10px] font-black uppercase tracking-[0.2em] outline-none focus:border-zinc-900 transition-all shadow-xl shadow-black/[0.02]"
+          className="w-full bg-white border border-zinc-100 rounded-2xl p-6 pl-16 text-[10px] font-bold uppercase tracking-[0.2em] outline-none focus:border-zinc-900 transition-all shadow-xl shadow-black/[0.02]"
         />
       </div>
 
@@ -141,9 +148,9 @@ export default function VaultPage() {
                   {entry.category === 'credential' ? <Key className="h-6 w-6" /> : <FileText className="h-6 w-6" />}
                 </div>
                 <div>
-                  <h3 className="text-xl font-black uppercase tracking-tight text-zinc-900">{entry.title}</h3>
+                  <h3 className="text-xl font-bold uppercase tracking-tight text-zinc-900">{entry.title}</h3>
                   <div className="flex items-center gap-3 mt-1">
-                    <span className="text-[9px] font-black text-rose-500 uppercase tracking-widest">{entry.category}</span>
+                    <span className="text-[9px] font-bold text-rose-500 uppercase tracking-widest">{entry.category}</span>
                     <div className="w-1 h-1 bg-zinc-200 rounded-full" />
                     <span className="text-[8px] font-bold text-zinc-300 uppercase tracking-widest">ID_{entry._id.substring(entry._id.length - 6)}</span>
                   </div>
@@ -158,7 +165,7 @@ export default function VaultPage() {
             </div>
 
             <div className="relative mb-8">
-              <div className={`p-8 rounded-[2rem] font-mono text-sm break-all transition-all duration-500 border ${
+              <div className={`p-8 rounded-2xl font-mono text-sm break-all transition-all duration-500 border ${
                 visibleEntries.has(entry._id) 
                   ? 'bg-zinc-50 border-zinc-100 text-zinc-900 shadow-inner' 
                   : 'bg-zinc-950 border-zinc-950 text-zinc-950 select-none overflow-hidden blur-[2px] opacity-10'
@@ -198,34 +205,34 @@ export default function VaultPage() {
               </button>
 
               <div className="mb-12">
-                <h2 className="text-3xl font-black uppercase tracking-tight text-zinc-900 leading-none">New Entry</h2>
-                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] mt-4 italic flex items-center gap-3">
+                <h2 className="text-3xl font-bold uppercase tracking-tight text-zinc-900 leading-none">New Entry</h2>
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.4em] mt-4 italic flex items-center gap-3">
                   <div className="w-8 h-0.5 bg-rose-500" /> Secure Encryption Protocol
                 </p>
               </div>
 
               <form onSubmit={handleCreate} className="space-y-8">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Archive Title</label>
-                  <input name="title" className="w-full bg-zinc-50 border border-zinc-100 p-6 text-[11px] font-black uppercase rounded-2xl outline-none focus:border-zinc-900 transition-all" required />
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 px-1">Archive Title</label>
+                  <input name="title" className="w-full bg-zinc-50 border border-zinc-100 p-6 text-[11px] font-bold uppercase rounded-2xl outline-none focus:border-zinc-900 transition-all" required />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Tactical Category</label>
-                  <select name="category" className="w-full bg-zinc-50 border border-zinc-100 p-6 text-[11px] font-black uppercase rounded-2xl outline-none focus:border-zinc-900 transition-all appearance-none bg-white cursor-pointer">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 px-1">Tactical Category</label>
+                  <select name="category" className="w-full bg-zinc-50 border border-zinc-100 p-6 text-[11px] font-bold uppercase rounded-2xl outline-none focus:border-zinc-900 transition-all appearance-none bg-white cursor-pointer">
                     <option value="credential">CREDENTIAL / PASSWORD</option>
                     <option value="api_key">API KEY / TOKEN</option>
                     <option value="private_note">PRIVATE TACTICAL NOTE</option>
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Sensitive Content (ENCRYPTED)</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 px-1">Sensitive Content (ENCRYPTED)</label>
                   <textarea name="content" rows={3} className="w-full bg-zinc-50 border border-zinc-100 p-6 text-sm font-mono rounded-2xl outline-none focus:border-zinc-900 transition-all resize-none" required />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Public Description</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 px-1">Public Description</label>
                   <input name="description" className="w-full bg-zinc-50 border border-zinc-100 p-6 text-[11px] font-bold uppercase rounded-2xl outline-none focus:border-zinc-900 transition-all" />
                 </div>
-                <button type="submit" className="w-full py-6 bg-zinc-950 text-white text-[11px] font-black uppercase tracking-[0.4em] rounded-[2rem] hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-black/20 flex items-center justify-center gap-4">
+                <button type="submit" className="w-full py-6 bg-zinc-950 text-white text-[11px] font-bold uppercase tracking-[0.4em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-black/20 flex items-center justify-center gap-4">
                   <ShieldCheck className="h-5 w-5" />
                   Execute Encryption Protocol
                 </button>

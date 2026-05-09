@@ -24,13 +24,13 @@ export default function NotificationCenter() {
       <button
         onClick={toggleOpen}
         className={`
-          relative p-3 border-4 border-black transition-all
+          relative p-3 border border-black transition-all
           ${isOpen ? "bg-black text-white" : "bg-white text-black hover:bg-black hover:text-white"}
         `}
       >
         <Bell className="h-6 w-6" />
         {unreadCount > 0 && (
-          <span className="absolute -top-3 -right-3 min-w-[24px] h-6 px-1 bg-red-600 text-white text-[10px] font-black flex items-center justify-center border-4 border-white shadow-lg animate-bounce">
+          <span className="absolute -top-3 -right-3 min-w-[24px] h-6 px-1 bg-red-600 text-white text-[10px] font-bold flex items-center justify-center border border-white shadow-lg animate-bounce">
             {unreadCount}
           </span>
         )}
@@ -57,8 +57,8 @@ export default function NotificationCenter() {
                 <div className="flex items-center gap-3">
                   <Inbox className="h-6 w-6 text-yellow-400" />
                   <div>
-                    <h3 className="text-lg font-black uppercase tracking-tighter italic leading-none">Notifications</h3>
-                    <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mt-1">
+                    <h3 className="text-lg font-bold uppercase tracking-tighter italic leading-none">Notifications</h3>
+                    <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest mt-1">
                       {unreadCount} UNREAD SIGNALS
                     </p>
                   </div>
@@ -98,14 +98,14 @@ export default function NotificationCenter() {
                         
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-black uppercase tracking-tight mb-1 truncate">
+                            <h4 className="text-sm font-bold uppercase tracking-tight mb-1 truncate">
                               {notif.title}
                             </h4>
                             <p className="text-xs font-bold text-zinc-600 leading-tight mb-3">
                               {notif.message}
                             </p>
                             <div className="flex items-center gap-4">
-                              <span className="text-[9px] font-black text-zinc-400 uppercase">
+                              <span className="text-[9px] font-bold text-zinc-400 uppercase">
                                 {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
                               </span>
                               {notif.link && (
@@ -115,7 +115,7 @@ export default function NotificationCenter() {
                                     setIsOpen(false);
                                     markAsRead(notif._id);
                                   }}
-                                  className="text-[9px] font-black uppercase flex items-center gap-1 text-black underline underline-offset-2 hover:bg-black hover:text-white px-1"
+                                  className="text-[9px] font-bold uppercase flex items-center gap-1 text-black underline underline-offset-2 hover:bg-black hover:text-white px-1"
                                 >
                                   Execute <ExternalLink className="h-2 w-2" />
                                 </Link>
@@ -148,7 +148,7 @@ export default function NotificationCenter() {
                 ) : (
                   <div className="p-20 text-center">
                     <Inbox className="h-12 w-12 text-zinc-200 mx-auto mb-4" />
-                    <p className="text-[10px] font-black text-zinc-300 uppercase italic tracking-widest">
+                    <p className="text-[10px] font-bold text-zinc-300 uppercase italic tracking-widest">
                       Zero Transmission Signals Detected
                     </p>
                   </div>
@@ -160,7 +160,7 @@ export default function NotificationCenter() {
                 <Link 
                   href="/dashboard/logs"
                   onClick={() => setIsOpen(false)}
-                  className="block w-full py-3 bg-white border-4 border-black text-center text-[10px] font-black uppercase tracking-[0.3em] hover:bg-black hover:text-white transition-all"
+                  className="block w-full py-3 bg-white border border-black text-center text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-black hover:text-white transition-all"
                 >
                   View Activity Archives
                 </Link>

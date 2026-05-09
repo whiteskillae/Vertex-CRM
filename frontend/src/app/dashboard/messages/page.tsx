@@ -272,7 +272,7 @@ export default function MessagesPage() {
   if (loading) return (
     <div className="h-full flex flex-col items-center justify-center gap-8 opacity-40">
       <Loader2 className="animate-spin h-16 w-16 text-black" />
-      <span className="text-[10px] font-black uppercase tracking-[0.8em]">Establishing Secure Uplink...</span>
+      <span className="text-[10px] font-bold uppercase tracking-[0.8em]">Establishing Secure Uplink...</span>
     </div>
   );
 
@@ -283,8 +283,8 @@ export default function MessagesPage() {
         <div className="p-10 border-b border-zinc-50 bg-[#fafafa]/50 space-y-8">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-4xl font-black uppercase tracking-tight text-zinc-900 leading-none">Comms Hub</h2>
-              <p className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.4em] mt-4 italic flex items-center gap-2">
+              <h2 className="text-4xl font-bold uppercase tracking-tight text-zinc-900 leading-none">Comms Hub</h2>
+              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-[0.4em] mt-4 italic flex items-center gap-2">
                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" /> Secure Grid Active
               </p>
             </div>
@@ -300,7 +300,7 @@ export default function MessagesPage() {
               placeholder="SEARCH PERSONNEL..." 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full bg-white border border-zinc-100 rounded-2xl p-5 pl-14 text-[10px] font-black uppercase tracking-[0.2em] outline-none focus:border-zinc-900 transition-all shadow-sm"
+              className="w-full bg-white border border-zinc-100 rounded-2xl p-5 pl-14 text-[10px] font-bold uppercase tracking-[0.2em] outline-none focus:border-zinc-900 transition-all shadow-sm"
             />
           </div>
         </div>
@@ -316,18 +316,18 @@ export default function MessagesPage() {
                 <Globe className="h-8 w-8" />
               </div>
               <div className="text-left">
-                <p className="text-xl font-black uppercase tracking-tight leading-none">Enterprise Matrix</p>
-                <p className={`text-[9px] font-black uppercase tracking-widest mt-2 ${isTeamChat ? 'text-zinc-500' : 'text-zinc-400'}`}>Global Team Broadcast</p>
+                <p className="text-xl font-bold uppercase tracking-tight leading-none">Enterprise Matrix</p>
+                <p className={`text-[9px] font-bold uppercase tracking-widest mt-2 ${isTeamChat ? 'text-zinc-500' : 'text-zinc-400'}`}>Global Team Broadcast</p>
               </div>
             </div>
             {teamUnreadCount > 0 && (
-              <span className="bg-brand-rose text-white px-4 py-1.5 rounded-full text-[10px] font-black shadow-xl animate-bounce">
+              <span className="bg-brand-rose text-white px-4 py-1.5 rounded-full text-[10px] font-bold shadow-xl animate-bounce">
                 {teamUnreadCount}
               </span>
             )}
           </button>
 
-          <div className="px-10 py-6 bg-zinc-50 text-[9px] font-black uppercase tracking-[0.4em] text-zinc-400">Personnel Nodes</div>
+          <div className="px-10 py-6 bg-zinc-50 text-[9px] font-bold uppercase tracking-[0.4em] text-zinc-400">Personnel Nodes</div>
 
           {contacts.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase())).map(contact => (
             <button
@@ -337,18 +337,18 @@ export default function MessagesPage() {
             >
               <div className="flex items-center gap-6">
                 <div className="relative">
-                  <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center font-black text-2xl transition-all duration-500 shadow-sm ${selectedContact?._id === contact._id ? 'bg-zinc-950 text-white' : 'bg-white border border-zinc-100 text-zinc-900 group-hover:bg-zinc-950 group-hover:text-white'}`}>
+                  <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center font-bold text-2xl transition-all duration-500 shadow-sm ${selectedContact?._id === contact._id ? 'bg-zinc-950 text-white' : 'bg-white border border-zinc-100 text-zinc-900 group-hover:bg-zinc-950 group-hover:text-white'}`}>
                     {contact.name[0]}
                   </div>
                   <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-white ${contact.status === 'online' ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-zinc-300'} shadow-xl`} />
                 </div>
                 <div className="text-left">
-                  <p className="text-xl font-black uppercase tracking-tight text-zinc-900 leading-none">{contact.name}</p>
+                  <p className="text-xl font-bold uppercase tracking-tight text-zinc-900 leading-none">{contact.name}</p>
                   <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-2 italic">{contact.role}</p>
                 </div>
               </div>
               {contact.unreadCount ? contact.unreadCount > 0 && (
-                <span className="bg-zinc-950 text-white px-4 py-1.5 rounded-full text-[10px] font-black shadow-xl">
+                <span className="bg-zinc-950 text-white px-4 py-1.5 rounded-full text-[10px] font-bold shadow-xl">
                   {contact.unreadCount}
                 </span>
               ) : null}
@@ -370,14 +370,14 @@ export default function MessagesPage() {
               <div className="p-10 border-b border-zinc-50 bg-white flex items-center justify-between z-20 shadow-sm">
                 <div className="flex items-center gap-6">
                   <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center shadow-xl transition-all duration-500 ${isTeamChat ? 'bg-zinc-950 text-white' : 'bg-white border border-zinc-100 text-zinc-900 shadow-zinc-100/50'}`}>
-                    {isTeamChat ? <Globe className="h-8 w-8" /> : <span className="font-black text-2xl">{selectedContact?.name[0]}</span>}
+                    {isTeamChat ? <Globe className="h-8 w-8" /> : <span className="font-bold text-2xl">{selectedContact?.name[0]}</span>}
                   </div>
                   <div>
-                    <h3 className="text-3xl font-black uppercase tracking-tight text-zinc-900 leading-none">
+                    <h3 className="text-3xl font-bold uppercase tracking-tight text-zinc-900 leading-none">
                       {isTeamChat ? "Enterprise Matrix" : selectedContact?.name}
                     </h3>
                     <div className="flex items-center gap-3 mt-3">
-                      <div className={`px-2.5 py-1 rounded-md text-[8px] font-black uppercase tracking-widest ${isTeamChat ? 'bg-zinc-950 text-white' : 'bg-indigo-50 text-indigo-600'}`}>
+                      <div className={`px-2.5 py-1 rounded-md text-[8px] font-bold uppercase tracking-widest ${isTeamChat ? 'bg-zinc-950 text-white' : 'bg-indigo-50 text-indigo-600'}`}>
                         {isTeamChat ? 'GLOBAL_UPLINK' : 'SECURE_NODE'}
                       </div>
                       <span className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest italic flex items-center gap-2">
@@ -412,8 +412,8 @@ export default function MessagesPage() {
 
                   return (
                     <div key={msg._id} className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
-                      {isTeamChat && !isOwn && <span className="text-[9px] font-black uppercase text-zinc-300 mb-3 ml-4 tracking-widest">{senderName}</span>}
-                      <div className={`max-w-[70%] p-8 rounded-[2.5rem] relative group transition-all duration-300 shadow-sm ${isOwn ? 'bg-zinc-950 text-white rounded-tr-none' : 'bg-white border border-zinc-100 text-zinc-900 rounded-tl-none hover:border-zinc-200'}`}>
+                      {isTeamChat && !isOwn && <span className="text-[9px] font-bold uppercase text-zinc-300 mb-3 ml-4 tracking-widest">{senderName}</span>}
+                      <div className={`max-w-[70%] p-8 rounded-3xl relative group transition-all duration-300 shadow-sm ${isOwn ? 'bg-zinc-950 text-white rounded-tr-none' : 'bg-white border border-zinc-100 text-zinc-900 rounded-tl-none hover:border-zinc-200'}`}>
                         {msg.fileUrl && (
                           <div className="mb-6 rounded-2xl overflow-hidden bg-white/5 border border-white/10 p-1 shadow-inner">
                             {msg.fileType === 'image' ? (
@@ -430,7 +430,7 @@ export default function MessagesPage() {
                                     <FileText className="h-6 w-6" />
                                   </div>
                                   <div>
-                                    <p className="text-[10px] font-black uppercase tracking-widest">Asset_Secure_Payload</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest">Asset_Secure_Payload</p>
                                     <p className="text-[8px] font-bold text-zinc-500 uppercase mt-1 tracking-wider">Cloudinary Archive</p>
                                   </div>
                                 </div>
@@ -444,7 +444,7 @@ export default function MessagesPage() {
 
                         <p className="text-sm font-semibold leading-relaxed tracking-tight break-words">{msg.message}</p>
                         
-                        <div className={`flex items-center gap-3 mt-6 text-[8px] font-black uppercase tracking-widest ${isOwn ? 'text-zinc-500' : 'text-zinc-300'}`}>
+                        <div className={`flex items-center gap-3 mt-6 text-[8px] font-bold uppercase tracking-widest ${isOwn ? 'text-zinc-500' : 'text-zinc-300'}`}>
                           <span>{format(new Date(msg.timestamp), 'HH:mm:ss')}</span>
                           {isOwn && (
                             msg.isSeen ? <CheckCheck className="h-3.5 w-3.5 text-indigo-400" /> : <Check className="h-3.5 w-3.5" />
@@ -463,7 +463,7 @@ export default function MessagesPage() {
                       <div className="w-1.5 h-1.5 bg-zinc-950 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                       <div className="w-1.5 h-1.5 bg-zinc-950 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
-                    <span className="text-[8px] font-black uppercase tracking-[0.3em] text-zinc-400 italic">
+                    <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-zinc-400 italic">
                       {isTeamChat ? `${teamTypingUsers[0].userName} IS TRANSMITTING...` : 'NODE IS TRANSMITTING...'}
                     </span>
                   </motion.div>
@@ -477,7 +477,7 @@ export default function MessagesPage() {
                   {previewUrl && (
                     <motion.div 
                       initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                      className="mb-8 p-6 bg-zinc-50 rounded-[2.5rem] border border-zinc-100 relative group"
+                      className="mb-8 p-6 bg-zinc-50 rounded-3xl border border-zinc-100 relative group"
                     >
                       <img src={previewUrl} className="max-h-56 w-auto rounded-3xl shadow-2xl mx-auto border border-zinc-200" />
                       <button onClick={() => { setPendingFile(null); setPreviewUrl(null); }} className="absolute -top-4 -right-4 bg-zinc-950 text-white p-4 rounded-2xl shadow-xl hover:scale-110 transition-all">
@@ -488,14 +488,14 @@ export default function MessagesPage() {
                   {pendingFile && !previewUrl && (
                     <motion.div 
                       initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                      className="mb-8 p-8 bg-zinc-950 rounded-[2.5rem] flex items-center justify-between shadow-2xl"
+                      className="mb-8 p-8 bg-zinc-950 rounded-3xl flex items-center justify-between shadow-2xl"
                     >
                       <div className="flex items-center gap-6">
                         <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-white">
                            <FileText className="h-8 w-8" />
                         </div>
                         <div>
-                          <p className="text-[12px] font-black text-white uppercase tracking-widest">{pendingFile.name}</p>
+                          <p className="text-[12px] font-bold text-white uppercase tracking-widest">{pendingFile.name}</p>
                           <p className="text-[10px] font-bold text-zinc-500 uppercase mt-1">Pending Transmission</p>
                         </div>
                       </div>
@@ -526,7 +526,7 @@ export default function MessagesPage() {
                         }
                       }}
                       placeholder="ENTER TRANSMISSION PROTOCOL..."
-                      className="w-full p-8 bg-zinc-50 border border-zinc-100 rounded-[2.5rem] text-[15px] font-semibold text-zinc-900 outline-none focus:bg-white focus:border-zinc-950 transition-all resize-none min-h-[110px] max-h-[300px] shadow-sm scrollbar-hide"
+                      className="w-full p-8 bg-zinc-50 border border-zinc-100 rounded-3xl text-[15px] font-semibold text-zinc-900 outline-none focus:bg-white focus:border-zinc-950 transition-all resize-none min-h-[110px] max-h-[300px] shadow-sm scrollbar-hide"
                     />
                     <div className="absolute right-6 bottom-6 flex items-center gap-3">
                        <Zap className={`h-4 w-4 transition-all duration-700 ${newMessage.length > 0 ? 'text-indigo-500 animate-pulse scale-125' : 'text-zinc-200'}`} />
@@ -536,7 +536,7 @@ export default function MessagesPage() {
                   <button 
                     type="submit" 
                     disabled={(!newMessage.trim() && !pendingFile) || processing}
-                    className="p-8 bg-zinc-950 text-white rounded-[2.5rem] hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-black/20 disabled:opacity-50 h-full flex items-center justify-center min-w-[130px] group mb-2"
+                    className="p-8 bg-zinc-950 text-white rounded-3xl hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-black/20 disabled:opacity-50 h-full flex items-center justify-center min-w-[130px] group mb-2"
                   >
                     {processing ? <Loader2 className="h-10 w-10 animate-spin" /> : <Send className="h-10 w-10 group-hover:translate-x-2 group-hover:-translate-y-2 transition-all duration-500" />}
                   </button>
@@ -547,12 +547,12 @@ export default function MessagesPage() {
             <div className="flex-1 flex flex-col items-center justify-center p-20 text-center relative overflow-hidden">
               <div className="absolute inset-0 pattern-dots opacity-[0.03] scale-150 rotate-12" />
               <div className="relative z-10 space-y-12 max-w-lg">
-                <div className="w-48 h-48 bg-zinc-50 rounded-[4rem] border border-zinc-100 flex items-center justify-center mx-auto shadow-2xl shadow-black/[0.02] group">
+                <div className="w-48 h-48 bg-zinc-50 rounded-3xl border border-zinc-100 flex items-center justify-center mx-auto shadow-2xl shadow-black/[0.02] group">
                   <MessageSquare className="h-20 w-20 text-zinc-100 group-hover:text-zinc-950 group-hover:scale-110 transition-all duration-700" />
                 </div>
                 <div className="space-y-6">
-                  <h3 className="text-5xl font-black uppercase tracking-tight text-zinc-900 italic">Awaiting Uplink</h3>
-                  <p className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-400 leading-relaxed">
+                  <h3 className="text-5xl font-bold uppercase tracking-tight text-zinc-900 italic">Awaiting Uplink</h3>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-zinc-400 leading-relaxed">
                     Personnel Node Selection Required. Initiate Encrypted Synchronization Protocol to Begin Communication.
                   </p>
                 </div>
@@ -565,7 +565,7 @@ export default function MessagesPage() {
                   ].map((item, i) => (
                     <div key={i} className="p-6 bg-white border border-zinc-100 rounded-3xl flex flex-col items-center gap-4 shadow-sm">
                       <item.icon className="h-6 w-6 text-zinc-300" />
-                      <span className="text-[8px] font-black uppercase tracking-widest text-zinc-400">{item.label}</span>
+                      <span className="text-[8px] font-bold uppercase tracking-widest text-zinc-400">{item.label}</span>
                     </div>
                   ))}
                 </div>

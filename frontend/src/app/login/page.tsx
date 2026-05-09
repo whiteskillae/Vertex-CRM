@@ -20,6 +20,17 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPass, setShowPass] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useState(() => {
+    // We can't use useEffect here easily because it might flash, 
+    // but the issue is only the copyright year which is stable.
+    // However, to be pedantic about '0 errors', I'll add it.
+  });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Admin fields
   const [adminEmail, setAdminEmail] = useState("");
@@ -155,6 +166,8 @@ export default function LoginPage() {
 
   const isSuccess = /✓|verified|created|approved|sent/i.test(error);
 
+  if (!mounted) return null;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md">
@@ -168,7 +181,7 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-black rounded-2xl mb-4">
             <ShieldCheck className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-4xl font-black tracking-tight text-black uppercase">CRM Core</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-black uppercase">CRM Core</h1>
           <p className="mt-1 text-xs text-gray-400 uppercase tracking-[0.3em] font-bold">Enterprise Security Portal</p>
         </motion.div>
 
@@ -178,7 +191,7 @@ export default function LoginPage() {
             <button
               key={t}
               onClick={() => { setTab(t); clearErr(); setEmpMode("login"); }}
-              className={`flex-1 py-3 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
+              className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
                 tab === t ? "border-b-4 border-black text-black" : "text-gray-400 hover:text-black"
               }`}
             >
@@ -206,7 +219,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black uppercase mb-2 flex items-center gap-1">
+                  <label className="block text-xs font-bold uppercase mb-2 flex items-center gap-1">
                     <Mail className="h-3 w-3" /> Admin Email
                   </label>
                   <input
@@ -221,7 +234,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black uppercase mb-2 flex items-center gap-1">
+                  <label className="block text-xs font-bold uppercase mb-2 flex items-center gap-1">
                     <Lock className="h-3 w-3" /> Password
                   </label>
                   <div className="relative">
@@ -247,7 +260,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center py-4 bg-black text-white hover:bg-gray-900 border-2 border-black transition-all font-black uppercase tracking-widest text-sm disabled:opacity-50"
+                  className="w-full flex items-center justify-center py-4 bg-black text-white hover:bg-gray-900 border-2 border-black transition-all font-bold uppercase tracking-widest text-sm disabled:opacity-50"
                 >
                   {loading ? <Loader2 className="animate-spin h-4 w-4" /> : <><LogIn className="mr-2 h-4 w-4" /> Admin Login</>}
                 </button>
@@ -265,7 +278,7 @@ export default function LoginPage() {
                 className="space-y-5"
               >
                 <div>
-                  <label className="block text-xs font-black uppercase mb-2 flex items-center gap-1">
+                  <label className="block text-xs font-bold uppercase mb-2 flex items-center gap-1">
                     <Mail className="h-3 w-3" /> Email
                   </label>
                   <input
@@ -280,7 +293,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black uppercase mb-2 flex items-center gap-1">
+                  <label className="block text-xs font-bold uppercase mb-2 flex items-center gap-1">
                     <Lock className="h-3 w-3" /> Password
                   </label>
                   <div className="relative">
@@ -306,7 +319,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center py-4 bg-black text-white hover:bg-gray-900 border-2 border-black transition-all font-black uppercase tracking-widest text-sm disabled:opacity-50"
+                  className="w-full flex items-center justify-center py-4 bg-black text-white hover:bg-gray-900 border-2 border-black transition-all font-bold uppercase tracking-widest text-sm disabled:opacity-50"
                 >
                   {loading ? <Loader2 className="animate-spin h-4 w-4" /> : <><KeyRound className="mr-2 h-4 w-4" /> Request OTP</>}
                 </button>
@@ -314,7 +327,7 @@ export default function LoginPage() {
                 <div className="relative py-2">
                   <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
                   <div className="relative flex justify-center text-[10px] uppercase font-bold">
-                    <span className="bg-white px-2 text-gray-400 font-black">Or secure connect</span>
+                    <span className="bg-white px-2 text-gray-400 font-bold">Or secure connect</span>
                   </div>
                 </div>
 
@@ -352,7 +365,7 @@ export default function LoginPage() {
                 className="space-y-4"
               >
                 <div>
-                  <label className="block text-xs font-black uppercase mb-2">Full Name</label>
+                  <label className="block text-xs font-bold uppercase mb-2">Full Name</label>
                   <input
                     type="text"
                     required
@@ -363,7 +376,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-black uppercase mb-2">Work Email</label>
+                  <label className="block text-xs font-bold uppercase mb-2">Work Email</label>
                   <input
                     type="email"
                     required
@@ -374,7 +387,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-black uppercase mb-2">Password (min. 6 chars)</label>
+                  <label className="block text-xs font-bold uppercase mb-2">Password (min. 6 chars)</label>
                   <input
                     type="password"
                     required
@@ -388,7 +401,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center py-4 bg-black text-white border-2 border-black transition-all font-black uppercase tracking-widest text-sm disabled:opacity-50"
+                  className="w-full flex items-center justify-center py-4 bg-black text-white border-2 border-black transition-all font-bold uppercase tracking-widest text-sm disabled:opacity-50"
                 >
                   {loading ? <Loader2 className="animate-spin h-4 w-4" /> : <><UserPlus className="mr-2 h-4 w-4" /> Create Account</>}
                 </button>
@@ -417,7 +430,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black uppercase mb-2 text-center">Enter OTP Code</label>
+                  <label className="block text-xs font-bold uppercase mb-2 text-center">Enter OTP Code</label>
                   <input
                     type="text"
                     required
@@ -425,7 +438,7 @@ export default function LoginPage() {
                     pattern="\d{6}"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                    className="w-full px-4 py-4 border-2 border-black focus:outline-none bg-white text-black text-center text-3xl tracking-[0.5em] font-black"
+                    className="w-full px-4 py-4 border-2 border-black focus:outline-none bg-white text-black text-center text-3xl tracking-[0.5em] font-bold"
                     placeholder="000000"
                     autoComplete="one-time-code"
                     inputMode="numeric"
@@ -435,7 +448,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading || otp.length !== 6}
-                  className="w-full flex items-center justify-center py-4 bg-black text-white border-2 border-black transition-all font-black uppercase tracking-widest text-sm disabled:opacity-50"
+                  className="w-full flex items-center justify-center py-4 bg-black text-white border-2 border-black transition-all font-bold uppercase tracking-widest text-sm disabled:opacity-50"
                 >
                   {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "Verify & Login"}
                 </button>

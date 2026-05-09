@@ -389,7 +389,7 @@ export default function ReportsPage() {
       </div>
 
       {reports.length === 0 && (
-        <div className="py-32 flex flex-col items-center justify-center text-center space-y-6 bg-zinc-50/50 rounded-[2.5rem] border-2 border-dashed border-zinc-100">
+        <div className="py-32 flex flex-col items-center justify-center text-center space-y-6 bg-zinc-50/50 rounded-3xl border-2 border-dashed border-zinc-100">
           <FileText className="h-16 w-16 text-zinc-100" />
           <div className="space-y-2">
             <h2 className="text-xl font-bold uppercase text-zinc-300 italic">Archive Empty</h2>
@@ -405,7 +405,7 @@ export default function ReportsPage() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-              className="relative bg-white rounded-[2.5rem] w-full max-w-4xl p-10 shadow-2xl overflow-y-auto max-h-[90vh] border border-zinc-100"
+              className="relative bg-white rounded-3xl w-full max-w-4xl p-10 shadow-2xl overflow-y-auto max-h-[90vh] border border-zinc-100"
             >
               <button onClick={() => setIsModalOpen(false)} className="absolute top-8 right-8 p-3 hover:bg-zinc-50 rounded-xl transition-all text-zinc-400 hover:text-zinc-950">
                 <X className="h-6 w-6" />

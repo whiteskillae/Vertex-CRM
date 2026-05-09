@@ -19,6 +19,11 @@ export default function AdminStats() {
   const { socket } = useSocket();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isAdmin = user?.role === "admin";
 
@@ -57,8 +62,10 @@ export default function AdminStats() {
     return () => abortController.abort();
   }, [socket, isAdmin]);
 
+    if (!mounted) return null;
+
   if (loading) return (
-    <div className="h-[300px] flex items-center justify-center bg-white rounded-[2rem] border border-zinc-100 shadow-sm">
+    <div className="h-[300px] flex items-center justify-center bg-white rounded-2xl border border-zinc-100 shadow-sm">
       <Loader2 className="animate-spin h-8 w-8 text-zinc-200" />
     </div>
   );
@@ -80,7 +87,7 @@ export default function AdminStats() {
             initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: i * 0.1 }}
-            className="bg-white rounded-[2rem] border border-zinc-100 p-7 shadow-sm hover:shadow-lg transition-all duration-300 group relative"
+            className="bg-white rounded-2xl border border-zinc-100 p-7 shadow-sm hover:shadow-lg transition-all duration-300 group relative"
           >
             <div className="flex justify-between items-start mb-5">
               <div className={`p-3 rounded-xl ${stat.bg} ${stat.color} transition-all duration-300 group-hover:scale-110 shadow-sm`}>
@@ -91,7 +98,7 @@ export default function AdminStats() {
               </span>
             </div>
             <div>
-              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">{stat.label}</p>
+              <p className="text-[9px] font-semibold text-zinc-400 uppercase tracking-widest mb-1.5">{stat.label}</p>
               <h3 className="text-3xl font-bold text-zinc-950 tabular-nums tracking-tight italic">{stat.value.toLocaleString()}</h3>
             </div>
           </motion.div>
@@ -100,11 +107,11 @@ export default function AdminStats() {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* Performance Graph */}
-        <div className="bg-white rounded-[2.5rem] border border-zinc-100 p-8 shadow-sm flex flex-col h-[480px]">
+        <div className="bg-white rounded-3xl border border-zinc-100 p-8 shadow-sm flex flex-col h-[480px]">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h3 className="text-lg font-bold text-zinc-900 tracking-tight italic uppercase">System Velocity</h3>
-              <p className="text-[9px] font-bold text-zinc-400 mt-1 uppercase tracking-widest">30-day operation analysis</p>
+              <p className="text-[9px] font-semibold text-zinc-400 mt-1 uppercase tracking-widest">30-day operation analysis</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5">
@@ -158,7 +165,7 @@ export default function AdminStats() {
         </div>
 
         {/* Sector Allocation */}
-        <div className="bg-white rounded-[2.5rem] border border-zinc-100 p-8 shadow-sm flex flex-col h-[480px]">
+        <div className="bg-white rounded-3xl border border-zinc-100 p-8 shadow-sm flex flex-col h-[480px]">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h3 className="text-lg font-bold text-zinc-900 tracking-tight italic uppercase">Sector Allocation</h3>

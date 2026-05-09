@@ -38,6 +38,17 @@ const NotificationCenter = dynamic(() => import("@/components/dashboard/Notifica
 
 import { useNotifications } from "@/hooks/useNotifications";
 
+const ClockDisplay = () => {
+  const [time, setTime] = useState("00:00");
+  useEffect(() => {
+    const update = () => setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
+    update();
+    const timer = setInterval(update, 60000);
+    return () => clearInterval(timer);
+  }, []);
+  return <>{time}</>;
+};
+
 interface NavItem {
   name: string;
   href: string;
@@ -153,23 +164,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        <div className={`p-8 flex items-center shrink-0 ${collapsed ? "justify-center" : "justify-between"}`}>
+        <div className={`p-6 flex items-center shrink-0 ${collapsed ? "justify-center" : "justify-between"}`}>
           {!collapsed && (
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-zinc-950 text-white flex items-center justify-center font-bold text-xl rounded-xl">V</div>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-zinc-950 text-white flex items-center justify-center font-bold text-lg rounded-lg">V</div>
               <div>
-                <h2 className="text-sm font-bold tracking-tight text-zinc-950 uppercase italic leading-none">Vertex</h2>
-                <p className="text-[8px] text-zinc-400 font-bold uppercase tracking-widest mt-1">Enterprise Core</p>
+                <h2 className="text-xs font-bold tracking-tight text-zinc-950 uppercase italic leading-none">Vertex</h2>
+                <p className="text-[7px] text-zinc-400 font-bold uppercase tracking-widest mt-1">Enterprise Core</p>
               </div>
             </div>
           )}
-          {collapsed && <div className="w-10 h-10 bg-zinc-950 text-white flex items-center justify-center font-bold text-xl rounded-xl">V</div>}
+          {collapsed && <div className="w-8 h-8 bg-zinc-950 text-white flex items-center justify-center font-bold text-lg rounded-lg">V</div>}
           
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="hidden lg:flex items-center justify-center w-8 h-8 text-zinc-300 hover:text-zinc-950 hover:bg-zinc-50 rounded-lg transition-all"
+            className="hidden lg:flex items-center justify-center w-7 h-7 text-zinc-300 hover:text-zinc-950 hover:bg-zinc-50 rounded-lg transition-all"
           >
-            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
           </button>
         </div>
 
@@ -237,20 +248,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 bg-[#fafafa] relative overflow-hidden">
-        <header className="hidden lg:flex items-center justify-between px-10 py-6 bg-white border-b border-zinc-100 shrink-0">
+        <header className="hidden lg:flex items-center justify-between px-8 py-4 bg-white border-b border-zinc-100 shrink-0">
           <div className="flex items-center gap-4">
-            <span className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest italic">Nexus Protocol</span>
+            <span className="text-[8px] font-bold text-zinc-300 uppercase tracking-widest italic">Nexus Protocol</span>
             <div className="w-1 h-1 bg-zinc-200 rounded-full" />
-            <span className="text-[10px] font-bold text-zinc-950 uppercase tracking-widest italic">{pathname.split('/').pop()?.replace(/-/g, ' ') || 'Overview'}</span>
+            <span className="text-[9px] font-bold text-zinc-950 uppercase tracking-widest italic">{pathname.split('/').pop()?.replace(/-/g, ' ') || 'Overview'}</span>
           </div>
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-6">
             <div className="flex flex-col items-end">
-              <span className="text-[8px] font-bold text-zinc-300 uppercase tracking-widest leading-none mb-1.5">System Clock</span>
-              <span className="text-xs font-bold text-zinc-950 tracking-widest tabular-nums">
-                {typeof window !== 'undefined' ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '00:00'}
+              <span className="text-[7px] font-bold text-zinc-300 uppercase tracking-widest leading-none mb-1">System Clock</span>
+              <span className="text-[11px] font-bold text-zinc-950 tracking-widest tabular-nums">
+                <ClockDisplay />
               </span>
             </div>
-            <div className="h-8 w-[1px] bg-zinc-100"></div>
+            <div className="h-6 w-[1px] bg-zinc-100"></div>
             <NotificationCenter />
           </div>
         </header>
@@ -271,3 +282,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </div>
   );
 }
+
+const ClockDisplay = () => {
+  const [time, setTime] = useState("");
+  useEffect(() => {
+    const update = () => setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, []);
+  return <>{time || "00:00"}</>;
+};
+
+const NotificationCenter = () => {
+  return (
+    <button className="relative p-2.5 bg-zinc-50 text-zinc-400 rounded-xl hover:bg-zinc-950 hover:text-white transition-all group">
+      <Bell className="h-4 w-4" />
+      <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-emerald-500 rounded-full border-2 border-white group-hover:border-zinc-950 transition-all"></span>
+    </button>
+  );
+};

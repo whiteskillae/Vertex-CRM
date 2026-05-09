@@ -63,6 +63,11 @@ export default function LeadsPage() {
   const [importFile, setImportFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [newLead, setNewLead] = useState({
     name: "",
@@ -244,6 +249,8 @@ export default function LeadsPage() {
 
   const trashedLeads = getByType("lead");
 
+  if (!mounted) return null;
+
   return (
     <div className="max-w-[1600px] mx-auto space-y-10 pb-24">
       {/* Header Section */}
@@ -326,7 +333,7 @@ export default function LeadsPage() {
               </button>
             </div>
 
-            <div className="bg-white rounded-[2rem] border border-zinc-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
@@ -474,7 +481,7 @@ export default function LeadsPage() {
         {isAddModalOpen && (
           <div className="fixed inset-0 z-[1500] flex items-center justify-center p-6">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsAddModalOpen(false)} className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative bg-white rounded-[2.5rem] w-full max-w-xl p-10 shadow-2xl overflow-hidden border border-zinc-100">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative bg-white rounded-3xl w-full max-w-xl p-10 shadow-2xl overflow-hidden border border-zinc-100">
               <h2 className="text-3xl font-bold text-zinc-900 uppercase tracking-tight mb-8">New Entity</h2>
               <form onSubmit={handleAddLead} className="space-y-6">
                 <div className="space-y-2">
@@ -512,7 +519,7 @@ export default function LeadsPage() {
         {analysisNode && (
           <div className="fixed inset-0 z-[2000] flex items-center justify-center p-6">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setAnalysisNode(null)} className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative w-full max-w-4xl bg-white rounded-[2.5rem] shadow-2xl p-10 overflow-y-auto max-h-[90vh] border border-zinc-100">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl p-10 overflow-y-auto max-h-[90vh] border border-zinc-100">
               <button onClick={() => setAnalysisNode(null)} className="absolute top-8 right-8 p-3 hover:bg-zinc-50 rounded-xl transition-all text-zinc-400 hover:text-zinc-950"><X className="h-6 w-6" /></button>
               <div className="flex flex-col md:flex-row gap-12">
                 <div className="md:w-1/3">

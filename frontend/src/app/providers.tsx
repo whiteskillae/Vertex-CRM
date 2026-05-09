@@ -15,7 +15,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           <Toaster 
             position="top-right"
             toastOptions={{
-              className: 'border-4 border-black text-xs font-black uppercase tracking-widest rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]',
+              className: 'border-4 border-black text-xs font-bold uppercase tracking-widest rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]',
               duration: 4000,
             }}
           />

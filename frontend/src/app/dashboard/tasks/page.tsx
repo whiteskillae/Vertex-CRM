@@ -65,6 +65,11 @@ export default function TasksPage() {
   const [newPriority, setNewPriority] = useState("medium");
   const [newDueDate, setNewDueDate] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const isAdminOrManager = user?.role === 'admin' || user?.role === 'manager';
 
@@ -216,18 +221,20 @@ export default function TasksPage() {
     }
   };
 
+  if (!mounted) return null;
+
   return (
-    <div className="space-y-16 pb-32">
+    <div className="space-y-8 pb-32">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-12">
-        <div className="space-y-4">
-          <h1 className="text-5xl font-black tracking-tight text-zinc-950 uppercase leading-none">
-            Task <span className="text-zinc-300">Nexus</span>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 uppercase">
+            Task <span className="text-zinc-400">Nexus</span>
           </h1>
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-1 bg-brand-indigo rounded-full" />
-            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] italic flex items-center gap-3">
-              <Target className="h-4 w-4 text-brand-indigo" /> Operational efficiency active
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-0.5 bg-zinc-900 rounded-full" />
+            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest italic flex items-center gap-2">
+              <Target className="h-3.5 w-3.5 text-zinc-900" /> Operational efficiency active
             </p>
           </div>
         </div>
@@ -235,28 +242,28 @@ export default function TasksPage() {
         {isAdminOrManager && (
           <button 
             onClick={() => { resetForm(); setIsModalOpen(true); }}
-            className="flex items-center gap-4 px-10 py-5 bg-zinc-950 text-white text-[11px] font-black uppercase tracking-widest rounded-[2rem] hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-black/20"
+            className="flex items-center gap-3 px-8 py-4 bg-zinc-950 text-white text-[10px] font-bold uppercase tracking-widest rounded-2xl hover:bg-zinc-800 transition-all shadow-lg"
           >
-            <Plus className="h-5 w-5" /> Create New Task
+            <Plus className="h-4 w-4" /> Create New Task
           </button>
         )}
       </div>
 
       {/* Tabs */}
       {/* Tabs */}
-      <div className="flex bg-zinc-100/50 p-2 rounded-[2.5rem] border border-zinc-100 shadow-inner overflow-x-auto no-scrollbar gap-2 w-fit">
+      <div className="flex bg-zinc-100/80 p-1.5 rounded-2xl border border-zinc-200/50 w-fit gap-1">
         <button 
           onClick={() => setActiveTab("active")} 
-          className={`px-10 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all rounded-[2rem] whitespace-nowrap ${
-            activeTab === 'active' ? 'bg-white text-zinc-950 shadow-xl' : 'text-zinc-400 hover:text-zinc-950'
+          className={`px-8 py-3 text-[9px] font-bold uppercase tracking-widest transition-all rounded-xl ${
+            activeTab === 'active' ? 'bg-white text-zinc-950 shadow-sm border border-zinc-200/50' : 'text-zinc-400 hover:text-zinc-900'
           }`}
         >
           Active Grid ({tasks.length})
         </button>
         <button 
           onClick={() => setActiveTab("trash")} 
-          className={`px-10 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all rounded-[2rem] whitespace-nowrap ${
-            activeTab === 'trash' ? 'bg-brand-rose text-white shadow-xl shadow-brand-rose/20' : 'text-brand-rose hover:bg-rose-50/50'
+          className={`px-8 py-3 text-[9px] font-bold uppercase tracking-widest transition-all rounded-xl ${
+            activeTab === 'trash' ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'text-zinc-400 hover:text-rose-500'
           }`}
         >
           Archive Hub ({trashedTasks.length})
@@ -268,11 +275,11 @@ export default function TasksPage() {
           {loading ? (
             <div className="p-40 flex flex-col items-center justify-center">
               <Loader2 className="animate-spin h-12 w-12 text-black mb-6" />
-              <p className="text-[10px] font-black uppercase tracking-[0.8em] text-zinc-300 animate-pulse">Syncing Grid...</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.8em] text-zinc-300 animate-pulse">Syncing Grid...</p>
             </div>
           ) : tasks.length === 0 ? (
-            <div className="p-40 text-center bg-zinc-50 rounded-[4rem] border-2 border-dashed border-zinc-200">
-              <p className="text-sm font-black text-zinc-300 uppercase tracking-[0.4em] italic">No active tasks in this sector</p>
+            <div className="p-40 text-center bg-zinc-50 rounded-3xl border-2 border-dashed border-zinc-200">
+              <p className="text-sm font-bold text-zinc-300 uppercase tracking-[0.4em] italic">No active tasks in this sector</p>
             </div>
           ) : (
             tasks.map((task) => (
@@ -281,23 +288,22 @@ export default function TasksPage() {
                 layout
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="group bg-white rounded-[4rem] border border-zinc-100 p-10 lg:p-12 hover:shadow-2xl hover:border-black/5 transition-all duration-700 overflow-hidden relative"
+                className="group bg-white rounded-3xl border border-zinc-200/60 p-8 hover:shadow-xl hover:border-zinc-300 transition-all duration-300 relative"
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-zinc-50 rounded-bl-[10rem] -mr-16 -mt-16 group-hover:scale-110 transition-transform duration-1000" />
                 <div className="flex flex-col lg:flex-row gap-12 relative z-10">
                   {/* Status Side */}
-                  <div className="flex lg:flex-col items-center gap-4 lg:w-24">
-                    <div className={`w-20 h-20 flex-shrink-0 flex items-center justify-center rounded-3xl shadow-lg ${
-                      task.status === 'completed' ? 'bg-brand-emerald text-white' : 
-                      task.status === 'review' ? 'bg-brand-indigo text-white' : 'bg-zinc-100 text-zinc-400'
+                  <div className="flex lg:flex-col items-center gap-4 lg:w-20">
+                    <div className={`w-16 h-16 flex-shrink-0 flex items-center justify-center rounded-2xl shadow-sm ${
+                      task.status === 'completed' ? 'bg-emerald-500 text-white' : 
+                      task.status === 'review' ? 'bg-indigo-500 text-white' : 'bg-zinc-100 text-zinc-400'
                     }`}>
-                      {task.status === 'completed' ? <CircleCheck className="h-10 w-10" /> : 
-                       task.status === 'review' ? <Clock className="h-10 w-10" /> : 
-                       <Target className="h-10 w-10" />}
+                      {task.status === 'completed' ? <CircleCheck className="h-8 w-8" /> : 
+                       task.status === 'review' ? <Clock className="h-8 w-8" /> : 
+                       <Target className="h-8 w-8" />}
                     </div>
                     <div className="flex flex-col lg:items-center text-center">
-                      <span className="text-[10px] font-black uppercase text-zinc-300 tracking-tighter">Status</span>
-                      <span className="text-[10px] font-black uppercase text-zinc-900">{task.status}</span>
+                      <span className="text-[9px] font-bold uppercase text-zinc-400 tracking-tight">Status</span>
+                      <span className="text-[9px] font-bold uppercase text-zinc-900">{task.status}</span>
                     </div>
                   </div>
 
@@ -305,25 +311,22 @@ export default function TasksPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-start justify-between gap-6 mb-6">
                       <div className="flex-1">
-                        <div className="flex flex-wrap items-center gap-4 mb-3">
-                          <h3 className="text-2xl font-black text-zinc-900 tracking-tight uppercase leading-tight">{task.title}</h3>
-                          <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${getPriorityStyle(task.priority)}`}>
+                        <div className="flex flex-wrap items-center gap-3 mb-2">
+                          <h3 className="text-xl font-bold text-zinc-900 uppercase leading-tight">{task.title}</h3>
+                          <span className={`px-2.5 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest ${getPriorityStyle(task.priority)}`}>
                             {task.priority}
                           </span>
-                          {task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed' && (
-                            <span className="px-3 py-1 bg-brand-rose text-white rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-brand-rose/20">Overdue</span>
-                          )}
                         </div>
-                        <p className="text-sm font-semibold text-zinc-500 leading-relaxed max-w-4xl">{task.description}</p>
+                        <p className="text-xs font-medium text-zinc-500 leading-relaxed max-w-4xl">{task.description}</p>
                       </div>
                       
-                      <div className="flex flex-col items-end gap-3 text-right">
-                        <div className="flex items-center gap-3 px-4 py-2 bg-zinc-50 rounded-xl border border-zinc-100">
-                          <UserIcon className="h-4 w-4 text-zinc-400" />
-                          <span className="text-xs font-bold text-zinc-900">{task.assignedTo?.name || 'Unassigned'}</span>
+                      <div className="flex flex-col items-end gap-2 text-right">
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-50 rounded-lg border border-zinc-100">
+                          <UserIcon className="h-3.5 w-3.5 text-zinc-400" />
+                          <span className="text-[10px] font-semibold text-zinc-900">{task.assignedTo?.name || 'Unassigned'}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                          <Calendar className="h-3.5 w-3.5" /> {task.dueDate ? format(new Date(task.dueDate), "dd MMM yyyy") : 'No Deadline'}
+                        <div className="flex items-center gap-2 text-[9px] font-semibold text-zinc-400 uppercase tracking-widest">
+                          <Calendar className="h-3 w-3" /> {task.dueDate ? format(new Date(task.dueDate), "dd MMM yyyy") : 'No Deadline'}
                         </div>
                       </div>
                     </div>
@@ -340,19 +343,19 @@ export default function TasksPage() {
                       )}
 
                       {task.status === 'todo' && task.reassignmentMessage && (
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-8 p-8 bg-brand-rose/5 border border-brand-rose/20 rounded-[2rem]">
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-8 p-8 bg-brand-rose/5 border border-brand-rose/20 rounded-2xl">
                           <div className="flex items-center gap-3 mb-4">
                             <RotateCcw className="h-5 w-5 text-brand-rose" />
-                            <span className="text-xs font-black uppercase text-brand-rose tracking-widest">Revision instructions</span>
+                            <span className="text-xs font-bold uppercase text-brand-rose tracking-widest">Revision instructions</span>
                           </div>
                           <p className="text-sm font-bold text-zinc-600 italic">"{task.reassignmentMessage}"</p>
                         </motion.div>
                       )}
 
                       {(task.status === 'review' || task.status === 'completed') && (task.submission || task.submissionAttachment) && (
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-8 p-8 bg-zinc-50 rounded-[2rem] border border-zinc-100">
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-8 p-8 bg-zinc-50 rounded-2xl border border-zinc-100">
                           <div className="flex items-center justify-between mb-6">
-                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] flex items-center gap-3">
                               <ArrowRight className="h-4 w-4" /> Operational Outcomes
                             </span>
                             {task.submissionAttachment && (
@@ -360,7 +363,7 @@ export default function TasksPage() {
                                 href={task.submissionAttachment} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-5 py-2.5 bg-white border border-zinc-200 rounded-xl text-[10px] font-black uppercase hover:bg-black hover:text-white hover:border-black transition-all shadow-sm"
+                                className="flex items-center gap-2 px-5 py-2.5 bg-white border border-zinc-200 rounded-xl text-[10px] font-bold uppercase hover:bg-black hover:text-white hover:border-black transition-all shadow-sm"
                               >
                                 View Evidence <ExternalLink className="h-3.5 w-3.5" />
                               </a>
@@ -376,36 +379,36 @@ export default function TasksPage() {
                     {/* Submission UI */}
                     <AnimatePresence>
                       {submittingId === task._id && (
-                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mt-10 pt-10 border-t border-zinc-100">
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
-                            <div className="space-y-3">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Submission Notes</label>
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mt-8 pt-8 border-t border-zinc-100">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                            <div className="space-y-2">
+                              <label className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 px-1">Submission Notes</label>
                               <textarea 
                                 value={submissionText} 
                                 onChange={(e) => setSubmissionText(e.target.value)} 
                                 placeholder="Detail the results of this assignment..." 
-                                className="w-full p-6 bg-zinc-50 border border-zinc-200 rounded-3xl text-sm font-semibold outline-none focus:ring-4 focus:ring-black/5 focus:border-black transition-all min-h-[150px]" 
+                                className="w-full p-4 bg-zinc-50 border border-zinc-200 rounded-2xl text-xs font-medium outline-none focus:border-zinc-900 transition-all min-h-[120px]" 
                               />
                             </div>
-                            <div className="space-y-3">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Evidence Artifact (Optional)</label>
-                              <div className="h-[150px] border-2 border-dashed border-zinc-200 rounded-3xl flex flex-col items-center justify-center p-8 hover:bg-zinc-50 hover:border-black transition-all relative cursor-pointer group">
+                            <div className="space-y-2">
+                              <label className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 px-1">Evidence Artifact</label>
+                              <div className="h-[120px] border-2 border-dashed border-zinc-200 rounded-2xl flex flex-col items-center justify-center p-6 hover:bg-zinc-50 transition-all relative cursor-pointer group">
                                 <input 
                                   type="file" 
                                   className="absolute inset-0 opacity-0 cursor-pointer" 
                                   onChange={(e) => setSubmissionFile(e.target.files?.[0] || null)} 
                                 />
-                                <Upload className="h-8 w-8 text-zinc-200 mb-4 group-hover:scale-110 group-hover:text-black transition-all" />
-                                <p className="text-xs font-bold text-zinc-400 group-hover:text-black">
+                                <Upload className="h-6 w-6 text-zinc-300 mb-2 transition-all" />
+                                <p className="text-[10px] font-bold text-zinc-400">
                                   {submissionFile ? submissionFile.name : 'Upload mission evidence'}
                                 </p>
                               </div>
                             </div>
                           </div>
-                          <div className="flex justify-end gap-6 items-center">
-                            <button onClick={() => setSubmittingId(null)} className="text-xs font-bold text-zinc-400 hover:text-brand-rose transition-colors">Cancel Submission</button>
-                            <button onClick={() => handleTaskSubmit(task._id)} disabled={processing} className="px-10 py-4 bg-black text-white text-xs font-bold rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/20">
-                              {processing ? <Loader2 className="animate-spin h-5 w-5" /> : 'Finalize Transmission'}
+                          <div className="flex justify-end gap-4 items-center">
+                            <button onClick={() => setSubmittingId(null)} className="text-[10px] font-bold text-zinc-400 hover:text-rose-500 transition-colors uppercase">Cancel</button>
+                            <button onClick={() => handleTaskSubmit(task._id)} disabled={processing} className="px-8 py-3 bg-zinc-950 text-white text-[10px] font-bold rounded-xl hover:bg-zinc-800 transition-all shadow-lg">
+                              {processing ? <Loader2 className="animate-spin h-4 w-4" /> : 'Finalize Transmission'}
                             </button>
                           </div>
                         </motion.div>
@@ -419,10 +422,10 @@ export default function TasksPage() {
                       <>
                         {task.status === 'review' && (
                           <div className="flex lg:flex-col gap-2 w-full">
-                            <button onClick={() => handleApprove(task._id)} className="flex-1 flex items-center justify-center gap-2 py-3 bg-brand-emerald text-white rounded-xl text-[10px] font-black uppercase hover:scale-105 transition-all shadow-lg shadow-brand-emerald/20">
+                            <button onClick={() => handleApprove(task._id)} className="flex-1 flex items-center justify-center gap-2 py-3 bg-brand-emerald text-white rounded-xl text-[10px] font-bold uppercase hover:scale-105 transition-all shadow-lg shadow-brand-emerald/20">
                               Approve
                             </button>
-                            <button onClick={() => setRedoTaskId(task._id)} className="flex-1 flex items-center justify-center gap-2 py-3 bg-brand-amber text-white rounded-xl text-[10px] font-black uppercase hover:scale-105 transition-all shadow-lg shadow-brand-amber/20">
+                            <button onClick={() => setRedoTaskId(task._id)} className="flex-1 flex items-center justify-center gap-2 py-3 bg-brand-amber text-white rounded-xl text-[10px] font-bold uppercase hover:scale-105 transition-all shadow-lg shadow-brand-amber/20">
                               Revise
                             </button>
                           </div>
@@ -453,7 +456,7 @@ export default function TasksPage() {
                       </>
                     )}
                     {user?.role === 'employee' && task.status === 'todo' && !submittingId && (
-                      <button onClick={() => setSubmittingId(task._id)} className="w-full py-4 bg-zinc-950 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/20">
+                      <button onClick={() => setSubmittingId(task._id)} className="w-full py-3 bg-zinc-950 text-white text-[9px] font-bold uppercase tracking-widest rounded-xl hover:bg-zinc-800 transition-all shadow-lg">
                         Submit Outcome
                       </button>
                     )}
@@ -469,12 +472,12 @@ export default function TasksPage() {
       ) : (
         /* TRASH HUB */
         <div className="space-y-6">
-          <div className="p-10 bg-brand-rose/5 rounded-[2.5rem] border border-brand-rose/10 flex flex-col md:flex-row md:items-center gap-8">
+          <div className="p-10 bg-brand-rose/5 rounded-3xl border border-brand-rose/10 flex flex-col md:flex-row md:items-center gap-8">
             <div className="w-20 h-20 bg-brand-rose/10 rounded-3xl flex items-center justify-center text-brand-rose">
               <AlertTriangle className="h-10 w-10" />
             </div>
             <div className="flex-1">
-              <h4 className="text-xl font-black text-zinc-900 uppercase">Archive Protocol</h4>
+              <h4 className="text-xl font-bold text-zinc-900 uppercase">Archive Protocol</h4>
               <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-1">Archived tasks are restricted from the live grid</p>
             </div>
             <button onClick={() => { if(confirm("Permanently purge archive?")) clearTrash(); }} className="px-8 py-4 bg-brand-rose text-white text-xs font-bold rounded-2xl hover:scale-105 transition-all shadow-xl shadow-brand-rose/20">Purge Archive</button>
@@ -483,15 +486,15 @@ export default function TasksPage() {
           <div className="grid grid-cols-1 gap-4">
             {trashedTasks.length === 0 ? (
               <div className="p-32 text-center text-zinc-200">
-                <p className="text-sm font-black uppercase tracking-widest italic">Archive empty</p>
+                <p className="text-sm font-bold uppercase tracking-widest italic">Archive empty</p>
               </div>
             ) : (
               trashedTasks.map((item) => (
-                <div key={item.id} className="p-8 bg-white border border-zinc-100 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6 hover:shadow-xl transition-all">
+                <div key={item.id} className="p-8 bg-white border border-zinc-100 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6 hover:shadow-xl transition-all">
                   <div className="flex items-center gap-6">
                     <div className="w-14 h-14 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-200"><Trash2 className="h-6 w-6" /></div>
                     <div>
-                      <p className="text-lg font-black text-zinc-900 uppercase tracking-tight">{item.data.title}</p>
+                      <p className="text-lg font-bold text-zinc-900 uppercase tracking-tight">{item.data.title}</p>
                       <p className="text-[10px] font-bold text-zinc-300 uppercase mt-1 tracking-widest">Archived on {new Date(item.deletedAt).toLocaleDateString()}</p>
                     </div>
                   </div>
@@ -513,12 +516,12 @@ export default function TasksPage() {
           <div className="fixed inset-0 z-[2000] flex items-center justify-center p-6">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setRedoTaskId(null)} className="absolute inset-0 bg-black/60 backdrop-blur-md" />
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative bg-white rounded-[3rem] w-full max-w-xl p-12 shadow-2xl">
-              <h3 className="text-3xl font-black text-zinc-900 uppercase tracking-tight mb-8">Revise Task</h3>
+              <h3 className="text-3xl font-bold text-zinc-900 uppercase tracking-tight mb-8">Revise Task</h3>
               <textarea 
                 value={redoMessage} 
                 onChange={e => setRedoMessage(e.target.value)} 
                 placeholder="Provide clear revision instructions..." 
-                className="w-full p-8 bg-zinc-50 border border-zinc-100 rounded-[2rem] text-sm font-semibold outline-none focus:ring-4 focus:ring-black/5 focus:border-black transition-all min-h-[200px] mb-10" 
+                className="w-full p-8 bg-zinc-50 border border-zinc-100 rounded-2xl text-sm font-semibold outline-none focus:ring-4 focus:ring-black/5 focus:border-black transition-all min-h-[200px] mb-10" 
               />
               <div className="flex justify-end gap-6 items-center">
                 <button onClick={() => setRedoTaskId(null)} className="text-xs font-bold text-zinc-400 hover:text-black">Cancel</button>
@@ -533,19 +536,19 @@ export default function TasksPage() {
           <div className="fixed inset-0 z-[1500] flex items-center justify-center p-6">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-black/60 backdrop-blur-md" />
             <motion.div initial={{ scale: 0.95, y: 20, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.95, y: 20, opacity: 0 }} className="relative bg-white rounded-[3rem] w-full max-w-2xl p-12 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto custom-scrollbar">
-              <h2 className="text-4xl font-black text-zinc-900 uppercase tracking-tight mb-10">{editingTask ? "Update Task" : "New Task"}</h2>
+              <h2 className="text-4xl font-bold text-zinc-900 uppercase tracking-tight mb-10">{editingTask ? "Update Task" : "New Task"}</h2>
               <form onSubmit={handleSaveTask} className="space-y-8">
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Title</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 px-1">Title</label>
                   <input required value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Task headline..." className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl p-6 text-sm font-bold outline-none focus:ring-4 focus:ring-black/5 focus:border-black transition-all" />
                 </div>
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Description</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 px-1">Description</label>
                   <textarea value={newDescription} onChange={e => setNewDescription(e.target.value)} placeholder="Define the task scope..." className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl p-6 text-sm font-semibold outline-none min-h-[150px] focus:ring-4 focus:ring-black/5 focus:border-black transition-all" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Assignee</label>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 px-1">Assignee</label>
                     <select 
                       required={!editingTask}
                       value={newAssignedTo} 
@@ -561,7 +564,7 @@ export default function TasksPage() {
                     </select>
                   </div>
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Priority</label>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 px-1">Priority</label>
                     <select value={newPriority} onChange={e => setNewPriority(e.target.value)} className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl p-6 text-sm font-bold outline-none focus:ring-4 focus:ring-black/5 focus:border-black transition-all appearance-none">
                       <option value="low">Low</option>
                       <option value="medium">Medium</option>
@@ -571,10 +574,10 @@ export default function TasksPage() {
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 px-1">Deadline</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 px-1">Deadline</label>
                   <input required type="date" value={newDueDate} onChange={e => setNewDueDate(e.target.value)} className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl p-6 text-sm font-bold outline-none focus:ring-4 focus:ring-black/5 focus:border-black transition-all" />
                 </div>
-                <button disabled={processing} className="w-full py-6 bg-black text-white text-xs font-black uppercase tracking-widest rounded-[2rem] hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-black/30">
+                <button disabled={processing} className="w-full py-6 bg-black text-white text-xs font-bold uppercase tracking-widest rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-black/30">
                   {processing ? <Loader2 className="animate-spin h-6 w-6 mx-auto" /> : editingTask ? "Update Task Grid" : "Deploy Task"}
                 </button>
               </form>
@@ -589,7 +592,7 @@ export default function TasksPage() {
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative bg-white rounded-[3rem] w-full max-w-lg max-h-[80vh] flex flex-col shadow-2xl overflow-hidden">
               <div className="p-10 border-b border-zinc-100 flex items-center justify-between">
                 <div>
-                  <h3 className="text-2xl font-black text-zinc-900 uppercase tracking-tight">Audit Trail</h3>
+                  <h3 className="text-2xl font-bold text-zinc-900 uppercase tracking-tight">Audit Trail</h3>
                   <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Timeline events</p>
                 </div>
                 <button onClick={() => setSelectedTaskHistory(null)} className="p-3 bg-zinc-50 rounded-2xl text-zinc-400 hover:text-black transition-all"><X className="h-6 w-6" /></button>
@@ -605,7 +608,7 @@ export default function TasksPage() {
                         {i !== selectedTaskHistory.length - 1 && <div className="w-0.5 flex-1 bg-zinc-100"></div>}
                       </div>
                       <div className="pb-8">
-                        <p className="text-xs font-black text-zinc-900 uppercase">{h.action}</p>
+                        <p className="text-xs font-bold text-zinc-900 uppercase">{h.action}</p>
                         <p className="text-[10px] font-bold text-zinc-400 mt-1">{new Date(h.timestamp).toLocaleString()}</p>
                         {h.note && <div className="mt-4 p-4 bg-zinc-50 rounded-2xl text-[11px] font-semibold text-zinc-600 italic">"{h.note}"</div>}
                       </div>

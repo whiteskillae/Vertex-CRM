@@ -58,6 +58,11 @@ export default function DashboardPage() {
   const [newAnnouncement, setNewAnnouncement] = useState({ title: "", content: "", priority: "normal" });
   const [loadError, setLoadError] = useState(false);
   const [selectedReport, setSelectedReport] = useState<any>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const fetchData = async (controller?: AbortController) => {
     try {
@@ -179,6 +184,8 @@ export default function DashboardPage() {
     if (showAnnouncements) markAnnouncementsAsSeen();
   }, [showAnnouncements]);
 
+  if (!mounted) return null;
+
   if (loading) return (
     <div className="h-full flex items-center justify-center bg-white">
       <div className="flex flex-col items-center gap-4">
@@ -271,7 +278,7 @@ export default function DashboardPage() {
         {showAnnouncements && (
           <motion.div 
             initial={{ height: 0, opacity: 0, y: -15 }} animate={{ height: "auto", opacity: 1, y: 0 }} exit={{ height: 0, opacity: 0, y: -15 }}
-            className="rounded-[2rem] border border-zinc-100 bg-zinc-50/50 p-8 shadow-xl relative z-50 overflow-hidden backdrop-blur-xl"
+            className="rounded-2xl border border-zinc-100 bg-zinc-50/50 p-8 shadow-xl relative z-50 overflow-hidden backdrop-blur-xl"
           >
             <div className="flex items-center justify-between mb-8 border-b border-zinc-100 pb-6">
               <div className="flex items-center gap-4">
@@ -322,45 +329,45 @@ export default function DashboardPage() {
               {isManagerOrAdmin && (
                 <div className="bg-white rounded-[3rem] border border-amber-100 p-10 space-y-8 shadow-sm flex flex-col justify-center">
                   <div className="space-y-2">
-                    <h3 className="text-xl font-black text-zinc-950 uppercase italic tracking-tighter">Initialize Broadcast</h3>
+                    <h3 className="text-xl font-bold text-zinc-950 uppercase italic tracking-tighter">Initialize Broadcast</h3>
                     <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Global Node Notification System</p>
                   </div>
                   <form onSubmit={handleCreateAnnouncement} className="space-y-6">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase text-zinc-400 tracking-[0.2em] ml-2">Header</label>
+                      <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-[0.2em] ml-2">Header</label>
                       <input 
                         required
                         type="text" 
                         placeholder="PROTOCOL TITLE..." 
                         value={newAnnouncement.title}
                         onChange={(e) => setNewAnnouncement({...newAnnouncement, title: e.target.value})}
-                        className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl p-5 text-[11px] font-black uppercase tracking-widest focus:bg-white focus:ring-8 focus:ring-black/[0.02] outline-none transition-all"
+                        className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl p-5 text-[11px] font-bold uppercase tracking-widest focus:bg-white focus:ring-8 focus:ring-black/[0.02] outline-none transition-all"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase text-zinc-400 tracking-[0.2em] ml-2">Directives</label>
+                      <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-[0.2em] ml-2">Directives</label>
                       <textarea 
                         required
                         placeholder="SPECIFY PARAMETERS..." 
                         value={newAnnouncement.content}
                         onChange={(e) => setNewAnnouncement({...newAnnouncement, content: e.target.value})}
-                        className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl p-5 text-[11px] font-black uppercase tracking-widest h-32 focus:bg-white focus:ring-8 focus:ring-black/[0.02] outline-none resize-none transition-all leading-relaxed"
+                        className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl p-5 text-[11px] font-bold uppercase tracking-widest h-32 focus:bg-white focus:ring-8 focus:ring-black/[0.02] outline-none resize-none transition-all leading-relaxed"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-zinc-400 tracking-[0.2em] ml-2">Urgency</label>
+                        <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-[0.2em] ml-2">Urgency</label>
                         <select 
                           value={newAnnouncement.priority}
                           onChange={(e) => setNewAnnouncement({...newAnnouncement, priority: e.target.value})}
-                          className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl p-5 text-[11px] font-black uppercase tracking-widest focus:bg-white focus:ring-8 focus:ring-black/[0.02] outline-none appearance-none cursor-pointer transition-all"
+                          className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl p-5 text-[11px] font-bold uppercase tracking-widest focus:bg-white focus:ring-8 focus:ring-black/[0.02] outline-none appearance-none cursor-pointer transition-all"
                         >
                           <option value="normal">Standard</option>
                           <option value="urgent">Critical</option>
                         </select>
                       </div>
                       <div className="flex items-end">
-                        <button className="w-full py-5 bg-zinc-950 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-black/20">
+                        <button className="w-full py-5 bg-zinc-950 text-white text-[10px] font-bold uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-black/20">
                           Execute Broadcast
                         </button>
                       </div>
@@ -376,7 +383,7 @@ export default function DashboardPage() {
       {/* Analytics Section */}
       <section className="space-y-8">
         <div className="flex items-center gap-6">
-          <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-400 whitespace-nowrap italic">Neural Net Metrics</h2>
+          <h2 className="text-[10px] font-bold uppercase tracking-[0.5em] text-zinc-400 whitespace-nowrap italic">Neural Net Metrics</h2>
           <div className="h-[1px] flex-1 bg-zinc-100"></div>
         </div>
         <AdminStats />
@@ -435,7 +442,7 @@ export default function DashboardPage() {
           {/* Calendar Section */}
           <section className="space-y-8">
             <div className="flex items-center gap-6">
-              <h3 className="text-3xl font-black text-zinc-950 tracking-tighter italic uppercase">Operation Chronology</h3>
+              <h3 className="text-3xl font-bold text-zinc-950 tracking-tighter italic uppercase">Operation Chronology</h3>
               <div className="h-[1px] flex-1 bg-zinc-100"></div>
             </div>
             
@@ -452,12 +459,12 @@ export default function DashboardPage() {
         <div className="space-y-12">
           <div className="bg-white rounded-[3.5rem] border border-zinc-100 shadow-sm flex flex-col h-full min-h-[700px] overflow-hidden group">
             <div className="p-10 border-b border-zinc-100 bg-zinc-50/50 flex items-center justify-between">
-              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] flex items-center gap-4 text-zinc-950 italic">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.3em] flex items-center gap-4 text-zinc-950 italic">
                 <CheckSquare className="h-5 w-5 text-zinc-400 group-hover:text-zinc-950 transition-colors" /> Operation Roadmap
               </h3>
               <div className="flex items-center gap-2 px-3 py-1 bg-white border border-zinc-100 rounded-full shadow-sm">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-sm shadow-emerald-500/50"></div>
-                <span className="text-[8px] font-black uppercase tracking-[0.1em] text-zinc-400">Sync_Active</span>
+                <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-zinc-400">Sync_Active</span>
               </div>
             </div>
             <div className="flex-1 p-8 bg-white relative">
@@ -469,7 +476,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Activity Feed */}
-      <div className="bg-white rounded-[2.5rem] border border-zinc-100 shadow-sm overflow-hidden group">
+      <div className="bg-white rounded-3xl border border-zinc-100 shadow-sm overflow-hidden group">
         <div className="p-8 border-b border-zinc-50 flex flex-col xl:flex-row items-center justify-between gap-8">
           <div className="flex items-center gap-6">
             <div className="w-16 h-16 bg-zinc-950 text-white rounded-2xl flex items-center justify-center shadow-lg transition-transform duration-500 group-hover:rotate-6">
@@ -495,7 +502,7 @@ export default function DashboardPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.1 }}
               key={report._id} 
-              className="py-10 flex flex-col xl:flex-row items-center justify-between hover:bg-zinc-50/50 rounded-[2.5rem] px-8 transition-all gap-10 group/item border border-transparent hover:border-zinc-100/50"
+              className="py-10 flex flex-col xl:flex-row items-center justify-between hover:bg-zinc-50/50 rounded-3xl px-8 transition-all gap-10 group/item border border-transparent hover:border-zinc-100/50"
             >
               <div className="flex items-center gap-8 flex-1 w-full">
                 <div className="w-16 h-16 bg-white border border-zinc-100 rounded-3xl flex items-center justify-center text-zinc-300 group-hover/item:bg-zinc-950 group-hover/item:text-white group-hover/item:rotate-12 transition-all duration-500 shadow-sm group-hover/item:shadow-xl group-hover/item:shadow-black/20">
@@ -504,13 +511,13 @@ export default function DashboardPage() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-4">
                     <h3 className="text-2xl font-bold text-zinc-950 tracking-tight line-clamp-1 uppercase italic">{report.title}</h3>
-                    {i === 0 && <span className="bg-emerald-500 text-white text-[9px] font-black px-3 py-1 rounded-lg uppercase shadow-xl shadow-emerald-500/20 border border-white/20 tracking-widest">Priority_A</span>}
+                    {i === 0 && <span className="bg-emerald-500 text-white text-[9px] font-bold px-3 py-1 rounded-lg uppercase shadow-xl shadow-emerald-500/20 border border-white/20 tracking-widest">Priority_A</span>}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
-                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2 bg-zinc-50/50 px-3 py-1 rounded-full border border-zinc-100">
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2 bg-zinc-50/50 px-3 py-1 rounded-full border border-zinc-100">
                       <Users className="h-3.5 w-3.5 text-zinc-950" /> <span className="text-zinc-500">Node:</span> <span className="text-zinc-950">{report.employeeId?.name || "System"}</span>
                     </p>
-                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2 bg-zinc-50/50 px-3 py-1 rounded-full border border-zinc-100">
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2 bg-zinc-50/50 px-3 py-1 rounded-full border border-zinc-100">
                       <CalendarIcon className="h-3.5 w-3.5 text-zinc-950" /> <span className="text-zinc-500">Sync:</span> <span className="text-zinc-950">{new Date(report.date).toLocaleDateString()}</span>
                     </p>
                   </div>
@@ -518,7 +525,7 @@ export default function DashboardPage() {
               </div>
               <button 
                 onClick={() => setSelectedReport(report)}
-                className="w-full xl:w-auto px-10 py-4 bg-white border border-zinc-100 text-zinc-950 text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all shadow-sm active:scale-95 group/btn"
+                className="w-full xl:w-auto px-10 py-4 bg-white border border-zinc-100 text-zinc-950 text-[10px] font-bold uppercase tracking-[0.2em] rounded-2xl hover:bg-zinc-950 hover:text-white hover:border-zinc-950 transition-all shadow-sm active:scale-95 group/btn"
               >
                 Inspect Data Packet
               </button>
@@ -527,14 +534,14 @@ export default function DashboardPage() {
           {recentReports.length === 0 && (
             <div className="py-32 text-center">
               <Loader2 className="h-12 w-12 animate-spin mx-auto text-zinc-100 mb-8" />
-              <p className="text-[10px] font-black text-zinc-200 uppercase tracking-[0.5em]">Synchronizing Intelligence Stream...</p>
+              <p className="text-[10px] font-bold text-zinc-200 uppercase tracking-[0.5em]">Synchronizing Intelligence Stream...</p>
             </div>
           )}
         </div>
         
         <Link href="/dashboard/reports" className="block w-full py-12 bg-zinc-950 text-white text-center hover:bg-black transition-all group overflow-hidden relative">
           <div className="absolute inset-0 pattern-dots opacity-[0.05] group-hover:scale-110 transition-transform duration-1000" />
-          <span className="text-[11px] font-black uppercase tracking-[0.6em] inline-block group-hover:translate-x-6 transition-transform relative z-10 italic">
+          <span className="text-[11px] font-bold uppercase tracking-[0.6em] inline-block group-hover:translate-x-6 transition-transform relative z-10 italic">
             Initialize Full System Audit Sequence &rarr;
           </span>
         </Link>
@@ -555,7 +562,7 @@ export default function DashboardPage() {
               initial={{ scale: 0.9, opacity: 0, y: 40 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 40 }}
-              className="relative w-full max-w-4xl bg-white rounded-[4rem] border border-white/20 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] overflow-hidden"
+              className="relative w-full max-w-4xl bg-white rounded-3xl border border-white/20 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] overflow-hidden"
             >
               <div className="p-10 border-b border-zinc-100 bg-zinc-50/50 flex justify-between items-center relative overflow-hidden">
                 <div className="absolute inset-0 pattern-dots opacity-[0.02] pointer-events-none" />
@@ -564,8 +571,8 @@ export default function DashboardPage() {
                     <FileText className="h-8 w-8" />
                   </div>
                   <div>
-                    <h2 className="text-3xl font-black text-zinc-950 tracking-tighter uppercase italic">Intelligence Record</h2>
-                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">Packet Fragment // ID_{selectedReport._id.slice(-8)}</p>
+                    <h2 className="text-3xl font-bold text-zinc-950 tracking-tighter uppercase italic">Intelligence Record</h2>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Packet Fragment // ID_{selectedReport._id.slice(-8)}</p>
                   </div>
                 </div>
                 <button onClick={() => setSelectedReport(null)} className="p-4 hover:bg-zinc-200/50 rounded-2xl transition-all text-zinc-400 hover:text-zinc-950 group relative z-10">
@@ -577,12 +584,12 @@ export default function DashboardPage() {
                 <div className="absolute inset-0 pattern-dots opacity-[0.01] pointer-events-none" />
                 
                 <div className="space-y-6 relative z-10">
-                  <h3 className="text-4xl font-black text-zinc-950 tracking-tighter uppercase italic leading-none">{selectedReport.title}</h3>
+                  <h3 className="text-4xl font-bold text-zinc-950 tracking-tighter uppercase italic leading-none">{selectedReport.title}</h3>
                   <div className="flex flex-wrap gap-4">
-                    <span className="flex items-center gap-3 text-[9px] font-black uppercase text-zinc-500 bg-zinc-50 px-4 py-2 rounded-xl border border-zinc-100 shadow-sm tracking-[0.15em]">
+                    <span className="flex items-center gap-3 text-[9px] font-bold uppercase text-zinc-500 bg-zinc-50 px-4 py-2 rounded-xl border border-zinc-100 shadow-sm tracking-[0.15em]">
                       <Users className="h-4 w-4 text-zinc-950" /> Agent: {selectedReport.employeeId?.name}
                     </span>
-                    <span className="flex items-center gap-3 text-[9px] font-black uppercase text-zinc-500 bg-zinc-50 px-4 py-2 rounded-xl border border-zinc-100 shadow-sm tracking-[0.15em]">
+                    <span className="flex items-center gap-3 text-[9px] font-bold uppercase text-zinc-500 bg-zinc-50 px-4 py-2 rounded-xl border border-zinc-100 shadow-sm tracking-[0.15em]">
                       <CalendarIcon className="h-4 w-4 text-zinc-950" /> Sync: {new Date(selectedReport.date).toLocaleString()}
                     </span>
                   </div>
@@ -598,7 +605,7 @@ export default function DashboardPage() {
                 {selectedReport.files && selectedReport.files.length > 0 && (
                   <div className="space-y-6 relative z-10">
                     <div className="flex items-center gap-4">
-                      <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-300 ml-1">Data Packets</h4>
+                      <h4 className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-300 ml-1">Data Packets</h4>
                       <div className="h-[1px] flex-1 bg-zinc-50" />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -608,13 +615,13 @@ export default function DashboardPage() {
                           href={file.url} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex items-center justify-between p-6 bg-white border border-zinc-100 rounded-[2rem] hover:border-zinc-950 hover:shadow-2xl hover:shadow-black/5 transition-all group/file"
+                          className="flex items-center justify-between p-6 bg-white border border-zinc-100 rounded-2xl hover:border-zinc-950 hover:shadow-2xl hover:shadow-black/5 transition-all group/file"
                         >
                           <div className="flex items-center gap-4 overflow-hidden">
                             <div className="p-3 bg-zinc-50 group-hover/file:bg-zinc-950 group-hover/file:text-white transition-colors rounded-xl shadow-sm">
                               <FileText className="h-5 w-5" />
                             </div>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-950 truncate">{file.name || `Packet_${idx+1}`}</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-950 truncate">{file.name || `Packet_${idx+1}`}</span>
                           </div>
                           <ArrowUpRight className="h-5 w-5 text-zinc-300 group-hover/file:text-zinc-950 group-hover/file:translate-x-0.5 group-hover/file:-translate-y-0.5 transition-all" />
                         </a>
@@ -627,7 +634,7 @@ export default function DashboardPage() {
               <div className="p-10 bg-white border-t border-zinc-100 flex justify-end relative z-10">
                 <button 
                   onClick={() => setSelectedReport(null)}
-                  className="px-12 py-5 bg-zinc-950 text-white text-[10px] font-black uppercase tracking-[0.4em] rounded-[2rem] hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-black/20"
+                  className="px-12 py-5 bg-zinc-950 text-white text-[10px] font-bold uppercase tracking-[0.4em] rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-black/20"
                 >
                   Terminate Inspection
                 </button>

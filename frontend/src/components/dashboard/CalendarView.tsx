@@ -28,6 +28,11 @@ export default function CalendarView() {
   const [dayNotesView, setDayNotesView] = useState<any[]>([]);
   const [newNote, setNewNote] = useState({ title: "", description: "", type: "note", isPersonal: true });
   const [user, setUser] = useState<any>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -79,10 +84,12 @@ export default function CalendarView() {
     end: endOfWeek(endOfMonth(currentMonth)),
   });
 
+  if (!mounted) return null;
+
   return (
     <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col h-full min-h-[600px] relative">
       <div className="p-4 border-b-2 border-black flex items-center justify-between bg-zinc-50">
-        <h3 className="text-sm font-black uppercase flex items-center tracking-widest">
+        <h3 className="text-sm font-bold uppercase flex items-center tracking-widest">
           <CalendarIcon className="mr-3 h-5 w-5" /> {format(currentMonth, "MMMM yyyy")}
         </h3>
         <div className="flex space-x-1">
@@ -101,7 +108,7 @@ export default function CalendarView() {
         </div>
       </div>
 
-      <div className="grid grid-cols-7 bg-black text-white text-[9px] font-black uppercase text-center py-2 tracking-widest">
+      <div className="grid grid-cols-7 bg-black text-white text-[9px] font-bold uppercase text-center py-2 tracking-widest">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
           <div key={d}>{d}</div>
         ))}
@@ -128,7 +135,7 @@ export default function CalendarView() {
               } ${isToday ? "bg-yellow-50/30" : ""}`}
             >
               <div className="flex justify-between items-start mb-2">
-                <span className={`text-[11px] font-black flex items-center justify-center w-6 h-6 border-2 transition-all ${
+                <span className={`text-[11px] font-bold flex items-center justify-center w-6 h-6 border-2 transition-all ${
                   isToday ? "bg-black text-white border-black shadow-[2px_2px_0px_0px_#16a34a]" : "border-transparent group-hover:border-black"
                 }`}>
                   {format(day, "d")}
@@ -151,7 +158,7 @@ export default function CalendarView() {
                 {dayTasks.map((task, idx) => (
                   <div 
                     key={`t-${idx}`}
-                    className={`text-[8px] font-black p-1 border border-black truncate uppercase tracking-tighter ${
+                    className={`text-[8px] font-bold p-1 border border-black truncate uppercase tracking-tighter ${
                       task.priority === 'urgent' ? 'bg-red-600 text-white' : 
                       task.priority === 'high' ? 'bg-orange-500 text-white' : 'bg-black text-white'
                     }`}
@@ -184,10 +191,10 @@ export default function CalendarView() {
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white border-4 border-black w-full max-w-sm p-6 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]"
+            className="bg-white border border-black w-full max-w-sm p-6 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]"
           >
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-black uppercase tracking-widest italic">
+              <h4 className="text-sm font-bold uppercase tracking-widest italic">
                 {format(selectedDate, "MMM dd, yyyy")} - Protocol Log
               </h4>
               <button onClick={() => setIsNoteModalOpen(false)}><X className="h-5 w-5" /></button>
@@ -210,7 +217,7 @@ export default function CalendarView() {
               />
               
               <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2 text-[8px] font-black uppercase cursor-pointer">
+                <label className="flex items-center gap-2 text-[8px] font-bold uppercase cursor-pointer">
                   <input 
                     type="checkbox" 
                     checked={newNote.isPersonal} 
@@ -232,7 +239,7 @@ export default function CalendarView() {
                 )}
               </div>
 
-              <button className="w-full py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black border-2 border-black transition-all">
+              <button className="w-full py-3 bg-black text-white text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:text-black border-2 border-black transition-all">
                 Sync with Calendar Node
               </button>
             </form>
@@ -246,10 +253,10 @@ export default function CalendarView() {
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white border-4 border-black w-full max-w-md p-6 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] flex flex-col max-h-[80vh]"
+            className="bg-white border border-black w-full max-w-md p-6 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] flex flex-col max-h-[80vh]"
           >
             <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-black">
-              <h4 className="text-base font-black uppercase tracking-widest italic flex items-center">
+              <h4 className="text-base font-bold uppercase tracking-widest italic flex items-center">
                 <CalendarIcon className="w-5 h-5 mr-2" />
                 {format(selectedDate, "MMMM dd, yyyy")}
               </h4>
@@ -258,7 +265,7 @@ export default function CalendarView() {
             
             <div className="overflow-y-auto pr-2 custom-scrollbar space-y-4">
               <div>
-                <h5 className="text-xs font-black uppercase tracking-widest mb-2 flex items-center border-b-2 border-black/10 pb-1">
+                <h5 className="text-xs font-bold uppercase tracking-widest mb-2 flex items-center border-b-2 border-black/10 pb-1">
                   🚩 Tasks / Deadlines
                 </h5>
                 {dayTasksView.length === 0 ? (
@@ -268,8 +275,8 @@ export default function CalendarView() {
                     {dayTasksView.map((task, idx) => (
                       <div key={idx} className="p-2 border-2 border-black bg-zinc-50 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                         <div className="flex justify-between items-start mb-1">
-                          <span className="text-xs font-black uppercase">{task.title}</span>
-                          <span className={`text-[9px] font-black uppercase px-1 border border-black ${
+                          <span className="text-xs font-bold uppercase">{task.title}</span>
+                          <span className={`text-[9px] font-bold uppercase px-1 border border-black ${
                             task.priority === 'urgent' ? 'bg-red-600 text-white' : 
                             task.priority === 'high' ? 'bg-orange-500 text-white' : 'bg-black text-white'
                           }`}>{task.priority}</span>
@@ -282,7 +289,7 @@ export default function CalendarView() {
               </div>
 
               <div>
-                <h5 className="text-xs font-black uppercase tracking-widest mb-2 flex items-center border-b-2 border-black/10 pb-1">
+                <h5 className="text-xs font-bold uppercase tracking-widest mb-2 flex items-center border-b-2 border-black/10 pb-1">
                   📝 Notes / Events
                 </h5>
                 {dayNotesView.length === 0 ? (
@@ -294,7 +301,7 @@ export default function CalendarView() {
                         note.isPersonal ? 'bg-yellow-50' : 'bg-blue-50'
                       }`}>
                         <div className="flex justify-between items-start mb-1">
-                          <span className="text-xs font-black uppercase">{note.title}</span>
+                          <span className="text-xs font-bold uppercase">{note.title}</span>
                           <span className="text-[9px] font-bold px-1 bg-white border border-black">
                             {note.isPersonal ? 'Personal' : 'Public'}
                           </span>
@@ -313,7 +320,7 @@ export default function CalendarView() {
                   setIsDayViewModalOpen(false);
                   setIsNoteModalOpen(true);
                 }}
-                className="w-full py-3 bg-black text-white text-[11px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all flex items-center justify-center shadow-[4px_4px_0px_0px_#16a34a]"
+                className="w-full py-3 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all flex items-center justify-center shadow-[4px_4px_0px_0px_#16a34a]"
               >
                 <Plus className="w-4 h-4 mr-2" /> Add New Entry
               </button>
@@ -322,7 +329,7 @@ export default function CalendarView() {
         </div>
       )}
 
-      <div className="p-3 bg-black text-white text-[9px] flex items-center justify-between font-black uppercase tracking-[0.2em]">
+      <div className="p-3 bg-black text-white text-[9px] flex items-center justify-between font-bold uppercase tracking-[0.2em]">
         <div className="flex items-center">
           <Clock className="h-3 w-3 mr-2 text-green-500" /> System Time: {format(new Date(), "HH:mm")}
         </div>

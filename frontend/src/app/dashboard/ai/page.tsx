@@ -128,9 +128,9 @@ export default function AIPage() {
             <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-4 border-white rounded-full z-10 animate-pulse shadow-lg" />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-zinc-900 tracking-tight uppercase leading-none">Vertex AI Core</h2>
+            <h2 className="text-2xl font-bold text-zinc-900 tracking-tight uppercase leading-none">Vertex AI Core</h2>
             <div className="flex items-center gap-3 mt-3">
-              <span className="flex items-center gap-2 text-[9px] font-black text-emerald-500 uppercase tracking-[0.2em]">
+              <span className="flex items-center gap-2 text-[9px] font-bold text-emerald-500 uppercase tracking-[0.2em]">
                 Neural Uplink Stable
               </span>
               {usage && (
@@ -169,13 +169,13 @@ export default function AIPage() {
               animate={{ opacity: 1, scale: 1 }}
               className="h-full flex flex-col items-center justify-center text-center p-12 space-y-12"
             >
-              <div className="w-24 h-24 bg-zinc-50 text-zinc-200 flex items-center justify-center rounded-[2.5rem] shadow-inner relative group">
+              <div className="w-24 h-24 bg-zinc-50 text-zinc-200 flex items-center justify-center rounded-3xl shadow-inner relative group">
                 <Sparkles className="h-10 w-10 group-hover:text-zinc-950 transition-colors duration-700" />
-                <div className="absolute inset-0 bg-zinc-950 rounded-[2.5rem] opacity-0 group-hover:opacity-10 transition-all duration-700" />
+                <div className="absolute inset-0 bg-zinc-950 rounded-3xl opacity-0 group-hover:opacity-10 transition-all duration-700" />
               </div>
               <div className="space-y-6">
-                <h3 className="text-4xl font-black text-zinc-900 tracking-tight uppercase italic">Awaiting Directives</h3>
-                <p className="max-w-md text-[10px] text-zinc-400 font-black uppercase tracking-[0.4em] leading-relaxed mx-auto">
+                <h3 className="text-4xl font-bold text-zinc-900 tracking-tight uppercase italic">Awaiting Directives</h3>
+                <p className="max-w-md text-[10px] text-zinc-400 font-bold uppercase tracking-[0.4em] leading-relaxed mx-auto">
                   Analyze CRM Architecture, Manage Personnel Nodes, or Execute Data Synthesis.
                 </p>
               </div>
@@ -196,7 +196,7 @@ export default function AIPage() {
                       <div className="p-2 bg-zinc-50 rounded-xl group-hover:bg-zinc-950 group-hover:text-white transition-all">
                         <s.icon className="w-4 h-4" />
                       </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-zinc-900">{s.label}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-900">{s.label}</span>
                     </div>
                     <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">{s.desc}</p>
                   </button>
@@ -215,7 +215,7 @@ export default function AIPage() {
                   <div className={`w-10 h-10 rounded-2xl flex-shrink-0 flex items-center justify-center shadow-lg transition-transform hover:scale-110 ${msg.role === 'user' ? 'bg-zinc-950 text-white' : 'bg-indigo-500 text-white'}`}>
                     {msg.role === 'user' ? <UserIcon className="h-5 w-5" /> : <Bot className="h-5 w-5" />}
                   </div>
-                  <div className={`px-8 py-5 rounded-[2rem] text-sm font-semibold leading-relaxed tracking-tight shadow-sm ${
+                  <div className={`px-8 py-5 rounded-2xl text-sm font-semibold leading-relaxed tracking-tight shadow-sm ${
                     msg.role === 'user' 
                       ? 'bg-zinc-950 text-white rounded-tr-none' 
                       : 'bg-white text-zinc-900 rounded-tl-none border border-zinc-100'
@@ -245,9 +245,9 @@ export default function AIPage() {
               <div className="w-10 h-10 rounded-2xl bg-indigo-500 text-white flex-shrink-0 flex items-center justify-center shadow-lg animate-pulse">
                 <Bot className="h-5 w-5" />
               </div>
-              <div className="px-8 py-5 bg-white border border-zinc-100 rounded-[2rem] rounded-tl-none flex items-center gap-4 text-zinc-400 shadow-sm">
+              <div className="px-8 py-5 bg-white border border-zinc-100 rounded-2xl rounded-tl-none flex items-center gap-4 text-zinc-400 shadow-sm">
                 <Loader2 className="animate-spin h-5 w-5 text-indigo-500" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em]">Processing Neural Fragment...</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.3em]">Processing Neural Fragment...</span>
               </div>
             </div>
           </motion.div>
@@ -258,7 +258,7 @@ export default function AIPage() {
       {/* Input */}
       <div className="p-10 bg-white border-t border-zinc-50 relative z-20">
         <form onSubmit={handleSend} className="flex gap-6 items-end max-w-4xl mx-auto">
-          <div className="flex-1 bg-zinc-50 border border-zinc-100 rounded-[2.5rem] p-3 focus-within:bg-white focus-within:border-zinc-950 focus-within:shadow-2xl focus-within:shadow-black/[0.03] transition-all">
+          <div className="flex-1 bg-zinc-50 border border-zinc-100 rounded-3xl p-3 focus-within:bg-white focus-within:border-zinc-950 focus-within:shadow-2xl focus-within:shadow-black/[0.03] transition-all">
             <textarea 
               rows={1}
               value={input}
@@ -285,13 +285,13 @@ export default function AIPage() {
               >
                 <Mic className="h-5 w-5" />
               </button>
-              <span className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.2em] italic">Neural Link Enabled :: Node_Alpha</span>
+              <span className="text-[8px] font-bold text-zinc-300 uppercase tracking-[0.2em] italic">Neural Link Enabled :: Node_Alpha</span>
             </div>
           </div>
           <button 
             type="submit" 
             disabled={!input.trim() || loading}
-            className="p-8 bg-zinc-950 text-white rounded-[2.5rem] hover:scale-105 active:scale-95 disabled:opacity-20 transition-all shadow-2xl shadow-black/20"
+            className="p-8 bg-zinc-950 text-white rounded-3xl hover:scale-105 active:scale-95 disabled:opacity-20 transition-all shadow-2xl shadow-black/20"
           >
             {loading ? <Loader2 className="animate-spin h-8 w-8" /> : <Send className="h-8 w-8" />}
           </button>

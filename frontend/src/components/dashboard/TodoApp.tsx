@@ -70,15 +70,15 @@ export default function TodoApp() {
     <div className="flex flex-col h-full bg-white">
       {/* Assigned Tasks Section */}
       <div className="p-4 bg-zinc-900 text-white">
-        <h4 className="text-[10px] font-black uppercase tracking-widest flex items-center">
+        <h4 className="text-[10px] font-bold uppercase tracking-widest flex items-center">
           <CircleCheck className="mr-2 h-3 w-3 text-green-500" /> Assigned Directives
         </h4>
       </div>
       <div className="max-h-[200px] overflow-y-auto p-2 space-y-1 bg-gray-50 border-b-2 border-black">
         {assignedTasks.map((task) => (
           <div key={task._id} className="p-2 border border-black bg-white flex items-center justify-between">
-            <span className="text-[9px] font-black uppercase truncate flex-1">{task.title}</span>
-            <span className={`text-[7px] font-black px-1 border border-black uppercase ${
+            <span className="text-[9px] font-bold uppercase truncate flex-1">{task.title}</span>
+            <span className={`text-[7px] font-bold px-1 border border-black uppercase ${
               task.priority === 'urgent' ? 'bg-red-600 text-white' : 'bg-gray-100 text-black'
             }`}>
               {task.priority}
@@ -91,7 +91,7 @@ export default function TodoApp() {
       </div>
 
       <div className="p-4 border-b-2 border-black">
-        <h3 className="text-xs font-black uppercase flex items-center">
+        <h3 className="text-xs font-bold uppercase flex items-center">
           <ListTodo className="mr-2 h-4 w-4" /> Personal Nodes
         </h3>
       </div>
@@ -145,7 +145,7 @@ export default function TodoApp() {
         </AnimatePresence>
       </div>
 
-      <div className="p-2 bg-black text-white text-[8px] font-black uppercase text-center tracking-[0.2em]">
+      <div className="p-2 bg-black text-white text-[8px] font-bold uppercase text-center tracking-[0.2em]">
         {todos.filter(t => !t.completed).length} Nodes Pending
       </div>
     </div>
