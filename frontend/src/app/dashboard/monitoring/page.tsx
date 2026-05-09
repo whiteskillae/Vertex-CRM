@@ -29,6 +29,7 @@ const LiveTimer = ({ startTime }: { startTime: string | Date }) => {
   useEffect(() => {
     const update = () => {
       const start = new Date(startTime).getTime();
+      if (isNaN(start)) return setDuration("---");
       const diff = Math.floor((Date.now() - start) / 1000);
       if (diff < 0) return setDuration("0m 0s");
       const h = Math.floor(diff / 3600);

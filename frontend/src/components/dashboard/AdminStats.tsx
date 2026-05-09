@@ -95,3 +95,5 @@ export const AdminStats: React.FC<StatsProps> = ({ stats, isAdmin }) => {
     </div>
   );
 };
+
+export default AdminStats;

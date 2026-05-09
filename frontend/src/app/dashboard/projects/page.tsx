@@ -217,7 +217,11 @@ export default function ProjectsPage() {
                   <td className="p-6">
                     <div className="flex items-center gap-2 text-xs font-medium">
                       <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-                      {project.deadline ? format(new Date(project.deadline), 'dd MMM yyyy') : 'Standby'}
+                      {(() => {
+                        if (!project.deadline) return 'Standby';
+                        const d = new Date(project.deadline);
+                        return isNaN(d.getTime()) ? 'Invalid Date' : format(d, 'dd MMM yyyy');
+                      })()}
                     </div>
                   </td>
                   <td className="p-6 text-right">
@@ -299,7 +303,12 @@ export default function ProjectsPage() {
                   <h2 className="text-5xl font-bold tracking-tight leading-none">{selectedProject.title}</h2>
                   <div className="flex flex-wrap gap-3">
                     <div className="px-4 py-2 bg-muted border border-border rounded-xl text-xs font-bold flex items-center gap-2">
-                      <Calendar className="w-4 h-4" /> {selectedProject.deadline ? format(new Date(selectedProject.deadline), 'dd MMM yyyy') : 'No Date'}
+                      <Calendar className="w-4 h-4" /> 
+                      {(() => {
+                        if (!selectedProject.deadline) return 'No Date';
+                        const d = new Date(selectedProject.deadline);
+                        return isNaN(d.getTime()) ? 'Invalid Date' : format(d, 'dd MMM yyyy');
+                      })()}
                     </div>
                   </div>
                 </div>

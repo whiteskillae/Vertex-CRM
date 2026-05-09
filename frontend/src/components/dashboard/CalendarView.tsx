@@ -105,8 +105,16 @@ export default function CalendarView() {
       {/* Days Grid */}
       <div className="grid grid-cols-7 flex-1">
         {days.map((day, i) => {
-          const dayTasks = tasks.filter(t => t.dueDate && isSameDay(new Date(t.dueDate), day));
-          const dayNotes = notes.filter(n => n.date && isSameDay(new Date(n.date), day));
+          const dayTasks = tasks.filter(t => {
+            if (!t.dueDate) return false;
+            const d = new Date(t.dueDate);
+            return !isNaN(d.getTime()) && isSameDay(d, day);
+          });
+          const dayNotes = notes.filter(n => {
+            if (!n.date) return false;
+            const d = new Date(n.date);
+            return !isNaN(d.getTime()) && isSameDay(d, day);
+          });
           const isToday = isSameDay(day, new Date());
           const isCurrentMonth = isSameMonth(day, currentMonth);
 

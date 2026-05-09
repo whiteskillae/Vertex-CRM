@@ -120,7 +120,6 @@ export default function DashboardPage() {
     } catch (err: any) {
       if (!axios.isCancel(err)) {
         console.error(err);
-        setLoadError(true);
       }
     } finally {
       setLoading(false);
@@ -205,18 +204,6 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-[1600px] mx-auto space-y-10 pb-20">
-      {/* Load Error Warning */}
-      {loadError && (
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-4 p-5 bg-rose-50 border border-rose-100 rounded-2xl shadow-sm"
-        >
-          <AlertTriangle className="h-5 w-5 text-rose-600" />
-          <p className="text-[10px] font-bold text-rose-900 uppercase tracking-widest">Neural Uplink Fragmentation Detected: Integrity check mandatory.</p>
-          <button onClick={() => fetchData()} className="ml-auto px-4 py-2 bg-rose-600 text-white text-[9px] font-bold uppercase tracking-widest rounded-xl hover:bg-rose-700 transition-colors">Re-Sync</button>
-        </motion.div>
-      )}
 
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 border-b border-zinc-100 pb-10">
@@ -386,7 +373,7 @@ export default function DashboardPage() {
           <h2 className="text-[10px] font-bold uppercase tracking-[0.5em] text-zinc-400 whitespace-nowrap italic">Neural Net Metrics</h2>
           <div className="h-[1px] flex-1 bg-zinc-100"></div>
         </div>
-        <AdminStats />
+        <AdminStats stats={stats} isAdmin={user?.role === 'admin'} />
       </section>
 
       {/* Main Grid: Mission Control */}
