@@ -44,44 +44,53 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
     return () => clearTimeout(timeout);
   }, [userId, userName]);
 
+  const statusRef = useRef<'connecting' | 'streaming' | 'offline'>('connecting');
+
   useEffect(() => {
     if (!socket || !userId) {
       console.warn('[STREAM] Socket or UserId missing', { hasSocket: !!socket, userId });
       return;
     }
 
-    console.log(`[STREAM] Subscribing and attaching listener for node ${userId}`);
+    const room = `stream:${userId}`;
+    console.log(`[STREAM] Subscribing to: ${room}`);
     
-    // Explicitly join the viewer room for this target user
+    // Explicitly join the stream room
     socket.emit('monitoring:subscribe', userId);
 
     const handleFrame = (data: { userId: string, frame: string, timestamp: number }) => {
-      // Direct assignment if the data matches our targeted userId
+      // Ensure data is for our targeted user
       if (String(data.userId) === String(userId)) {
-        if (status !== 'streaming') {
-          console.log(`[STREAM] First frame received for ${userId}`);
+        if (statusRef.current !== 'streaming') {
+          console.log(`[STREAM] Receiving active signal for ${userId}`);
+          statusRef.current = 'streaming';
           setStatus('streaming');
         }
-        setFrame(data.frame);
-        setLatency(Date.now() - (data.timestamp || Date.now()));
+        
+        if (data.frame) {
+          setFrame(data.frame);
+          setLatency(Date.now() - (data.timestamp || Date.now()));
+        }
       }
     };
 
     socket.on('monitoring:frame', handleFrame);
     
     return () => {
-      console.log(`[STREAM] Cleaning up viewer for ${userId}`);
+      console.log(`[STREAM] Unsubscribing from: ${room}`);
       socket.emit('monitoring:unsubscribe', userId);
       socket.off('monitoring:frame', handleFrame);
     };
-  }, [socket, userId]); // Removed status from dependencies to avoid loop
+  }, [socket, userId]);
 
   const handleReconnect = () => {
+    console.log(`[STREAM] Manual re-sync initiated for ${userId}`);
     setFrame(null);
     setStatus('connecting');
+    statusRef.current = 'connecting';
     if (socket && userId) {
       socket.emit('monitoring:unsubscribe', userId);
-      setTimeout(() => socket.emit('monitoring:subscribe', userId), 100);
+      setTimeout(() => socket.emit('monitoring:subscribe', userId), 200);
     }
   };
 

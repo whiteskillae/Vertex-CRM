@@ -7,7 +7,7 @@ import { MonitoringPrompt } from './MonitoringPrompt';
 import { Monitor, AlertCircle, ShieldCheck, Zap, Activity, StopCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const FRAME_RATE = 2; 
+const FRAME_RATE = 1; 
 const QUALITY = 0.35; 
 
 export const ScreenShareManager = () => {
@@ -75,6 +75,11 @@ export const ScreenShareManager = () => {
           canvas.height = video.videoHeight;
           context.drawImage(video, 0, 0, canvas.width, canvas.height);
           const frame = canvas.toDataURL('image/webp', QUALITY);
+          
+          if (Math.random() < 0.1) {
+            console.log(`[STREAM] Emitting frame (${Math.round(frame.length/1024)}KB)`);
+          }
+
           socket.emit('monitoring:frame', { 
             frame, 
             userId: user?._id || (user as any).id,

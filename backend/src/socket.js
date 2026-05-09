@@ -10,28 +10,12 @@ const activeStreamers = new Map();
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: function (origin, callback) {
-        if (!origin) return callback(null, true);
-        const allowedOrigins = [
-          'http://localhost:3000',
-          'http://localhost:3001',
-          'https://vertex-crm-three.vercel.app',
-          'https://vertex-crm.onrender.com'
-        ];
-        const isAllowed = allowedOrigins.indexOf(origin) !== -1 || 
-                         origin.endsWith('.vercel.app') ||
-                         origin.includes('render.com');
-        
-        if (isAllowed) {
-          callback(null, true);
-        } else {
-          callback(null, true); // Fallback for easier connection in dev/prod mismatches
-        }
-      },
+      origin: "*", // More permissive for debugging
       credentials: true,
       methods: ["GET", "POST"]
     },
-    transports: ['websocket', 'polling'], // Prioritize websocket
+    transports: ['websocket', 'polling'],
+    maxHttpBufferSize: 5e6, // Increase to 5MB for larger frames
     pingTimeout: 60000,
     pingInterval: 25000
   });
@@ -108,13 +92,26 @@ const initSocket = (server) => {
 
     // Frame Capture (Frame-based Streaming)
     socket.on('monitoring:frame', (data) => {
-      // Broadcast to specific room for this user so admins can subscribe
-      // We ensure the userId is attached correctly from the socket
+      if (!socket.userId) return;
+
+      // Auto-register streamer if not already done
       if (!activeStreamers.has(socket.userId)) {
-        activeStreamers.set(socket.userId, { socketId: socket.id, status: 'sharing' });
+        activeStreamers.set(socket.userId, { 
+          socketId: socket.id, 
+          status: 'sharing',
+          lastSeen: Date.now()
+        });
       }
       
-      io.to(`viewer:${socket.userId}`).emit('monitoring:frame', { 
+      const room = `stream:${socket.userId}`;
+      const frameSize = data.frame ? Math.round(data.frame.length / 1024) : 0;
+      
+      // Only log every 20th frame to avoid log spam, but verify it's working
+      if (Math.random() < 0.05) {
+        console.log(`[STREAM] Packet from ${socket.userId}: ${frameSize}KB -> Room: ${room}`);
+      }
+
+      io.to(room).emit('monitoring:frame', { 
         ...data,
         userId: socket.userId,
         timestamp: Date.now() 
@@ -124,17 +121,19 @@ const initSocket = (server) => {
     // Viewer Subscription
     socket.on('monitoring:subscribe', (targetUserId) => {
       if (!targetUserId) return;
-      console.log(`[SOCKET] Admin ${socket.userId} (${socket.user.name}) SUBSCRIBING to node: ${targetUserId}`);
-      socket.join(`viewer:${targetUserId}`);
+      const room = `stream:${targetUserId}`;
+      console.log(`[SOCKET] Admin ${socket.userId} joining room: ${room}`);
+      socket.join(room);
       
-      // Notify the streamer that someone is watching (optional but good for feedback)
-      io.to(targetUserId).emit('admin:watching', { adminId: socket.userId, adminName: socket.user.name });
+      // Immediately notify the streamer
+      io.to(targetUserId).emit('admin:watching', { adminId: socket.userId });
     });
 
     socket.on('monitoring:unsubscribe', (targetUserId) => {
       if (!targetUserId) return;
-      console.log(`[SOCKET] Admin ${socket.userId} UNSUBSCRIBING from node: ${targetUserId}`);
-      socket.leave(`viewer:${targetUserId}`);
+      const room = `stream:${targetUserId}`;
+      console.log(`[SOCKET] Admin ${socket.userId} leaving room: ${room}`);
+      socket.leave(room);
     });
 
     // Stop Session
