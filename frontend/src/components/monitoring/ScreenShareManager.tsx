@@ -74,6 +74,7 @@ export const ScreenShareManager = () => {
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
           context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const frame = canvas.toDataURL('image/webp', QUALITY);
           socket.emit('monitoring:frame', { 
             frame, 
             userId: user?._id || (user as any).id,
