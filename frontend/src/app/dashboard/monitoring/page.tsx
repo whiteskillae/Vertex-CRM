@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { getMonitoringStatus, MonitoringStatus } from '@/services/monitoringService';
+import { format } from 'date-fns';
+import { getMonitoringStatus, MonitoringStatus, getUserLogs } from '@/services/monitoringService';
 import { LiveStreamViewer } from '@/components/monitoring/LiveStreamViewer';
 import { useSocket } from '@/context/SocketContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -68,7 +69,6 @@ export default function MonitoringDashboard() {
   const fetchUserLogs = async (userId: string) => {
     try {
       setLogsLoading(true);
-      const { getUserLogs } = require('@/services/monitoringService');
       const logs = await getUserLogs(userId);
       setUserLogs(logs);
     } catch (err) {
