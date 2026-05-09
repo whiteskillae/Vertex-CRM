@@ -35,19 +35,9 @@ import toast, { Toaster } from 'react-hot-toast';
 
 const ScreenShareManager = dynamic(() => import("@/components/monitoring/ScreenShareManager").then(mod => mod.ScreenShareManager), { ssr: false });
 const NotificationCenter = dynamic(() => import("@/components/dashboard/NotificationCenter"), { ssr: false });
+const ClockDisplay = dynamic(() => import("@/components/dashboard/ClockDisplay").then(mod => mod.ClockDisplay), { ssr: false });
 
 import { useNotifications } from "@/hooks/useNotifications";
-
-const ClockDisplay = () => {
-  const [time, setTime] = useState("00:00");
-  useEffect(() => {
-    const update = () => setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
-    update();
-    const timer = setInterval(update, 60000);
-    return () => clearInterval(timer);
-  }, []);
-  return <>{time}</>;
-};
 
 interface NavItem {
   name: string;
@@ -282,23 +272,3 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </div>
   );
 }
-
-const ClockDisplay = () => {
-  const [time, setTime] = useState("");
-  useEffect(() => {
-    const update = () => setTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
-    update();
-    const interval = setInterval(update, 1000);
-    return () => clearInterval(interval);
-  }, []);
-  return <>{time || "00:00"}</>;
-};
-
-const NotificationCenter = () => {
-  return (
-    <button className="relative p-2.5 bg-zinc-50 text-zinc-400 rounded-xl hover:bg-zinc-950 hover:text-white transition-all group">
-      <Bell className="h-4 w-4" />
-      <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-emerald-500 rounded-full border-2 border-white group-hover:border-zinc-950 transition-all"></span>
-    </button>
-  );
-};

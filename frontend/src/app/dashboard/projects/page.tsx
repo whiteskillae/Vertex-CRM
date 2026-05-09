@@ -154,6 +154,9 @@ export default function ProjectsPage() {
       });
       setIsAssignModalOpen(false);
       alert("Operation Successful: Task assigned to personnel node.");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to assign task.");
     }
   };
 
