@@ -14,7 +14,8 @@ import {
   RefreshCw,
   Search,
   LayoutGrid,
-  List
+  List,
+  Loader2
 } from 'lucide-react';
 
 export default function MonitoringDashboard() {

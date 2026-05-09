@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api";
 import { 
@@ -183,6 +183,10 @@ export default function ProjectsPage() {
     </div>
   );
 
+  const filteredProjects = useMemo(() => {
+    return projects.filter(p => p.title.toLowerCase().includes(searchTerm.toLowerCase()));
+  }, [projects, searchTerm]);
+
   return (
     <div className="space-y-16 pb-32">
       {/* Header & Stats */}
@@ -274,7 +278,7 @@ export default function ProjectsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-50">
-              {projects.filter(p => p.title.toLowerCase().includes(searchTerm.toLowerCase())).map((project) => (
+              {filteredProjects.map((project) => (
                 <tr 
                   key={project._id} 
                   onClick={() => setSelectedProject(project)}

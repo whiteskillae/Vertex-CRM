@@ -26,11 +26,25 @@ import {
 } from "lucide-react";
 
 import { motion, AnimatePresence } from "framer-motion";
-import AdminStats from "@/components/dashboard/AdminStats";
-import CalendarView from "@/components/dashboard/CalendarView";
-import TodoApp from "@/components/dashboard/TodoApp";
+import dynamic from "next/dynamic";
 import { useAuth } from "@/context/AuthContext";
 import { useSocket } from "@/context/SocketContext";
+
+// Dynamic imports for performance optimization
+const AdminStats = dynamic(() => import("@/components/dashboard/AdminStats"), { 
+  ssr: false,
+  loading: () => <div className="h-[400px] bg-zinc-50 animate-pulse rounded-[3rem] border border-zinc-100" />
+});
+
+const CalendarView = dynamic(() => import("@/components/dashboard/CalendarView"), { 
+  ssr: false,
+  loading: () => <div className="h-[600px] bg-zinc-50 animate-pulse rounded-[3rem] border border-zinc-100" />
+});
+
+const TodoApp = dynamic(() => import("@/components/dashboard/TodoApp"), { 
+  ssr: false,
+  loading: () => <div className="h-[500px] bg-zinc-50 animate-pulse rounded-[3rem] border border-zinc-100" />
+});
 
 export default function DashboardPage() {
   const { user } = useAuth();

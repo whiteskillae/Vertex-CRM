@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { 
   FileSearch, Plus, Upload, Download, Search, Filter, Mail, Phone, Building, 
-  ChevronLeft, ChevronRight, Loader2, Trash2, Edit, X, 
+  ChevronLeft, ChevronRight, Loader2, Trash2, Edit, X, Check,
   AlertTriangle, Info, MoreVertical, ExternalLink
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -48,7 +48,15 @@ export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState( page || 1);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
   const [totalPages, setTotalPages] = useState(1);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -74,6 +82,23 @@ export default function LeadsPage() {
     assignedTo: ""
   });
 
+  // Debounced search logic
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchTerm !== "") {
+        fetchLeads();
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, page]);
+
+  useEffect(() => {
+    if (searchTerm === "") {
+      fetchLeads();
+    }
+  }, [searchTerm, page]);
+
   // ── Employee guard ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (user && user.role === 'employee') {
@@ -85,7 +110,7 @@ export default function LeadsPage() {
     if (!user || user.role === 'employee') return;
     try {
       setLoading(true);
-      const { data } = await api.get(`leads?page=${page}&limit=10&search=${searchTerm}`);
+      const { data } = await api.get(`leads?page=${page}&limit=10&search=${debouncedSearchTerm}`);
       const leadData = data?.leads || (Array.isArray(data) ? data : []);
       setLeads(leadData);
       setTotalPages(data?.pages || 1);
@@ -95,7 +120,7 @@ export default function LeadsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, searchTerm, user]);
+  }, [page, debouncedSearchTerm, user]);
 
   const fetchEmployees = useCallback(async () => {
     try {

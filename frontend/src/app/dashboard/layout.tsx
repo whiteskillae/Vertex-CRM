@@ -29,10 +29,13 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { useSocket } from "@/context/SocketContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { ScreenShareManager } from "@/components/monitoring/ScreenShareManager";
-import NotificationCenter from "@/components/dashboard/NotificationCenter";
-import { useNotifications } from "@/hooks/useNotifications";
+import dynamic from "next/dynamic";
 import toast, { Toaster } from 'react-hot-toast';
+
+const ScreenShareManager = dynamic(() => import("@/components/monitoring/ScreenShareManager").then(mod => mod.ScreenShareManager), { ssr: false });
+const NotificationCenter = dynamic(() => import("@/components/dashboard/NotificationCenter"), { ssr: false });
+
+import { useNotifications } from "@/hooks/useNotifications";
 
 interface NavItem {
   name: string;
