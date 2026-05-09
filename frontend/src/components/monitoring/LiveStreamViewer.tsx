@@ -137,7 +137,7 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
           <div className="flex items-center gap-4 bg-zinc-900/90 backdrop-blur-xl border border-white/10 px-5 py-2.5 rounded-2xl">
             <div className={`w-2 h-2 rounded-full ${status === 'streaming' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-zinc-600'} animate-pulse`} />
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-white uppercase tracking-wider">{userName}</span>
+              <span className="text-[11px] font-bold text-white uppercase tracking-[0.1em]">{userName}</span>
               <div className="flex items-center gap-3 mt-0.5">
                 <span className="text-[9px] text-zinc-400 font-medium tabular-nums flex items-center gap-1.5">
                   <Zap className="w-3 h-3" /> {latency}ms

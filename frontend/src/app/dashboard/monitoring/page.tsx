@@ -164,11 +164,11 @@ export default function MonitoringDashboard() {
             <div className="p-5 flex items-center justify-between border-b border-border bg-muted/20">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs">
-                  {monitor.userName?.[0]?.toUpperCase()}
+                  {(monitor.userName?.[0] || (monitor as any).name?.[0] || 'U')?.toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold truncate max-w-[120px]">{monitor.userName}</h3>
-                  <div className="flex items-center gap-1.5 mt-0.5">
+                  <h3 className="text-base font-bold tracking-tight text-foreground">{monitor.userName || (monitor as any).name || 'Personnel Node'}</h3>
+                  <div className="flex items-center gap-1.5 mt-1">
                     <span className={`w-1.5 h-1.5 rounded-full ${monitor.isSharing ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground/30'}`} />
                     <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">
                       {monitor.isSharing ? 'Transmitting' : 'Signal Lost'}

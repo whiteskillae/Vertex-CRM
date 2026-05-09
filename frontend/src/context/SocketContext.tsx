@@ -45,10 +45,11 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     const socketInstance = io(socketUrl, {
       withCredentials: true,
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'], // Polling first for better stability
       reconnectionAttempts: 15,
       reconnectionDelay: 2000,
-      auth: { token } 
+      auth: { token },
+      path: '/socket.io/'
     });
 
     socketInstance.on('connect', () => {
