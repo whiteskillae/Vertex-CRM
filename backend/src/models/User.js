@@ -43,12 +43,10 @@ const userSchema = new mongoose.Schema({
   // ── Notification Tracking ──────────────────────────────────────────────────
   lastReadTasksAt: { type: Date, default: Date.now },
   lastReadAnnouncementsAt: { type: Date, default: Date.now },
-  aiUsage: {
-    count: { type: Number, default: 0 },
-    lastReset: { type: Date, default: Date.now }
-  },
   isDeleted: { type: Boolean, default: false, index: true },
   deletedAt: { type: Date },
+  lastLoginAt: { type: Date },
+  lastLogoutAt: { type: Date },
   createdAt: { type: Date, default: Date.now },
 });
 

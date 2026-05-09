@@ -22,7 +22,6 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const storageRoutes = require('./routes/storageRoutes');
 const projectRoutes = require('./routes/projectRoutes');
-const aiRoutes = require('./routes/aiRoutes');
 const vaultRoutes = require('./routes/vaultRoutes');
 const monitoringRoutes = require('./routes/monitoringRoutes');
 const logRoutes = require('./routes/logRoutes');
@@ -131,7 +130,7 @@ app.get('/health', (req, res) => {
 
 // ── FIX: Legacy/Malformed URL Redirect ───────────────────────────────────────
 // If a request hits /auth, /projects, etc. instead of /api/..., we redirect it.
-const malformedUrls = ['auth', 'leads', 'tasks', 'reports', 'messages', 'announcements', 'projects', 'ai', 'vault'];
+const malformedUrls = ['auth', 'leads', 'tasks', 'reports', 'messages', 'announcements', 'projects', 'vault'];
 malformedUrls.forEach(url => {
   app.use(`/${url}`, (req, res) => {
     const newPath = `/api/${url}${req.path}`;
@@ -153,7 +152,6 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/storage', storageRoutes);
 app.use('/api/projects', projectRoutes);
-app.use('/api/ai', aiRoutes);
 app.use('/api/vault', vaultRoutes);
 app.use('/api/monitoring', monitoringRoutes);
 app.use('/api/logs', logRoutes);

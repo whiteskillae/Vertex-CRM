@@ -6,9 +6,9 @@ const { getActiveStreamers } = require('../socket');
 const getMonitoringStatus = async (req, res) => {
   try {
     const employees = await User.find({ 
-      role: { $in: ['employee', 'manager'] },
+      role: { $in: ['employee', 'manager', 'admin'] },
       isDeleted: { $ne: true }
-    }).select('name email role status jobType bio');
+    }).select('name email role status jobType lastLoginAt lastLogoutAt');
     
     const activeStreamers = getActiveStreamers();
 
@@ -18,7 +18,9 @@ const getMonitoringStatus = async (req, res) => {
       userEmail: emp.email,
       role: emp.role,
       isSharing: activeStreamers.has(emp._id.toString()),
-      status: emp.status
+      status: emp.status,
+      lastLoginAt: emp.lastLoginAt,
+      lastLogoutAt: emp.lastLogoutAt
     }));
 
     res.json(statusList);

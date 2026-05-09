@@ -5,6 +5,7 @@ const Report = require('../models/Report');
 const jwt = require('jsonwebtoken');
 const { sendOTPEmail } = require('../config/emailService');
 const { OAuth2Client } = require('google-auth-library');
+const { logActivity } = require('../utils/activityLogger');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -14,8 +15,22 @@ const generateToken = (id) => {
   });
 };
 
-const sendTokenResponse = (user, statusCode, res, message = undefined) => {
+const sendTokenResponse = async (user, statusCode, res, message = undefined, req = null) => {
   const token = generateToken(user._id);
+
+  // Update last login
+  user.lastLoginAt = new Date();
+  await user.save();
+
+  // Log activity
+  if (req) {
+    await logActivity(req, {
+      userId: user._id,
+      action: 'login',
+      actionType: 'auth',
+      details: `User logged in successfully via ${req.originalUrl}`
+    });
+  }
 
   const options = {
     expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -50,7 +65,22 @@ const sendTokenResponse = (user, statusCode, res, message = undefined) => {
   res.status(statusCode).cookie('token', token, options).json(responsePayload);
 };
 
-exports.logout = (req, res) => {
+exports.logout = async (req, res) => {
+  if (req.user) {
+    const user = await User.findById(req.user.id);
+    if (user) {
+      user.lastLogoutAt = new Date();
+      await user.save();
+    }
+    
+    await logActivity(req, {
+      userId: req.user.id,
+      action: 'logout',
+      actionType: 'auth',
+      details: 'User logged out'
+    });
+  }
+
   res.cookie('token', 'none', {
     expires: new Date(Date.now() + 5 * 1000), // 5 seconds
     httpOnly: true,
@@ -166,13 +196,13 @@ exports.login = async (req, res) => {
         });
       }
       // Authorized Admins/Managers login directly
-      return sendTokenResponse(user, 200, res);
+      return sendTokenResponse(user, 200, res, undefined, req);
     }
 
     // 4. ── ADMIN/MANAGER BYPASS (General Login) ──
     // If an admin/manager uses any login tab, they bypass OTP for efficiency
     if (user.role === 'admin' || user.role === 'manager') {
-      return sendTokenResponse(user, 200, res);
+      return sendTokenResponse(user, 200, res, undefined, req);
     }
 
     // 5. ── EMPLOYEE APPROVAL CHECK ──
@@ -244,7 +274,7 @@ exports.verifyOTP = async (req, res) => {
     }
 
     await user.save();
-    sendTokenResponse(user, 200, res);
+    sendTokenResponse(user, 200, res, undefined, req);
   } catch (error) {
     console.error('verifyOTP error:', error.message);
     res.status(500).json({ message: 'OTP verification failed' });
@@ -355,7 +385,7 @@ exports.googleLogin = async (req, res) => {
       return res.status(403).json({ message: 'Your account is pending approval.' });
     }
 
-    sendTokenResponse(user, 200, res);
+    sendTokenResponse(user, 200, res, undefined, req);
   } catch (error) {
     console.error('Google login error:', error.message);
     res.status(500).json({ message: 'Failed to authenticate with Google' });

@@ -102,7 +102,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Projects", href: "/dashboard/projects", icon: ScrollText },
     { name: "Reports", href: "/dashboard/reports", icon: BarChart3 },
     { name: "Messages", href: "/dashboard/messages", icon: MessageSquare, hasAlert: hasUnreadMessages },
-    { name: "AI Assistant", href: "/dashboard/ai", icon: ShieldCheck },
     ...(isAdmin
       ? [
           { name: "Storage", href: "/dashboard/storage", icon: HardDrive, adminOnly: true },

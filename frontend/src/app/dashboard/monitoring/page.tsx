@@ -56,7 +56,27 @@ export default function MonitoringDashboard() {
   const [selectedUser, setSelectedUser] = useState<MonitoringStatus | null>(null);
   const [messages, setMessages] = useState<Record<string, string[]>>({});
   const [inputMessage, setInputMessage] = useState("");
-  const [mounted, setMounted] = useState(false);
+  const [userLogs, setUserLogs] = useState<any[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+
+  useEffect(() => {
+    if (selectedUser) {
+      fetchUserLogs(selectedUser._id);
+    }
+  }, [selectedUser]);
+
+  const fetchUserLogs = async (userId: string) => {
+    try {
+      setLogsLoading(true);
+      const { getUserLogs } = require('@/services/monitoringService');
+      const logs = await getUserLogs(userId);
+      setUserLogs(logs);
+    } catch (err) {
+      console.error("Failed to fetch user logs");
+    } finally {
+      setLogsLoading(false);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -239,12 +259,18 @@ export default function MonitoringDashboard() {
 
             {/* Footer Action */}
             <div className="p-4 flex items-center justify-between border-t border-border">
-              <div className="flex items-center gap-4 text-muted-foreground">
                 <div className="flex flex-col">
-                  <span className="text-[8px] font-bold uppercase tracking-tight">Node Status</span>
-                  <span className="text-[10px] font-medium">{monitor.isSharing ? 'Verified' : 'Standby'}</span>
+                  <span className="text-[8px] font-bold uppercase tracking-tight">Last Entry</span>
+                  <span className="text-[10px] font-medium">
+                    {monitor.lastLoginAt ? format(new Date(monitor.lastLoginAt), "MMM d, HH:mm") : 'Never'}
+                  </span>
                 </div>
-              </div>
+                <div className="flex flex-col">
+                  <span className="text-[8px] font-bold uppercase tracking-tight">Last Exit</span>
+                  <span className="text-[10px] font-medium">
+                    {monitor.lastLogoutAt ? format(new Date(monitor.lastLogoutAt), "MMM d, HH:mm") : 'Active/Unknown'}
+                  </span>
+                </div>
               <div className="flex items-center gap-2">
                 <button 
                   onClick={() => router.push(`/dashboard/messages?recipient=${monitor._id}`)}
@@ -324,24 +350,70 @@ export default function MonitoringDashboard() {
                 </div>
 
                 <div className="flex-1 border-l border-border bg-card flex flex-col">
-                  <div className="p-6 border-b border-border flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Protocol Chat</span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <div className="p-6 border-b border-border flex items-center justify-between bg-muted/10">
+                    <div className="flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-primary" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-foreground">Activity Timeline</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[8px] font-bold text-muted-foreground uppercase">Live</span>
+                    </div>
                   </div>
-                  <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
-                    {(messages[selectedUser._id] || []).map((msg, i) => (
-                      <div key={i} className={`p-4 rounded-2xl text-xs leading-relaxed ${msg.startsWith('You:') ? 'bg-primary text-primary-foreground ml-8 rounded-tr-none' : 'bg-muted mr-8 rounded-tl-none'}`}>
-                        {msg}
+                  
+                  <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar relative">
+                    <div className="absolute left-10 top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-border to-transparent" />
+                    
+                    {logsLoading ? (
+                      <div className="h-full flex flex-col items-center justify-center gap-4 opacity-50">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                        <p className="text-[9px] font-bold uppercase tracking-widest">Reconstructing events...</p>
                       </div>
-                    ))}
-                    {(!messages[selectedUser._id]?.length) && (
+                    ) : userLogs.length === 0 ? (
                       <div className="h-full flex items-center justify-center opacity-20">
-                        <p className="text-[9px] font-bold uppercase tracking-widest">No Transmissions</p>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-center">No telemetric data available <br/> for this node session</p>
                       </div>
+                    ) : (
+                      userLogs.map((log, i) => (
+                        <div key={log._id} className="relative pl-12">
+                          <div className={`absolute left-[7.5px] top-1.5 w-2 h-2 rounded-full border-2 border-card z-10 ${
+                            log.actionType === 'delete' ? 'bg-rose-500' : 
+                            log.actionType === 'create' ? 'bg-emerald-500' : 
+                            log.actionType === 'auth' ? 'bg-indigo-500' : 'bg-zinc-500'
+                          }`} />
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <p className="text-[11px] font-bold text-foreground uppercase tracking-tight">{log.action}</p>
+                                <span className="text-[9px] font-medium text-muted-foreground tabular-nums">
+                                    {format(new Date(log.timestamp || log.createdAt), "HH:mm:ss")}
+                                </span>
+                            </div>
+                            
+                            <div className="flex flex-wrap gap-2">
+                                <div className="px-2 py-1 bg-muted rounded-lg text-[9px] text-muted-foreground flex items-center gap-1.5 border border-border/50">
+                                    <Globe className="h-3 w-3" />
+                                    {log.ip?.replace('::ffff:', '')}
+                                </div>
+                                <div className="px-2 py-1 bg-muted rounded-lg text-[9px] text-muted-foreground flex items-center gap-1.5 border border-border/50">
+                                    <Eye className="h-3 w-3" />
+                                    {log.page?.substring(0, 20)}...
+                                </div>
+                            </div>
+                            
+                            <p className="text-[10px] text-muted-foreground leading-relaxed italic opacity-60">
+                                {log.details}
+                            </p>
+                          </div>
+                        </div>
+                      ))
                     )}
                   </div>
-                  <div className="p-6 border-t border-border">
-                    <div className="flex gap-2 p-2 bg-muted rounded-2xl border border-border focus-within:ring-1 focus-ring-primary transition-all">
+
+                  {/* Chat Section at Bottom */}
+                  <div className="p-6 border-t border-border bg-muted/5">
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Direct Command Uplink</p>
+                    <div className="flex gap-2 p-2 bg-card rounded-2xl border border-border focus-within:ring-1 focus-ring-primary transition-all">
                       <input 
                         type="text"
                         placeholder="Send command..."

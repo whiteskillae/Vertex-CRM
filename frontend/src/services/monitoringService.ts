@@ -8,7 +8,14 @@ export interface MonitoringStatus {
   isSharing: boolean;
   status: string;
   lastActive?: string | Date;
+  lastLoginAt?: string | Date;
+  lastLogoutAt?: string | Date;
 }
+
+export const getUserLogs = async (userId: string) => {
+  const { data } = await api.get(`logs?userId=${userId}&limit=10`);
+  return data.logs;
+};
 
 export const getMonitoringStatus = async (): Promise<MonitoringStatus[]> => {
   const { data } = await api.get('monitoring/status');

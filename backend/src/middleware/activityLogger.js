@@ -1,29 +1,44 @@
-const ActivityLog = require('../models/ActivityLog');
+const { logActivity } = require('../utils/activityLogger');
 
-const logActivity = (action, entity) => {
+/**
+ * Middleware wrapper for logActivity utility
+ */
+const logActivityMiddleware = (actionLabel, entityLabel) => {
   return async (req, res, next) => {
-    // We'll log after the response is sent
     res.on('finish', async () => {
-      if (res.statusCode >= 200 && res.statusCode < 300) {
+      if (res.statusCode >= 200 && res.statusCode < 400) {
         try {
-          if (!req.user) return; // Only log authenticated actions
+          if (!req.user) return;
 
-          await ActivityLog.create({
-            user: req.user.id,
-            action,
-            entity,
+          let action = actionLabel;
+          let actionType = 'view';
+          const method = req.method;
+
+          if (method === 'POST') actionType = 'create';
+          else if (method === 'PUT' || method === 'PATCH') actionType = 'update';
+          else if (method === 'DELETE') actionType = 'delete';
+
+          if (!action) {
+            const url = req.originalUrl;
+            if (url.includes('/leads')) action = 'Leads';
+            else if (url.includes('/tasks')) action = 'Tasks';
+            else if (url.includes('/reports')) action = 'Reports';
+            else action = 'System';
+            
+            action = `${method === 'GET' ? 'Viewed' : (method === 'POST' ? 'Created' : 'Modified')} ${action}`;
+          }
+
+          await logActivity(req, {
+            userId: req.user.id,
+            action: action,
+            actionType: actionType,
+            entity: entityLabel || 'system',
             entityId: req.params.id || null,
-            details: {
-              method: req.method,
-              url: req.originalUrl,
-              body: req.method !== 'GET' ? req.body : undefined,
-              status: res.statusCode
-            },
-            ip: req.ip || req.headers['x-forwarded-for'],
-            userAgent: req.headers['user-agent']
+            details: `HTTP ${method} ${req.originalUrl} - Status ${res.statusCode}`,
+            changes: method !== 'GET' ? req.body : null
           });
         } catch (err) {
-          console.error('Activity log failure:', err.message);
+          console.error('❌ Middleware log failure:', err.message);
         }
       }
     });
@@ -31,4 +46,4 @@ const logActivity = (action, entity) => {
   };
 };
 
-module.exports = logActivity;
+module.exports = logActivityMiddleware;
