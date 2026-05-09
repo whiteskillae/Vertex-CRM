@@ -187,7 +187,10 @@ export default function MonitoringDashboard() {
             <div className="aspect-video bg-muted relative group-hover:cursor-pointer" onClick={() => monitor.isSharing && setSelectedUser(monitor)}>
               {monitor.isSharing ? (
                 <>
-                  <LiveStreamViewer userId={monitor._id} userName={monitor.userName} />
+                  <LiveStreamViewer 
+                    userId={monitor._id || (monitor as any).id} 
+                    userName={monitor.userName || (monitor as any).name || 'Personnel'} 
+                  />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
                     <div className="opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all">
                       <div className="bg-background/90 backdrop-blur-md p-3 rounded-2xl shadow-2xl">
@@ -269,7 +272,10 @@ export default function MonitoringDashboard() {
               <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
                 <div className="flex-[3] p-8 lg:p-12 bg-muted/10 overflow-y-auto">
                   <div className="aspect-video bg-black rounded-[2rem] overflow-hidden shadow-2xl border border-border relative">
-                    <LiveStreamViewer userId={selectedUser._id} userName={selectedUser.userName} />
+                    <LiveStreamViewer 
+                      userId={selectedUser._id || (selectedUser as any).id} 
+                      userName={selectedUser.userName || (selectedUser as any).name || 'Personnel'} 
+                    />
                   </div>
                   <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
                     {[

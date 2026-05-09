@@ -30,7 +30,7 @@ export const LiveStreamViewer: React.FC<LiveStreamViewerProps> = ({ userId, user
 
   useEffect(() => {
     setMounted(true);
-    console.log(`[STREAM] Initializing viewer for Node: ${userId} (${userName})`);
+    console.log(`[STREAM] Initializing viewer for Node: ${userId} (${userName}) - ID Type: ${typeof userId}`);
     
     const timeout = setTimeout(() => {
       setStatus(prev => {
