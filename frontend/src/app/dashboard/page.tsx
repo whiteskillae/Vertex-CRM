@@ -182,11 +182,11 @@ export default function DashboardPage() {
   if (loading) return (
     <div className="h-full flex items-center justify-center bg-white">
       <div className="flex flex-col items-center gap-4">
-        <Loader2 className="animate-spin h-12 w-12 text-black" />
+        <Loader2 className="animate-spin h-10 w-10 text-zinc-900" />
         <div className="text-center">
-          <p className="text-[10px] font-black uppercase tracking-[0.5em]">Establishing Uplink</p>
+          <p className="text-[9px] font-bold uppercase tracking-[0.4em]">Establishing Uplink</p>
           <div className="flex gap-1 mt-2 justify-center">
-            {[1,2,3].map(i => <div key={i} className="w-1 h-1 bg-black animate-pulse" style={{ animationDelay: `${i*0.2}s` }} />)}
+            {[1,2,3].map(i => <div key={i} className="w-1 h-1 bg-zinc-950 animate-pulse" style={{ animationDelay: `${i*0.2}s` }} />)}
           </div>
         </div>
       </div>
@@ -197,40 +197,40 @@ export default function DashboardPage() {
   const isManagerOrAdmin = user?.role === 'manager' || user?.role === 'admin';
 
   return (
-    <div className="space-y-12 pb-20">
+    <div className="max-w-[1600px] mx-auto space-y-10 pb-20">
       {/* Load Error Warning */}
       {loadError && (
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-4 p-6 bg-rose-50 border border-rose-100 rounded-[2rem] shadow-sm"
+          className="flex items-center gap-4 p-5 bg-rose-50 border border-rose-100 rounded-2xl shadow-sm"
         >
-          <AlertTriangle className="h-6 w-6 text-rose-600" />
-          <p className="text-[10px] font-black text-rose-900 uppercase tracking-[0.2em]">Neural Uplink Fragmentation Detected: Integrity check mandatory.</p>
-          <button onClick={() => fetchData()} className="ml-auto px-4 py-2 bg-rose-600 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-rose-700 transition-colors">Execute Re-Sync</button>
+          <AlertTriangle className="h-5 w-5 text-rose-600" />
+          <p className="text-[10px] font-bold text-rose-900 uppercase tracking-widest">Neural Uplink Fragmentation Detected: Integrity check mandatory.</p>
+          <button onClick={() => fetchData()} className="ml-auto px-4 py-2 bg-rose-600 text-white text-[9px] font-bold uppercase tracking-widest rounded-xl hover:bg-rose-700 transition-colors">Re-Sync</button>
         </motion.div>
       )}
 
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10">
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-1.5 bg-zinc-950 rounded-full"></div>
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">Vertex Command Interface</span>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 border-b border-zinc-100 pb-10">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-1 bg-zinc-900 rounded-full"></div>
+            <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-zinc-400">Vertex Core</span>
           </div>
           <motion.h1 
-            initial={{ y: 20, opacity: 0 }}
+            initial={{ y: 15, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="text-4xl md:text-5xl font-black tracking-tighter text-zinc-950 uppercase italic"
+            className="text-4xl font-bold tracking-tight text-zinc-950 uppercase italic"
           >
-            {isEmployee ? "Personnel" : "Control"} <span className="text-zinc-200 not-italic font-light">Hub</span>
+            {isEmployee ? "Personnel" : "Control"} <span className="text-zinc-300 not-italic font-normal">Center</span>
           </motion.h1>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-widest rounded-full border border-emerald-100 shadow-sm shadow-emerald-500/5">
+          <div className="flex items-center gap-5">
+            <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-600 text-[9px] font-bold uppercase tracking-widest rounded-full border border-emerald-100 shadow-sm shadow-emerald-500/5">
               <Zap className="h-3 w-3 fill-emerald-500" /> Uplink Active
             </div>
-            <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest">
-              Authorized Agent: <span className="text-zinc-950">{user?.name}</span>
+            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">
+              Authorized: <span className="text-zinc-950">{user?.name}</span>
             </p>
           </div>
         </div>
@@ -239,28 +239,28 @@ export default function DashboardPage() {
           <div className="relative group flex-1 md:flex-initial">
             <input 
               type="text" 
-              placeholder="GLOBAL DATA QUERY..." 
-              className="bg-white border border-zinc-100 rounded-[2rem] px-8 py-5 text-xs font-bold uppercase tracking-widest w-full md:w-80 focus:outline-none focus:ring-8 focus:ring-black/[0.02] focus:border-zinc-950 transition-all shadow-sm"
+              placeholder="Query intelligence..." 
+              className="bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-[11px] font-semibold uppercase tracking-widest w-full md:w-72 focus:bg-white focus:border-zinc-950 transition-all"
             />
-            <Search className="absolute right-6 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-300 group-focus-within:text-zinc-950 transition-colors" />
+            <Search className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-300 group-focus-within:text-zinc-950 transition-colors" />
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             <button 
               onClick={() => setShowAnnouncements(!showAnnouncements)}
-              className={`flex-1 md:flex-none px-8 py-5 rounded-[2rem] border transition-all relative group shadow-sm ${showAnnouncements ? "bg-zinc-950 text-white border-zinc-950" : "bg-white text-zinc-500 border-zinc-100 hover:border-zinc-950 hover:text-zinc-950"}`}
+              className={`px-6 py-4 rounded-2xl border transition-all relative group shadow-sm ${showAnnouncements ? "bg-zinc-950 text-white border-zinc-950" : "bg-white text-zinc-500 border-zinc-100 hover:border-zinc-950"}`}
             >
-              <div className="flex items-center gap-3">
-                <Bell className={`h-5 w-5 group-hover:rotate-12 transition-transform ${showAnnouncements ? 'text-white' : 'text-zinc-400'}`} />
-                <span className="text-[10px] font-black uppercase tracking-widest">Notices</span>
+              <div className="flex items-center gap-2">
+                <Bell className={`h-4 w-4 ${showAnnouncements ? 'text-white' : 'text-zinc-400'}`} />
+                <span className="text-[10px] font-bold uppercase tracking-widest">Notices</span>
               </div>
               {announcements.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-6 h-6 bg-rose-500 text-white text-[10px] font-black flex items-center justify-center rounded-full border-4 border-white shadow-xl animate-bounce">
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full border-2 border-white animate-pulse">
                   {announcements.length}
                 </span>
               )}
             </button>
-            <Link href="/dashboard/messages" className="px-6 py-5 rounded-[2rem] border border-zinc-100 bg-white text-zinc-400 hover:text-zinc-950 hover:border-zinc-950 transition-all shadow-sm group">
-              <MessageSquare className="h-6 w-6 group-hover:scale-110 transition-transform" />
+            <Link href="/dashboard/messages" className="p-4 rounded-2xl border border-zinc-100 bg-white text-zinc-400 hover:text-zinc-950 hover:border-zinc-950 transition-all shadow-sm">
+              <MessageSquare className="h-5 w-5" />
             </Link>
           </div>
         </div>
@@ -270,57 +270,51 @@ export default function DashboardPage() {
       <AnimatePresence>
         {showAnnouncements && (
           <motion.div 
-            initial={{ height: 0, opacity: 0, y: -20 }}
-            animate={{ height: "auto", opacity: 1, y: 0 }}
-            exit={{ height: 0, opacity: 0, y: -20 }}
-            className="rounded-[3rem] border border-amber-100 bg-amber-50/30 p-10 shadow-xl shadow-amber-900/[0.02] relative z-50 overflow-hidden backdrop-blur-xl"
+            initial={{ height: 0, opacity: 0, y: -15 }} animate={{ height: "auto", opacity: 1, y: 0 }} exit={{ height: 0, opacity: 0, y: -15 }}
+            className="rounded-[2rem] border border-zinc-100 bg-zinc-50/50 p-8 shadow-xl relative z-50 overflow-hidden backdrop-blur-xl"
           >
-            <div className="flex items-center justify-between mb-10 border-b border-amber-200/50 pb-8">
-              <div className="flex items-center gap-6">
-                <div className="w-16 h-16 bg-amber-500 text-white flex items-center justify-center rounded-3xl shadow-xl shadow-amber-500/20 group hover:rotate-6 transition-transform">
-                  <Activity className="h-8 w-8" />
+            <div className="flex items-center justify-between mb-8 border-b border-zinc-100 pb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-zinc-950 text-white flex items-center justify-center rounded-2xl shadow-xl">
+                  <Activity className="h-6 w-6" />
                 </div>
                 <div>
-                  <h2 className="text-3xl font-black text-amber-950 uppercase italic tracking-tighter">Global Protocols</h2>
-                  <p className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] mt-2">Broadcast Stream // Sector_Delta</p>
+                  <h2 className="text-xl font-bold text-zinc-950 uppercase italic tracking-tight">System Protocols</h2>
+                  <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Broadcast_Delta_v4</p>
                 </div>
               </div>
-              <button onClick={() => setShowAnnouncements(false)} className="p-4 hover:bg-amber-100 rounded-2xl transition-all text-amber-900 group">
-                <X className="h-7 w-7 group-hover:scale-110 transition-transform" />
+              <button onClick={() => setShowAnnouncements(false)} className="p-3 hover:bg-zinc-100 rounded-xl transition-all text-zinc-400 group">
+                <X className="h-6 w-6 group-hover:rotate-90 transition-transform" />
               </button>
             </div>
             
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
-              <div className="space-y-6 max-h-[500px] overflow-y-auto pr-6 custom-scrollbar">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
+              <div className="space-y-5 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
                 {announcements.map((ann) => (
                   <motion.div 
-                    layout
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    key={ann._id} 
-                    className={`p-8 rounded-[2.5rem] border relative overflow-hidden transition-all hover:shadow-xl ${ann.priority === 'urgent' ? 'bg-white border-rose-200 shadow-rose-900/[0.02]' : 'bg-white border-zinc-100 shadow-sm'}`}
+                    layout initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} key={ann._id} 
+                    className={`p-6 rounded-3xl border ${ann.priority === 'urgent' ? 'bg-white border-rose-100' : 'bg-white border-zinc-100'} shadow-sm`}
                   >
-                    {ann.priority === 'urgent' && <div className="absolute top-0 left-0 w-1 h-full bg-rose-500" />}
-                    <div className="flex items-center justify-between mb-5">
-                      <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-lg tracking-widest ${ann.priority === 'urgent' ? 'bg-rose-500 text-white' : 'bg-zinc-100 text-zinc-500'}`}>
+                    <div className="flex items-center justify-between mb-4">
+                      <span className={`text-[8px] font-bold uppercase px-2 py-0.5 rounded-lg tracking-widest ${ann.priority === 'urgent' ? 'bg-rose-500 text-white' : 'bg-zinc-100 text-zinc-500'}`}>
                         {ann.priority}
                       </span>
-                      <span className="text-[10px] text-zinc-400 font-black uppercase tracking-widest">{new Date(ann.createdAt).toLocaleDateString()}</span>
+                      <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest">{new Date(ann.createdAt).toLocaleDateString()}</span>
                     </div>
-                    <h3 className="text-2xl font-bold text-zinc-950 mb-3 tracking-tight italic uppercase">{ann.title}</h3>
-                    <p className="text-[13px] text-zinc-600 font-medium leading-relaxed">{ann.content}</p>
-                    <div className="flex items-center gap-3 mt-6 pt-6 border-t border-zinc-50">
-                      <div className="w-8 h-8 bg-zinc-950 text-white flex items-center justify-center text-xs font-black rounded-xl shadow-lg">
+                    <h3 className="text-lg font-bold text-zinc-950 mb-2 tracking-tight italic uppercase">{ann.title}</h3>
+                    <p className="text-[12px] text-zinc-600 font-medium leading-relaxed line-clamp-3">{ann.content}</p>
+                    <div className="flex items-center gap-2 mt-5 pt-4 border-t border-zinc-50">
+                      <div className="w-7 h-7 bg-zinc-50 border border-zinc-100 text-zinc-900 flex items-center justify-center text-[10px] font-bold rounded-lg uppercase shadow-sm">
                         {ann.createdBy?.name?.[0]}
                       </div>
-                      <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Authorized Broadcast by {ann.createdBy?.name}</p>
+                      <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest italic">{ann.createdBy?.name}</p>
                     </div>
                   </motion.div>
                 ))}
                 {announcements.length === 0 && (
-                  <div className="p-20 text-center border-2 border-dashed border-amber-200 rounded-[3rem] bg-white/50">
-                    <Activity className="h-12 w-12 text-amber-200 mx-auto mb-6 opacity-40" />
-                    <p className="text-[10px] font-black text-amber-800 opacity-40 uppercase tracking-[0.5em]">No active protocols in stream</p>
+                  <div className="p-16 text-center border-2 border-dashed border-zinc-100 rounded-3xl bg-white/50">
+                    <Activity className="h-10 w-10 text-zinc-200 mx-auto mb-4 opacity-40" />
+                    <p className="text-[10px] font-bold text-zinc-300 opacity-40 uppercase tracking-[0.4em]">Silence in sector</p>
                   </div>
                 )}
               </div>
@@ -392,48 +386,47 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-12">
         <div className="xl:col-span-2 space-y-16">
           {/* Active Colleagues */}
-          <section className="space-y-8">
+          <section className="space-y-6">
             <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <h3 className="text-3xl font-black text-zinc-950 tracking-tighter italic uppercase">Active Entities</h3>
-                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em]">Satellite Network Node Discovery</p>
+              <div className="space-y-1">
+                <h3 className="text-2xl font-bold text-zinc-950 tracking-tight italic uppercase">Active Entities</h3>
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Satellite Node Discovery</p>
               </div>
               {isManagerOrAdmin && (
-                <Link href="/dashboard/personnel" className="flex items-center gap-3 px-6 py-4 bg-zinc-950 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:scale-105 transition-all rounded-2xl shadow-2xl shadow-black/10">
-                  <Users className="h-4 w-4" /> Personnel Log
+                <Link href="/dashboard/personnel" className="flex items-center gap-2 px-5 py-3 bg-zinc-950 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all rounded-xl shadow-lg shadow-black/10">
+                  <Users className="h-3.5 w-3.5" /> Personnel Log
                 </Link>
               )}
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {employees.length > 0 ? (
                 employees.slice(0, 10).map((emp) => (
                   <Link 
                     key={emp._id} 
                     href={`/dashboard/messages?recipient=${emp._id}`}
-                    className="group bg-white border border-zinc-100 p-6 rounded-[2rem] hover:bg-zinc-950 transition-all shadow-sm hover:shadow-2xl hover:shadow-black/20 hover:-translate-y-2 duration-500 relative overflow-hidden"
+                    className="group bg-white border border-zinc-100 p-5 rounded-3xl hover:border-zinc-300 transition-all shadow-sm hover:shadow-lg duration-300 relative overflow-hidden"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                     {emp.isSharing && (
-                      <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-0.5 bg-rose-500 text-white text-[8px] font-black uppercase rounded-full animate-pulse z-10 shadow-lg shadow-rose-500/20 border border-white/20">
+                      <div className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-0.5 bg-rose-500 text-white text-[7px] font-bold uppercase rounded-full animate-pulse z-10 shadow-lg border border-white/10">
                         <Activity className="w-2.5 h-2.5" /> Live
                       </div>
                     )}
-                    <div className="flex flex-col items-center text-center gap-4 relative z-10">
-                      <div className="w-14 h-14 bg-zinc-50 border border-zinc-100 rounded-2xl flex items-center justify-center font-black text-xl group-hover:bg-white group-hover:text-black group-hover:border-transparent group-hover:rotate-6 transition-all duration-500 shadow-sm">
+                    <div className="flex flex-col items-center text-center gap-3">
+                      <div className="w-12 h-12 bg-zinc-50 border border-zinc-100 rounded-xl flex items-center justify-center font-bold text-lg group-hover:bg-zinc-950 group-hover:text-white transition-all duration-300">
                         {emp.name?.[0]?.toUpperCase()}
                       </div>
-                      <div className="overflow-hidden w-full space-y-1">
-                        <p className="text-[12px] font-black text-zinc-950 truncate uppercase tracking-tight group-hover:text-white transition-colors">{emp.name}</p>
-                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest group-hover:text-zinc-500 transition-colors italic">{emp.role}</p>
+                      <div className="overflow-hidden w-full">
+                        <p className="text-[11px] font-bold text-zinc-950 truncate uppercase tracking-tight">{emp.name}</p>
+                        <p className="text-[9px] font-semibold text-zinc-400 uppercase tracking-widest mt-0.5 italic">{emp.role}</p>
                       </div>
                     </div>
                   </Link>
                 ))
               ) : (
-                <div className="col-span-full py-20 bg-white border-2 border-dashed border-zinc-100 rounded-[3rem] text-center">
-                  <Loader2 className="h-10 w-10 animate-spin mx-auto text-zinc-100 mb-6" />
-                  <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.5em] italic">Scanning satellite perimeter...</p>
+                <div className="col-span-full py-16 bg-zinc-50/50 border border-dashed border-zinc-200 rounded-3xl text-center">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-zinc-200 mb-4" />
+                  <p className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest italic">Scanning satellite perimeter...</p>
                 </div>
               )}
             </div>
@@ -476,28 +469,26 @@ export default function DashboardPage() {
       </div>
 
       {/* Activity Feed */}
-      <div className="bg-white rounded-[4rem] border border-zinc-100 shadow-sm overflow-hidden relative group">
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent to-zinc-50/20 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
-        
-        <div className="p-12 border-b border-zinc-50 flex flex-col xl:flex-row items-center justify-between gap-10 relative z-10">
-          <div className="flex items-center gap-8">
-            <div className="w-20 h-20 bg-zinc-950 text-white rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-black/20 group-hover:rotate-12 transition-transform duration-700">
-              <Activity className="h-10 w-10" />
+      <div className="bg-white rounded-[2.5rem] border border-zinc-100 shadow-sm overflow-hidden group">
+        <div className="p-8 border-b border-zinc-50 flex flex-col xl:flex-row items-center justify-between gap-8">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 bg-zinc-950 text-white rounded-2xl flex items-center justify-center shadow-lg transition-transform duration-500 group-hover:rotate-6">
+              <Activity className="h-8 w-8" />
             </div>
-            <div className="space-y-2">
-              <h2 className="text-4xl font-black text-zinc-950 tracking-tighter uppercase italic">Intelligence Feed</h2>
-              <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] mt-1">Satellite Node Activity Stream // ID_Alpha_Omega</p>
+            <div className="space-y-1">
+              <h2 className="text-2xl font-bold text-zinc-950 tracking-tight uppercase italic">Intelligence Feed</h2>
+              <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Satellite Node Activity Stream</p>
             </div>
           </div>
           <Link href="/dashboard/reports" className="group w-full xl:w-auto">
-            <div className="flex items-center justify-center gap-4 px-10 py-5 bg-zinc-950 text-white rounded-[2rem] border border-zinc-950 hover:bg-white hover:text-zinc-950 transition-all duration-500 shadow-2xl shadow-black/20 hover:shadow-black/5">
-              <span className="text-[10px] font-black uppercase tracking-[0.3em]">Access Neural Archives</span>
-              <ArrowUpRight className="h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+            <div className="flex items-center justify-center gap-3 px-8 py-4 bg-zinc-950 text-white rounded-xl hover:bg-zinc-800 transition-all shadow-lg shadow-black/10">
+              <span className="text-[10px] font-bold uppercase tracking-widest">Archives</span>
+              <ArrowUpRight className="h-4 w-4" />
             </div>
           </Link>
         </div>
         
-        <div className="divide-y divide-zinc-50 px-8 relative z-10">
+        <div className="divide-y divide-zinc-50 px-4">
           {recentReports.map((report, i) => (
             <motion.div 
               initial={{ opacity: 0, x: -20 }}

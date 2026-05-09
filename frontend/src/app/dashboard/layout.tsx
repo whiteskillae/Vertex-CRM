@@ -25,6 +25,7 @@ import {
   History,
   Video,
   ShieldCheck,
+  Globe
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useSocket } from "@/context/SocketContext";
@@ -51,17 +52,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, logout } = useAuth();
   const { socket } = useSocket();
 
-  // Sidebar state
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  // Notification state from hook
   const { notifications } = useNotifications();
 
   const isAdmin = user?.role === "admin";
   const isEmployee = user?.role === "employee";
 
-  // Real-time Monitoring Alerts for Admin
   useEffect(() => {
     if (socket && isAdmin) {
       const handleStreamStart = (data: any) => {
@@ -70,12 +67,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             icon: '📡',
             duration: 6000,
             style: {
-              borderRadius: '16px',
-              background: '#000',
+              borderRadius: '12px',
+              background: '#09090b',
               color: '#fff',
-              fontSize: '12px',
-              fontWeight: 'bold',
-              border: '2px solid #27272a'
+              fontSize: '11px',
+              fontWeight: '600',
+              border: '1px solid #27272a'
             }
           });
         }
@@ -97,28 +94,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     ...(!isEmployee
       ? [
           { name: "Leads", href: "/dashboard/leads", icon: FileSearch, adminOnly: true },
-          {
-            name: "Personnel",
-            href: "/dashboard/personnel",
-            icon: Users,
-            hasAlert: false,
-          }
+          { name: "Personnel", href: "/dashboard/personnel", icon: Users }
         ]
       : []),
-    {
-      name: "Tasks",
-      href: "/dashboard/tasks",
-      icon: CheckSquare,
-      hasAlert: hasUnreadTasks,
-    },
+    { name: "Tasks", href: "/dashboard/tasks", icon: CheckSquare, hasAlert: hasUnreadTasks },
     { name: "Projects", href: "/dashboard/projects", icon: ScrollText },
     { name: "Reports", href: "/dashboard/reports", icon: BarChart3 },
-    {
-      name: "Messages",
-      href: "/dashboard/messages",
-      icon: MessageSquare,
-      hasAlert: hasUnreadMessages,
-    },
+    { name: "Messages", href: "/dashboard/messages", icon: MessageSquare, hasAlert: hasUnreadMessages },
     { name: "AI Assistant", href: "/dashboard/ai", icon: ShieldCheck },
     ...(isAdmin
       ? [
@@ -133,7 +115,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="animate-spin h-8 w-8 text-black" />
+        <Loader2 className="animate-spin h-6 w-6 text-zinc-200" />
       </div>
     );
   }
@@ -142,22 +124,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     href === "/dashboard" ? pathname === href : pathname.startsWith(href);
 
   return (
-    <div className="h-screen bg-[#fafafa] flex flex-col lg:flex-row overflow-hidden font-sans">
+    <div className="h-screen bg-[#fafafa] flex flex-col lg:flex-row overflow-hidden">
       <Toaster position="top-right" />
       
       {/* Mobile Header */}
-      <header className="lg:hidden bg-white text-black px-6 py-4 flex items-center justify-between border-b border-zinc-200 z-[100] shrink-0 shadow-sm">
+      <header className="lg:hidden bg-white px-6 py-4 flex items-center justify-between border-b border-zinc-100 z-[100] shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-black text-white flex items-center justify-center font-black text-sm rounded-xl">V</div>
-          <h1 className="font-bold text-base tracking-tight">Vertex CRM</h1>
+          <div className="w-8 h-8 bg-zinc-950 text-white flex items-center justify-center font-bold text-sm rounded-lg">V</div>
+          <h1 className="font-bold text-sm tracking-tight uppercase">Vertex CRM</h1>
         </div>
         <div className="flex items-center gap-4">
           <NotificationCenter />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 hover:bg-zinc-100 rounded-xl transition-all"
+            className="p-2 hover:bg-zinc-50 rounded-lg transition-all"
           >
-            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </header>
@@ -166,49 +148,49 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside
         className={`
           fixed lg:relative top-0 left-0 bottom-0 z-[110] lg:z-40 bg-white border-r border-zinc-100 flex flex-col h-full
-          transition-all duration-500 ease-in-out shadow-2xl lg:shadow-none shrink-0
-          ${collapsed ? "w-28" : "w-80"}
+          transition-all duration-300 ease-in-out
+          ${collapsed ? "w-24" : "w-72"}
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        <div className={`p-10 flex items-center shrink-0 ${collapsed ? "justify-center" : "justify-between"}`}>
+        <div className={`p-8 flex items-center shrink-0 ${collapsed ? "justify-center" : "justify-between"}`}>
           {!collapsed && (
-            <div className="flex items-center gap-5">
-              <div className="w-12 h-12 bg-zinc-950 text-white flex items-center justify-center font-black text-2xl rounded-[1.5rem] shadow-2xl shadow-black/30">V</div>
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-zinc-950 text-white flex items-center justify-center font-bold text-xl rounded-xl">V</div>
               <div>
-                <h2 className="text-lg font-black tracking-tighter text-zinc-950 uppercase italic">Vertex</h2>
-                <p className="text-[9px] text-brand-indigo font-black uppercase tracking-[0.4em] italic">Enterprise_Core</p>
+                <h2 className="text-sm font-bold tracking-tight text-zinc-950 uppercase italic leading-none">Vertex</h2>
+                <p className="text-[8px] text-zinc-400 font-bold uppercase tracking-widest mt-1">Enterprise Core</p>
               </div>
             </div>
           )}
-          {collapsed && <div className="w-14 h-14 bg-zinc-950 text-white flex items-center justify-center font-black text-2xl rounded-[1.5rem] shadow-2xl shadow-black/20">V</div>}
+          {collapsed && <div className="w-10 h-10 bg-zinc-950 text-white flex items-center justify-center font-bold text-xl rounded-xl">V</div>}
           
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="hidden lg:flex items-center justify-center w-10 h-10 text-zinc-300 hover:text-zinc-950 hover:bg-zinc-50 rounded-2xl transition-all ml-4"
+            className="hidden lg:flex items-center justify-center w-8 h-8 text-zinc-300 hover:text-zinc-950 hover:bg-zinc-50 rounded-lg transition-all"
           >
-            {collapsed ? <ChevronRight className="h-6 w-6" /> : <ChevronLeft className="h-6 w-6" />}
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
         </div>
 
-        <div className={`px-8 py-4 shrink-0 ${collapsed ? "flex justify-center" : ""}`}>
-          <div className={`bg-zinc-50/50 rounded-[2rem] p-5 border border-zinc-100 flex items-center ${collapsed ? "justify-center" : "gap-5"} group cursor-pointer hover:bg-white hover:border-zinc-200 transition-all duration-500`}>
-            <div className="w-12 h-12 bg-white border border-zinc-100 text-zinc-950 flex items-center justify-center font-black text-xl rounded-[1.2rem] shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+        <div className={`px-6 py-2 shrink-0 ${collapsed ? "flex justify-center" : ""}`}>
+          <div className={`bg-zinc-50/50 rounded-2xl p-4 border border-zinc-100 flex items-center ${collapsed ? "justify-center" : "gap-4"} group cursor-pointer hover:bg-white hover:border-zinc-200 transition-all`}>
+            <div className="w-10 h-10 bg-white border border-zinc-100 text-zinc-950 flex items-center justify-center font-bold text-base rounded-lg shrink-0 shadow-sm">
               {user.name?.[0]?.toUpperCase()}
             </div>
             {!collapsed && (
               <div className="overflow-hidden">
-                <p className="text-sm font-black text-zinc-950 truncate uppercase tracking-tight italic">{user.name}</p>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-brand-emerald rounded-full animate-pulse" />
-                  <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{user.role}</p>
+                <p className="text-[11px] font-bold text-zinc-950 truncate uppercase tracking-tight italic">{user.name}</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <div className="w-1 h-1 bg-emerald-500 rounded-full" />
+                  <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">{user.role}</p>
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-10 space-y-2 px-6 custom-scrollbar">
+        <nav className="flex-1 overflow-y-auto py-8 space-y-1 px-4 custom-scrollbar">
           {navItems.map((item) => {
             const active = isActive(item.href);
             return (
@@ -217,24 +199,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={`
-                  relative flex items-center transition-all group rounded-[1.5rem]
-                  ${collapsed ? "justify-center p-5" : "px-6 py-4 gap-5"}
+                  relative flex items-center transition-all group rounded-xl
+                  ${collapsed ? "justify-center p-3.5" : "px-5 py-3 gap-4"}
                   ${active
-                    ? "bg-zinc-950 text-white shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)]"
+                    ? "bg-zinc-950 text-white shadow-lg shadow-black/10"
                     : "text-zinc-400 hover:text-zinc-950 hover:bg-zinc-50"
                   }
                 `}
               >
-                <item.icon className={`h-5 w-5 flex-shrink-0 transition-transform group-hover:scale-110 ${active ? "text-white" : "text-zinc-300 group-hover:text-zinc-950"}`} />
+                <item.icon className={`h-4 w-4 flex-shrink-0 transition-transform ${active ? "text-white" : "text-zinc-300 group-hover:text-zinc-950"}`} />
                 {!collapsed && (
-                  <span className="text-[11px] font-black uppercase tracking-[0.2em] flex-1 italic">
+                  <span className="text-[10px] font-bold uppercase tracking-widest flex-1 italic">
                     {item.name}
                   </span>
                 )}
                 {item.hasAlert && (
                   <span className={`
-                    flex-shrink-0 h-2.5 w-2.5 bg-brand-rose rounded-full shadow-[0_0_10px_rgba(244,63,94,0.5)]
-                    ${collapsed ? "absolute top-4 right-4 border-2 border-white" : ""}
+                    flex-shrink-0 h-1.5 w-1.5 bg-rose-500 rounded-full shadow-[0_0_8px_rgba(244,63,94,0.3)]
+                    ${collapsed ? "absolute top-3 right-3" : ""}
                   `} />
                 )}
               </Link>
@@ -242,42 +224,43 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           })}
         </nav>
 
-        <div className="mt-auto p-8 border-t border-zinc-100 space-y-4 shrink-0">
+        <div className="mt-auto p-6 border-t border-zinc-100 shrink-0">
           <button
             onClick={() => logout()}
-            className={`w-full flex items-center gap-5 p-5 text-brand-rose font-black uppercase tracking-[0.3em] text-[10px] italic hover:bg-rose-50 rounded-[1.5rem] transition-all ${collapsed ? "justify-center" : ""}`}
+            className={`w-full flex items-center gap-4 p-3.5 text-rose-500 font-bold uppercase tracking-widest text-[9px] italic hover:bg-rose-50 rounded-xl transition-all ${collapsed ? "justify-center" : ""}`}
           >
-            <LogOut className="h-5 w-5" />
-            {!collapsed && <span className="text-xs">Terminate Session</span>}
+            <LogOut className="h-4 w-4" />
+            {!collapsed && <span>Terminate Session</span>}
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col min-w-0 bg-[#fafafa] relative h-full overflow-hidden">
-        <header className="hidden lg:flex items-center justify-between px-12 py-8 bg-white/80 backdrop-blur-3xl sticky top-0 z-30 shrink-0 border-b border-zinc-100/50">
-          <div className="flex items-center gap-6">
-            <span className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.5em] italic">Vertex_Core</span>
-            <div className="w-1.5 h-1.5 bg-zinc-200 rounded-full" />
-            <span className="text-xs font-black text-zinc-950 uppercase tracking-widest italic">{pathname.split('/').pop()?.replace(/-/g, ' ') || 'Overview'}</span>
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col min-w-0 bg-[#fafafa] relative overflow-hidden">
+        <header className="hidden lg:flex items-center justify-between px-10 py-6 bg-white border-b border-zinc-100 shrink-0">
+          <div className="flex items-center gap-4">
+            <span className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest italic">Nexus Protocol</span>
+            <div className="w-1 h-1 bg-zinc-200 rounded-full" />
+            <span className="text-[10px] font-bold text-zinc-950 uppercase tracking-widest italic">{pathname.split('/').pop()?.replace(/-/g, ' ') || 'Overview'}</span>
           </div>
-          <div className="flex items-center gap-12">
+          <div className="flex items-center gap-8">
             <div className="flex flex-col items-end">
-              <span className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.4em] leading-none mb-2 italic">Node_Time</span>
-              <span className="text-sm font-black text-zinc-950 tracking-[0.2em] italic">
-                {typeof window !== 'undefined' ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : '00:00:00'}
+              <span className="text-[8px] font-bold text-zinc-300 uppercase tracking-widest leading-none mb-1.5">System Clock</span>
+              <span className="text-xs font-bold text-zinc-950 tracking-widest tabular-nums">
+                {typeof window !== 'undefined' ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '00:00'}
               </span>
             </div>
-            <div className="h-10 w-[1px] bg-zinc-100"></div>
+            <div className="h-8 w-[1px] bg-zinc-100"></div>
             <NotificationCenter />
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar relative z-10 scroll-smooth">
-          <div className="max-w-[1600px] mx-auto p-8 md:p-10 lg:p-12">
+        <div className="flex-1 overflow-y-auto custom-scrollbar relative">
+          <div className="p-6 md:p-8 lg:p-10">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.3 }}
             >
               {children}
             </motion.div>
