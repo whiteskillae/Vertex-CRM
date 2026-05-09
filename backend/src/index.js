@@ -88,7 +88,7 @@ app.use(helmet({
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://va.vercel-scripts.com"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://lh3.googleusercontent.com"],
-      connectSrc: ["'self'", "https://res.cloudinary.com", "https://api.cloudinary.com", "wss://vertex-crm.onrender.com", "ws://localhost:5001"],
+      connectSrc: ["'self'", "https://res.cloudinary.com", "https://api.cloudinary.com", "https://vertex-crm.onrender.com", "wss://vertex-crm.onrender.com", "ws://localhost:5001", "http://localhost:5001"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       objectSrc: ["'none'"],
       upgradeInsecureRequests: [],

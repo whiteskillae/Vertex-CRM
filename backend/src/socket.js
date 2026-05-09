@@ -10,7 +10,20 @@ const activeStreamers = new Map();
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: "*", // More permissive for debugging
+      origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        const allowed = [
+          'http://localhost:3000',
+          'http://localhost:3001',
+          'https://vertex-crm-three.vercel.app',
+          'https://vertex-crm.onrender.com'
+        ];
+        if (allowed.includes(origin) || origin.endsWith('.vercel.app') || origin.includes('render.com')) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       credentials: true,
       methods: ["GET", "POST"]
     },
@@ -101,38 +114,33 @@ const initSocket = (server) => {
           status: 'sharing',
           lastSeen: Date.now()
         });
+        // Notify admins that a new stream has been auto-detected
+        io.to('admin-room').emit('monitoring:update', { userId: socket.userId, status: 'sharing' });
       }
       
-      const room = `stream:${socket.userId}`;
-      const frameSize = data.frame ? Math.round(data.frame.length / 1024) : 0;
-      
-      // Only log every 20th frame to avoid log spam, but verify it's working
-      if (Math.random() < 0.05) {
-        console.log(`[STREAM] Packet from ${socket.userId}: ${frameSize}KB -> Room: ${room}`);
-      }
-
-      io.to(room).emit('monitoring:frame', { 
+      const specificRoom = `stream:${socket.userId}`;
+      const payload = { 
         ...data,
         userId: socket.userId,
         timestamp: Date.now() 
-      });
+      };
+
+      // Broadcast to specific room (for high-res viewers)
+      // AND to admin-room (for grid discovery and light previews)
+      io.to(specificRoom).to('admin-room').emit('monitoring:frame', payload);
     });
 
     // Viewer Subscription
     socket.on('monitoring:subscribe', (targetUserId) => {
       if (!targetUserId) return;
       const room = `stream:${targetUserId}`;
-      console.log(`[SOCKET] Admin ${socket.userId} joining room: ${room}`);
       socket.join(room);
-      
-      // Immediately notify the streamer
-      io.to(targetUserId).emit('admin:watching', { adminId: socket.userId });
+      console.log(`[SOCKET] Admin ${socket.userId} joined ${room}`);
     });
 
     socket.on('monitoring:unsubscribe', (targetUserId) => {
       if (!targetUserId) return;
       const room = `stream:${targetUserId}`;
-      console.log(`[SOCKET] Admin ${socket.userId} leaving room: ${room}`);
       socket.leave(room);
     });
 
